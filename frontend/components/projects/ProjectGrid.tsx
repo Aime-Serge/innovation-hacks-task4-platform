@@ -1,5 +1,5 @@
 import type { Project, Task } from "@/lib/types";
-import { getProjectProgress } from "@/lib/mock-data";
+import { getProjectProgress } from "@/lib/data";
 import { ProjectCard } from "./ProjectCard";
 import { Skeleton } from "@/components/shared/Skeleton";
 import { EmptyState } from "@/components/shared/EmptyState";

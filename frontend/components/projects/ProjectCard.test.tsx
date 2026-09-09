@@ -7,6 +7,7 @@ const project: Project = {
   id: "proj-atlas",
   name: "Atlas API Gateway",
   description: "Rate-limited gateway routing traffic to internal services.",
+  ownerId: "user-1",
   createdAt: "2026-07-01T09:00:00.000Z",
 };
 
@@ -18,7 +19,7 @@ describe("ProjectCard", () => {
       </ul>,
     );
     expect(screen.getByText(project.name)).toBeInTheDocument();
-    expect(screen.getByText(project.description)).toBeInTheDocument();
+    expect(screen.getByText(project.description as string)).toBeInTheDocument();
     expect(screen.getByText("1/4 done")).toBeInTheDocument();
     expect(screen.getByRole("link")).toHaveAttribute("href", "/projects/proj-atlas");
   });

@@ -16,7 +16,9 @@ export function ProjectCard({
         className="block rounded border border-border-hairline bg-surface p-4 transition-colors hover:border-interactive focus-visible:border-interactive"
       >
         <h3 className="truncate text-sm font-semibold text-text-primary">{project.name}</h3>
-        <p className="mt-1 line-clamp-2 text-xs text-text-secondary">{project.description}</p>
+        {project.description && (
+          <p className="mt-1 line-clamp-2 text-xs text-text-secondary">{project.description}</p>
+        )}
         <div className="mt-3">
           <ProgressBar progress={progress} />
         </div>

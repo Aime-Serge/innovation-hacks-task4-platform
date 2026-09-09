@@ -7,9 +7,11 @@ const task: Task = {
   id: "t-1",
   projectId: "proj-atlas",
   title: "Write integration tests for auth middleware",
+  description: null,
   status: "in-progress",
   priority: "high",
   dueDate: "2026-09-10",
+  assigneeId: null,
   createdAt: "2026-07-05T09:00:00.000Z",
 };
 

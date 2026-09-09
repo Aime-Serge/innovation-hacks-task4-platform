@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { fetchProject, fetchTasks, getProjectProgress } from "@/lib/mock-data";
+import { fetchProject, fetchTasks, getProjectProgress } from "@/lib/data";
 import { useAsync } from "@/lib/useAsync";
 import { ProgressBar } from "@/components/shared/ProgressBar";
 import { ErrorState } from "@/components/shared/ErrorState";
@@ -32,7 +32,9 @@ export function ProjectDetailView({ projectId }: { projectId: string }) {
         {projectState.status === "success" && projectState.data && (
           <>
             <h1 className="text-2xl font-bold text-text-primary">{projectState.data.name}</h1>
-            <p className="mt-1 text-sm text-text-secondary">{projectState.data.description}</p>
+            {projectState.data.description && (
+              <p className="mt-1 text-sm text-text-secondary">{projectState.data.description}</p>
+            )}
             <div className="mt-4 max-w-xs">
               <ProgressBar progress={getProjectProgress(projectId, tasks)} />
             </div>

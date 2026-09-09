@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { fetchProjects, fetchTasks } from "@/lib/mock-data";
+import { fetchProjects, fetchTasks } from "@/lib/data";
 import { useAsync } from "@/lib/useAsync";
 import type { Project, Task, TaskStatus } from "@/lib/types";
 
@@ -17,12 +17,11 @@ import { SearchBar } from "@/components/controls/SearchBar";
 import { FilterBar } from "@/components/controls/FilterBar";
 
 export function DashboardView() {
-  const [simulateError, setSimulateError] = useState(false);
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<TaskStatus | null>(null);
 
-  const projectsState = useAsync(() => fetchProjects({ simulateError }), [simulateError]);
-  const tasksState = useAsync(() => fetchTasks(undefined, { simulateError }), [simulateError]);
+  const projectsState = useAsync(() => fetchProjects(), []);
+  const tasksState = useAsync(() => fetchTasks(), []);
 
   const projects = projectsState.data ?? EMPTY_PROJECTS;
   const tasks = tasksState.data ?? EMPTY_TASKS;
@@ -64,16 +63,6 @@ export function DashboardView() {
             See where every project stands, at a glance.
           </p>
         </div>
-        {process.env.NODE_ENV !== "production" && (
-          <label className="flex items-center gap-2 rounded border border-border-hairline px-2.5 py-1.5 text-xs text-text-secondary">
-            <input
-              type="checkbox"
-              checked={simulateError}
-              onChange={(e) => setSimulateError(e.target.checked)}
-            />
-            Simulate error (dev only)
-          </label>
-        )}
       </div>
 
       <section aria-label="Activity summary" className="mt-6">
