@@ -1,4 +1,5 @@
 import { api } from "./api";
+import { getInitials } from "./format";
 import type { User } from "./types";
 
 interface ApiUser {
@@ -6,13 +7,6 @@ interface ApiUser {
   name: string;
   email: string;
   created_at: string;
-}
-
-export function getInitials(name: string): string {
-  const parts = name.trim().split(/\s+/).filter(Boolean);
-  if (parts.length === 0) return "?";
-  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
-  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }
 
 function toUser(u: ApiUser): User {

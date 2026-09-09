@@ -1,5 +1,5 @@
 import { api, ApiError } from "./api";
-import { getInitials } from "./auth";
+import { getInitials } from "./format";
 import type { Priority, Project, ProjectProgress, Task, TaskStatus, User } from "./types";
 
 interface ApiProject {

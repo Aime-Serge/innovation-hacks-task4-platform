@@ -1,4 +1,4 @@
-import type { Project, Task } from "@/lib/types";
+import type { Project, Task, TaskStatus, User } from "@/lib/types";
 import { TaskCard } from "./TaskCard";
 import { Skeleton } from "@/components/shared/Skeleton";
 import { EmptyState } from "@/components/shared/EmptyState";
@@ -21,18 +21,26 @@ export function TaskList({
   status,
   tasks,
   projects,
+  users,
   showProjectName = false,
   filtered,
   onRetry,
   onClearFilters,
+  onStatusChange,
+  onEdit,
+  onDelete,
 }: {
   status: "loading" | "error" | "success";
   tasks: Task[];
   projects: Project[];
+  users?: User[];
   showProjectName?: boolean;
   filtered?: boolean;
   onRetry: () => void;
   onClearFilters?: () => void;
+  onStatusChange?: (task: Task, status: TaskStatus) => void;
+  onEdit?: (task: Task) => void;
+  onDelete?: (task: Task) => void;
 }) {
   if (status === "loading") {
     return (
@@ -66,6 +74,7 @@ export function TaskList({
   }
 
   const projectNameById = new Map(projects.map((p) => [p.id, p.name]));
+  const userNameById = new Map((users ?? []).map((u) => [u.id, u.name]));
 
   return (
     <ul className="rounded border border-border-hairline bg-surface">
@@ -74,6 +83,10 @@ export function TaskList({
           key={task.id}
           task={task}
           projectName={showProjectName ? projectNameById.get(task.projectId) : undefined}
+          assigneeName={task.assigneeId ? userNameById.get(task.assigneeId) : undefined}
+          onStatusChange={onStatusChange ? (status) => onStatusChange(task, status) : undefined}
+          onEdit={onEdit ? () => onEdit(task) : undefined}
+          onDelete={onDelete ? () => onDelete(task) : undefined}
         />
       ))}
     </ul>
