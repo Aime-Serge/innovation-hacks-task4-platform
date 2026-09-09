@@ -81,7 +81,7 @@ export function RegisterForm() {
       />
       {emailError && (
         <p className="text-xs text-text-secondary">
-          <Link href="/login" className="text-interactive hover:underline">
+          <Link href="/login" className="text-interactive underline hover:no-underline">
             Log in instead?
           </Link>
         </p>
@@ -115,7 +115,7 @@ export function RegisterForm() {
       </button>
       <p className="text-sm text-text-secondary">
         Already have an account?{" "}
-        <Link href="/login" className="text-interactive hover:underline">
+        <Link href="/login" className="text-interactive underline hover:no-underline">
           Log in
         </Link>
       </p>

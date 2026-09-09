@@ -71,7 +71,7 @@ export function LoginForm() {
       </button>
       <p className="text-sm text-text-secondary">
         No account?{" "}
-        <Link href="/register" className="text-interactive hover:underline">
+        <Link href="/register" className="text-interactive underline hover:no-underline">
           Create one
         </Link>
       </p>
