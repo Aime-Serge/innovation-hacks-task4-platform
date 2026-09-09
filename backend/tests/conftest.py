@@ -24,30 +24,48 @@ def apply_migrations():
 
 @pytest.fixture(autouse=True)
 def reset_database():
-    """Equivalent of Task 2's `._users.clear()` etc. for a real database:
-    truncate every table before each test so tests stay isolated."""
+    """Truncate every table before each test so tests stay isolated."""
     engine = get_engine()
     with engine.begin() as conn:
         conn.execute(text("TRUNCATE TABLE tasks, projects, users CASCADE"))
     yield
 
 
+def _register(email: str, name: str = "Ada Lovelace", password: str = "supersecret") -> TestClient:
+    c = TestClient(app)
+    c.post("/auth/register", json={"name": name, "email": email, "password": password})
+    return c
+
+
 @pytest.fixture
-def client():
+def anon_client() -> TestClient:
+    """No session cookie — for asserting protected routes reject anonymous
+    requests, and for exercising register/login themselves."""
     return TestClient(app)
 
 
 @pytest.fixture
-def user(client):
-    return client.post(
-        "/users",
-        json={"name": "Ada Lovelace", "email": "ada@example.com", "password": "supersecret"},
-    ).json()
+def client() -> TestClient:
+    """An authenticated client (session cookie already set from
+    /auth/register) — the default for tests exercising normal, logged-in
+    behavior."""
+    return _register("ada@example.com")
 
 
 @pytest.fixture
-def project(client, user):
+def user(client) -> dict:
+    return client.get("/auth/me").json()
+
+
+@pytest.fixture
+def other_client() -> TestClient:
+    """A second, independent authenticated user — for cross-tenant
+    isolation tests: one user must never see or edit another's data."""
+    return _register("grace@example.com", name="Grace Hopper")
+
+
+@pytest.fixture
+def project(client) -> dict:
     return client.post(
-        "/projects",
-        json={"name": "Analytical Engine", "description": "A project", "owner_id": user["id"]},
+        "/projects", json={"name": "Analytical Engine", "description": "A project"}
     ).json()

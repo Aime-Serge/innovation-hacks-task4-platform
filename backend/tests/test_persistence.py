@@ -2,9 +2,10 @@
 exercise persistence-across-restart, cascade-delete behavior, relationship
 queries, and schema-level validation independent of the Pydantic layer.
 
-Task 2's own endpoint tests (test_users.py, test_projects.py, test_tasks.py,
-test_error_handling.py) run unmodified against this same database via
-conftest.py and are the proof that external API behavior didn't change.
+The endpoint tests (test_auth.py, test_users.py, test_projects.py,
+test_tasks.py, test_error_handling.py) run against this same database via
+conftest.py and are the proof that day-to-day API behavior is correct;
+these tests instead reach past the API into the database directly.
 """
 
 from uuid import uuid4
@@ -32,7 +33,11 @@ def test_data_survives_a_simulated_server_restart(client, project):
     get_engine.cache_clear()
     get_session_factory.cache_clear()
 
+    # Same session cookie, brand-new client/connection pool underneath —
+    # this is what "restart" means here, not "logged out".
     fresh_client = TestClient(app)
+    fresh_client.cookies.update(client.cookies)
+
     r = fresh_client.get(f"/tasks/{task['id']}")
     assert r.status_code == 200
     assert r.json()["title"] == "Persist me"
@@ -43,8 +48,6 @@ def test_data_survives_a_simulated_server_restart(client, project):
 
 
 def test_deleting_project_cascades_to_its_tasks(client, project):
-    """Task 2 has no DELETE /projects route, so this exercises the
-    Architect's cascade rule directly at the database layer."""
     task = client.post(
         "/tasks", json={"title": "Orphan candidate", "project_id": project["id"]}
     ).json()
@@ -59,9 +62,6 @@ def test_deleting_project_cascades_to_its_tasks(client, project):
 
 
 def test_deleting_user_cascades_to_projects_and_tasks(client, user, project):
-    """DELETE /users/{id} deletes unconditionally in Task 2 with no
-    ownership check — cascading here preserves that exact external
-    behavior instead of introducing a new FK-violation error."""
     task = client.post(
         "/tasks", json={"title": "Also orphaned", "project_id": project["id"]}
     ).json()
@@ -75,13 +75,9 @@ def test_deleting_user_cascades_to_projects_and_tasks(client, user, project):
         assert session.get(TaskModel, task["id"]) is None
 
 
-def test_tasks_for_project_relationship_query_is_correct(client, user):
-    project_a = client.post(
-        "/projects", json={"name": "Project A", "owner_id": user["id"]}
-    ).json()
-    project_b = client.post(
-        "/projects", json={"name": "Project B", "owner_id": user["id"]}
-    ).json()
+def test_tasks_for_project_relationship_query_is_correct(client):
+    project_a = client.post("/projects", json={"name": "Project A"}).json()
+    project_b = client.post("/projects", json={"name": "Project B"}).json()
 
     client.post("/tasks", json={"title": "A1", "project_id": project_a["id"]})
     client.post("/tasks", json={"title": "A2", "project_id": project_a["id"]})
@@ -144,3 +140,30 @@ def test_schema_rejects_oversized_field_bypassing_api_layer(project):
                 owner_id=project["owner_id"],
             )
             session.add(row)
+
+
+def test_schema_rejects_task_priority_outside_enum_bypassing_api_layer(project):
+    with pytest.raises(DataError):
+        with session_scope() as session:
+            session.execute(
+                text(
+                    "INSERT INTO tasks (id, title, project_id, priority) "
+                    "VALUES (gen_random_uuid(), 'bad priority', :project_id, 'urgent')"
+                ),
+                {"project_id": str(project["id"])},
+            )
+
+
+def test_deleting_assignee_sets_task_assignee_to_null(client, project, other_client):
+    assignee_id = other_client.get("/auth/me").json()["id"]
+    task = client.post(
+        "/tasks",
+        json={"title": "Assigned", "project_id": project["id"], "assignee_id": assignee_id},
+    ).json()
+
+    other_client.delete(f"/users/{assignee_id}")
+
+    with session_scope() as session:
+        row = session.get(TaskModel, task["id"])
+        assert row is not None
+        assert row.assignee_id is None

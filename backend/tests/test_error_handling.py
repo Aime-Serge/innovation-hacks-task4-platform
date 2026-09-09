@@ -15,6 +15,11 @@ def test_unhandled_exception_returns_500_with_generic_body(monkeypatch):
     # the global handler's HTTP response path instead of the exception
     # propagating up through the test.
     client = TestClient(app, raise_server_exceptions=False)
+    client.post(
+        "/auth/register",
+        json={"name": "Ada", "email": "ada@example.com", "password": "supersecret"},
+    )
+
     r = client.get("/users")
 
     assert r.status_code == 500
