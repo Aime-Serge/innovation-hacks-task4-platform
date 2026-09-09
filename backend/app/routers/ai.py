@@ -1,8 +1,11 @@
+import json
 import logging
 from uuid import UUID
 
-import anthropic
 from fastapi import APIRouter, Depends
+from google import genai
+from google.genai import errors as genai_errors
+from google.genai import types as genai_types
 from pydantic import BaseModel, Field
 
 from app.config import get_settings
@@ -17,29 +20,28 @@ logger = logging.getLogger("app.ai")
 router = APIRouter(prefix="/projects/{project_id}/ai", tags=["ai"], dependencies=[Depends(get_current_user)])
 
 _MAX_TASKS = 8
-_REQUEST_TIMEOUT_SECONDS = 20.0
+_REQUEST_TIMEOUT_MS = 30_000
 
-_PROPOSE_TASKS_TOOL = {
-    "name": "propose_tasks",
-    "description": "Propose a concrete, actionable list of tasks for the project.",
-    "input_schema": {
-        "type": "object",
-        "properties": {
-            "tasks": {
-                "type": "array",
-                "items": {
-                    "type": "object",
-                    "properties": {
-                        "title": {"type": "string", "description": "Short, actionable task title (max ~80 chars)."},
-                        "description": {"type": "string", "description": "1-2 sentence description of what the task involves."},
-                        "priority": {"type": "string", "enum": ["low", "medium", "high"]},
-                    },
-                    "required": ["title", "description", "priority"],
+# Gemini's structured-output mode (response_mime_type="application/json" +
+# response_schema) is the equivalent of Anthropic's forced tool-use: the
+# model is constrained to emit exactly this shape, not prose to regex out.
+_RESPONSE_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "tasks": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "title": {"type": "string", "description": "Short, actionable task title (max ~80 chars)."},
+                    "description": {"type": "string", "description": "1-2 sentence description of what the task involves."},
+                    "priority": {"type": "string", "enum": ["low", "medium", "high"]},
                 },
-            }
-        },
-        "required": ["tasks"],
+                "required": ["title", "description", "priority"],
+            },
+        }
     },
+    "required": ["tasks"],
 }
 
 
@@ -80,9 +82,9 @@ def _fallback_tasks(project_name: str, count: int) -> list[GeneratedTask]:
     ]
 
 
-def _call_anthropic(project_name: str, project_description: str | None, instructions: str | None, count: int) -> list[GeneratedTask] | None:
+def _call_gemini(project_name: str, project_description: str | None, instructions: str | None, count: int) -> list[GeneratedTask] | None:
     settings = get_settings()
-    if not settings.anthropic_api_key:
+    if not settings.gemini_api_key:
         return None
 
     prompt = (
@@ -94,32 +96,34 @@ def _call_anthropic(project_name: str, project_description: str | None, instruct
     )
 
     try:
-        client = anthropic.Anthropic(api_key=settings.anthropic_api_key, timeout=_REQUEST_TIMEOUT_SECONDS)
-        response = client.messages.create(
-            model=settings.anthropic_model,
-            max_tokens=1024,
-            tools=[_PROPOSE_TASKS_TOOL],
-            tool_choice={"type": "tool", "name": "propose_tasks"},
-            messages=[{"role": "user", "content": prompt}],
+        client = genai.Client(api_key=settings.gemini_api_key)
+        response = client.models.generate_content(
+            model=settings.gemini_model,
+            contents=prompt,
+            config=genai_types.GenerateContentConfig(
+                response_mime_type="application/json",
+                response_schema=_RESPONSE_SCHEMA,
+                http_options=genai_types.HttpOptions(timeout=_REQUEST_TIMEOUT_MS),
+            ),
         )
-    except anthropic.APIError as exc:
-        logger.warning("Anthropic API call failed, falling back to templated tasks: %s", exc)
+    except genai_errors.APIError as exc:
+        # Covers both ClientError (4xx, including rate limiting) and
+        # ServerError (5xx) — both subclass APIError.
+        logger.warning("Gemini API call failed, falling back to templated tasks: %s", exc)
         return None
     except Exception:
-        logger.exception("Unexpected error calling Anthropic API, falling back to templated tasks")
+        # Timeouts and network failures surface as plain httpx/transport
+        # exceptions, not APIError — caught here instead.
+        logger.exception("Unexpected error calling Gemini API, falling back to templated tasks")
         return None
 
-    for block in response.content:
-        if block.type == "tool_use" and block.name == "propose_tasks":
-            try:
-                raw_tasks = block.input["tasks"]
-                return [GeneratedTask(**task) for task in raw_tasks[:count]]
-            except (KeyError, TypeError, ValueError):
-                logger.warning("Anthropic response had an unexpected shape, falling back to templated tasks")
-                return None
-
-    logger.warning("Anthropic response contained no tool_use block, falling back to templated tasks")
-    return None
+    try:
+        parsed = json.loads(response.text)
+        raw_tasks = parsed["tasks"]
+        return [GeneratedTask(**task) for task in raw_tasks[:count]]
+    except (json.JSONDecodeError, KeyError, TypeError, ValueError):
+        logger.warning("Gemini response had an unexpected shape, falling back to templated tasks")
+        return None
 
 
 @router.post("/generate-tasks", response_model=GenerateTasksResponse)
@@ -132,7 +136,7 @@ def generate_tasks(
     if project is None or project.owner_id != current_user.id:
         raise NotFoundError(f"Project '{project_id}' not found.")
 
-    ai_tasks = _call_anthropic(project.name, project.description, payload.instructions, payload.count)
+    ai_tasks = _call_gemini(project.name, project.description, payload.instructions, payload.count)
     if ai_tasks is not None:
         return GenerateTasksResponse(source="ai", tasks=ai_tasks)
 

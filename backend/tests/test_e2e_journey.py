@@ -85,7 +85,7 @@ def test_full_user_journey():
     assert filter_result.status_code == 200
     assert [t["id"] for t in filter_result.json()] == [task_id]
 
-    # 7. Use the AI feature. No ANTHROPIC_API_KEY in this test environment,
+    # 7. Use the AI feature. No GEMINI_API_KEY in this test environment,
     #    so this exercises the fallback path — proving the feature stays
     #    usable, honestly labeled, exactly as designed.
     ai_result = client.post(f"/projects/{project_id}/ai/generate-tasks", json={"count": 3})

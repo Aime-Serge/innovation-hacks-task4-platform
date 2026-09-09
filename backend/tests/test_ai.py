@@ -1,4 +1,4 @@
-"""No ANTHROPIC_API_KEY is set in the test environment, so every call here
+"""No GEMINI_API_KEY is set in the test environment, so every call here
 exercises the fallback path — which is exactly the behavior that matters
 most to verify: the feature must keep working, honestly, when the AI
 provider is unavailable."""

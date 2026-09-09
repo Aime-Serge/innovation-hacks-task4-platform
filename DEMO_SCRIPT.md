@@ -3,7 +3,7 @@
 Target length: **3:00–3:45** (within the guide's 2–5 minute range).
 Record against the live deployment if it's up (best case — shows real
 production behavior), otherwise `npm run dev` + `uvicorn` locally with a
-real `DATABASE_URL` migrated and, ideally, a real `ANTHROPIC_API_KEY` set
+real `DATABASE_URL` migrated and, ideally, a real `GEMINI_API_KEY` set
 (the AI beat works either way, but showing the real `source: "ai"` path
 once is worth it if a key is available).
 
@@ -21,13 +21,13 @@ once is worth it if a key is available).
 
 ## Notes for whoever records this
 
-- The AI beat: if `ANTHROPIC_API_KEY` isn't set, the panel still works —
+- The AI beat: if `GEMINI_API_KEY` isn't set, the panel still works —
   it shows the same checklist with a quiet "AI suggestions aren't
   available right now" notice instead of an error. That's honest,
   intended behavior, not a bug to hide; call it out on camera if it
   happens rather than re-recording to avoid it.
 - Skip the "(if deployed)" beat entirely if there's no live URL yet —
   it's optional per the submission guide.
-- `pytest` (89 tests) and `npm test` (15 tests) are worth a 2–3 second
+- `pytest` (90 tests) and `npm test` (15 tests) are worth a 2–3 second
   cut if there's time left, but — same as Task 1's script — the guide
   asks for the app running end-to-end, not the test suite.

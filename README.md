@@ -69,7 +69,8 @@ screen in detail in the meantime.
 - One click on a project's page generates a set of candidate tasks from
   its name/description (+ optional instructions), which you review, edit,
   and selectively add
-- Backed by the real Anthropic API (`ANTHROPIC_API_KEY`), with a
+- Backed by the real Gemini API (`GEMINI_API_KEY`) — chosen because
+  Gemini has a genuine free tier, no billing setup required — with a
   deterministic, honestly-labeled fallback checklist when no key is set
   or the call fails for any reason — the feature never breaks, and never
   claims fallback output is AI-generated
@@ -82,8 +83,8 @@ screen in detail in the meantime.
 | Backend | Python 3.14, FastAPI, Pydantic v2 |
 | Database | PostgreSQL 16, SQLAlchemy 2.0, Alembic migrations |
 | Auth | PyJWT (HS256), Argon2id (`argon2-cffi`) |
-| AI | Anthropic API (`claude-haiku-4-5-20251001` by default), tool-use for structured output |
-| Testing | pytest (backend, 89 tests), Vitest + Testing Library (frontend, 15 tests), Playwright + axe-core (browser/a11y QA) |
+| AI | Gemini API (`gemini-3.6-flash` by default), JSON-schema structured output |
+| Testing | pytest (backend, 90 tests), Vitest + Testing Library (frontend, 15 tests), Playwright + axe-core (browser/a11y QA) |
 | Deployment target | Render (API + managed Postgres) + Vercel (frontend) |
 
 ## Architecture
@@ -93,7 +94,7 @@ flowchart LR
     Browser -->|HTTPS, httpOnly cookie| Frontend[Next.js frontend<br/>Vercel]
     Frontend -->|fetch, credentials: include| API[FastAPI backend<br/>Render]
     API --> DB[(PostgreSQL<br/>Render)]
-    API -->|tool-use call| AI[Anthropic API]
+    API -->|structured-output call| AI[Gemini API]
     AI -.fallback on failure.-> API
 ```
 
@@ -163,8 +164,8 @@ documents the keys with placeholders, never real values.
 | `DATABASE_URL` | Yes | SQLAlchemy connection string, e.g. `postgresql+psycopg2://postgres:devpassword@localhost:5432/ih_task4` |
 | `SECRET_KEY` | Yes | Signs auth JWTs — no insecure default. Generate with `python -c "import secrets; print(secrets.token_urlsafe(48))"` |
 | `CORS_ORIGINS` | Yes | Comma-separated allowed frontend origins, e.g. `http://localhost:3000` |
-| `ANTHROPIC_API_KEY` | No | Powers real AI task generation; omitted → deterministic fallback, feature still works |
-| `ANTHROPIC_MODEL` | No | Default `claude-haiku-4-5-20251001` |
+| `GEMINI_API_KEY` | No | Powers real AI task generation; omitted → deterministic fallback, feature still works. Free tier available at [aistudio.google.com/apikey](https://aistudio.google.com/apikey) |
+| `GEMINI_MODEL` | No | Default `gemini-3.6-flash` |
 | `APP_ENV` | No | `development` (default) or `production` — controls cookie `Secure`/`SameSite` flags |
 | `HOST` / `PORT` / `LOG_LEVEL` | No | Server bind config |
 
@@ -179,7 +180,7 @@ documents the keys with placeholders, never real values.
 ```bash
 # Backend (needs the database running and migrated)
 cd backend && source .venv/bin/activate
-pytest                    # 89 tests: unit + integration + end-to-end journey
+pytest                    # 90 tests: unit + integration + end-to-end journey
 
 # Frontend
 cd frontend
@@ -210,7 +211,7 @@ backend/
     security.py    Argon2id hashing, JWT issue/verify
     csrf.py         mutation CSRF guard
   migrations/       Alembic, versioned
-  tests/            89 tests: unit, integration, end-to-end
+  tests/            90 tests: unit, integration, end-to-end
 
 frontend/
   app/              Next.js App Router pages (/, /login, /register, /projects/[id])
@@ -233,5 +234,5 @@ the one real finding (a CSRF gap) that was found, fixed, and verified
 before this sign-off.
 
 **Never commit real values** for `SECRET_KEY`, `DATABASE_URL`, or
-`ANTHROPIC_API_KEY` — both `.env.example` files list every key with
+`GEMINI_API_KEY` — both `.env.example` files list every key with
 placeholders only.

@@ -30,7 +30,7 @@ could be reached):**
 - Full task management: create, edit, delete, assign, priority, due
   date, status, search, filter
 - One AI feature, end-to-end: AI-assisted task generation via the
-  Anthropic API, with a deterministic, honestly-labeled fallback that
+  Gemini API, with a deterministic, honestly-labeled fallback that
   keeps the feature working on any failure (no key, timeout, rate
   limit, malformed response — all six scenarios unit-tested and passing)
 - A real, concrete security finding (CSRF on cookie-authenticated
@@ -38,10 +38,11 @@ could be reached):**
   flagged and left
 
 **Verification performed:**
-- 89 backend tests (unit, integration, and one full end-to-end journey
+- 90 backend tests (unit, integration, and one full end-to-end journey
   test), all collecting cleanly with zero errors
-- 6 of those 89 (the AI failure-mode tests) were run for real in this
-  session — they need no database — and passed
+- 7 of those 90 (the AI failure-mode tests) were run for real in this
+  session — they need no database — and passed, plus a live call
+  through the actual production code against the real Gemini API
 - 15 frontend tests (Vitest), all passing
 - A live dev server + Playwright/axe browser suite (10 checks: auth
   redirect behavior, accessibility, keyboard navigation, responsive
@@ -65,7 +66,7 @@ live Postgres before this is truly Done, and that's the very next step.
 the API + managed Postgres, Vercel for the frontend — see the README's
 [Deployment](https://github.com/Aime-Serge/innovation-hacks-task4-platform#deployment)
 section), but standing up live infrastructure, provisioning a real
-database, and setting real secrets (`SECRET_KEY`, `ANTHROPIC_API_KEY`) on
+database, and setting real secrets (`SECRET_KEY`, `GEMINI_API_KEY`) on
 a hosting platform are actions this report is deliberately not taking
 without you present to confirm platform choice, billing, and to review
 before anything goes live.

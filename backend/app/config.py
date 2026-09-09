@@ -26,9 +26,11 @@ class Settings(BaseSettings):
 
     # AI feature. Optional — the AI-assisted task generation endpoint
     # falls back to a deterministic generator when this is unset or the
-    # API call fails.
-    anthropic_api_key: str | None = None
-    anthropic_model: str = "claude-haiku-4-5-20251001"
+    # API call fails. Gemini (not Anthropic) specifically because it has
+    # a genuine free tier — no billing required to get a working key,
+    # which matters for a project graded without a budget attached.
+    gemini_api_key: str | None = None
+    gemini_model: str = "gemini-2.5-flash"
 
     @property
     def cors_origin_list(self) -> list[str]:
