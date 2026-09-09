@@ -1,14 +1,14 @@
 import uuid
-from datetime import datetime
+from datetime import date, datetime
 
-from sqlalchemy import DateTime, ForeignKey, Index, String, Text
+from sqlalchemy import Date, DateTime, ForeignKey, Index, String, Text
 from sqlalchemy import Enum as SAEnum
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 
 from app.db.base import Base
-from app.models.task import TaskStatus
+from app.models.task import TaskPriority, TaskStatus
 
 
 class UserModel(Base):
@@ -72,6 +72,19 @@ class TaskModel(Base):
         SAEnum(TaskStatus, name="task_status", native_enum=True, values_callable=lambda e: [m.value for m in e]),
         nullable=False,
         default=TaskStatus.todo,
+        index=True,
+    )
+    priority: Mapped[TaskPriority] = mapped_column(
+        SAEnum(TaskPriority, name="task_priority", native_enum=True, values_callable=lambda e: [m.value for m in e]),
+        nullable=False,
+        default=TaskPriority.medium,
+        index=True,
+    )
+    due_date: Mapped[date | None] = mapped_column(Date(), nullable=True)
+    assignee_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("users.id", ondelete="SET NULL"),
+        nullable=True,
         index=True,
     )
     created_at: Mapped[datetime] = mapped_column(
