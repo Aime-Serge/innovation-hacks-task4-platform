@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, status
 
 from app.deps import get_current_user
 from app.exceptions import NotFoundError
-from app.models.project import ProjectCreate, ProjectInDB, ProjectOut
+from app.models.project import ProjectCreate, ProjectInDB, ProjectOut, ProjectUpdate
 from app.models.user import UserInDB
 from app.repositories.project_repo import project_repository
 
@@ -35,9 +35,12 @@ def create_project(
 
 
 @router.get("", response_model=list[ProjectOut])
-def list_projects(current_user: UserInDB = Depends(get_current_user)) -> list[ProjectOut]:
+def list_projects(
+    search: str | None = None, current_user: UserInDB = Depends(get_current_user)
+) -> list[ProjectOut]:
     return [
-        project.to_out() for project in project_repository.list(owner_id=current_user.id)
+        project.to_out()
+        for project in project_repository.list(owner_id=current_user.id, search=search)
     ]
 
 
@@ -46,3 +49,27 @@ def get_project(
     project_id: UUID, current_user: UserInDB = Depends(get_current_user)
 ) -> ProjectOut:
     return _get_owned_project(project_id, current_user).to_out()
+
+
+@router.patch("/{project_id}", response_model=ProjectOut)
+def update_project(
+    project_id: UUID,
+    payload: ProjectUpdate,
+    current_user: UserInDB = Depends(get_current_user),
+) -> ProjectOut:
+    project = _get_owned_project(project_id, current_user)
+
+    if payload.name is not None:
+        project.name = payload.name
+    if payload.description is not None:
+        project.description = payload.description
+
+    return project_repository.update(project).to_out()
+
+
+@router.delete("/{project_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_project(
+    project_id: UUID, current_user: UserInDB = Depends(get_current_user)
+) -> None:
+    _get_owned_project(project_id, current_user)
+    project_repository.delete(project_id)
