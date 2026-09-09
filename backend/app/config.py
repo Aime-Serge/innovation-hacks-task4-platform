@@ -19,6 +19,15 @@ class Settings(BaseSettings):
     jwt_algorithm: str = "HS256"
     access_token_expire_minutes: int = 60 * 24  # 1 day
 
+    # Comma-separated list of allowed frontend origins for CORS. Required
+    # for the auth cookie: credentialed cross-origin requests need an
+    # explicit origin list, not "*".
+    cors_origins: str = "http://localhost:3000"
+
+    @property
+    def cors_origin_list(self) -> list[str]:
+        return [origin.strip() for origin in self.cors_origins.split(",") if origin.strip()]
+
 
 @lru_cache
 def get_settings() -> Settings:

@@ -1,31 +1,23 @@
 from uuid import UUID
 
-from fastapi import APIRouter, status
+from fastapi import APIRouter, Depends, HTTPException, status
 
+from app.deps import get_current_user
 from app.exceptions import ConflictError, NotFoundError
-from app.models.user import UserCreate, UserInDB, UserOut, UserUpdate
+from app.models.user import UserInDB, UserOut, UserUpdate
 from app.repositories.user_repo import user_repository
 from app.security import hash_password
 
-# `dependencies=[]` is deliberate: Task 4 adds an auth dependency here
-# without touching any handler below.
-router = APIRouter(prefix="/users", tags=["users"], dependencies=[])
-
-
-@router.post("", response_model=UserOut, status_code=status.HTTP_201_CREATED)
-def create_user(payload: UserCreate) -> UserOut:
-    if user_repository.get_by_email(payload.email):
-        raise ConflictError(f"A user with email '{payload.email}' already exists.")
-    user = UserInDB(
-        name=payload.name,
-        email=payload.email,
-        password_hash=hash_password(payload.password),
-    )
-    return user_repository.create(user).to_out()
+# Registration lives at POST /auth/register (it also issues a session).
+# Everything here requires an authenticated session.
+router = APIRouter(prefix="/users", tags=["users"], dependencies=[Depends(get_current_user)])
 
 
 @router.get("", response_model=list[UserOut])
 def list_users() -> list[UserOut]:
+    """Any authenticated user can list users — used by the frontend to
+    populate the task-assignee picker. Only name/email/id are exposed
+    (UserOut never includes password_hash)."""
     return [user.to_out() for user in user_repository.list()]
 
 
@@ -38,7 +30,12 @@ def get_user(user_id: UUID) -> UserOut:
 
 
 @router.patch("/{user_id}", response_model=UserOut)
-def update_user(user_id: UUID, payload: UserUpdate) -> UserOut:
+def update_user(
+    user_id: UUID, payload: UserUpdate, current_user: UserInDB = Depends(get_current_user)
+) -> UserOut:
+    if user_id != current_user.id:
+        raise HTTPException(status.HTTP_403_FORBIDDEN, detail="You can only edit your own account.")
+
     user = user_repository.get(user_id)
     if user is None:
         raise NotFoundError(f"User '{user_id}' not found.")
@@ -58,7 +55,10 @@ def update_user(user_id: UUID, payload: UserUpdate) -> UserOut:
 
 
 @router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_user(user_id: UUID) -> None:
+def delete_user(user_id: UUID, current_user: UserInDB = Depends(get_current_user)) -> None:
+    if user_id != current_user.id:
+        raise HTTPException(status.HTTP_403_FORBIDDEN, detail="You can only delete your own account.")
+
     user = user_repository.get(user_id)
     if user is None:
         raise NotFoundError(f"User '{user_id}' not found.")
