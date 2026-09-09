@@ -1,0 +1,35 @@
+import type { Metadata } from "next";
+import { Inter, JetBrains_Mono } from "next/font/google";
+import { NavBar } from "@/components/nav/NavBar";
+import "./globals.css";
+
+const inter = Inter({
+  variable: "--font-inter",
+  subsets: ["latin"],
+});
+
+const jetbrainsMono = JetBrains_Mono({
+  variable: "--font-jetbrains-mono",
+  subsets: ["latin"],
+});
+
+export const metadata: Metadata = {
+  title: "Developer Productivity Dashboard",
+  description: "See where every project stands, at a glance.",
+};
+
+export default function RootLayout({ children }: LayoutProps<"/">) {
+  return (
+    <html
+      lang="en"
+      className={`${inter.variable} ${jetbrainsMono.variable} h-full antialiased`}
+    >
+      <body className="min-h-full flex flex-col bg-canvas text-text-primary">
+        <NavBar />
+        <main id="main-content" className="flex-1">
+          {children}
+        </main>
+      </body>
+    </html>
+  );
+}

@@ -1,0 +1,16 @@
+services:
+  db:
+    image: postgres:16
+    container_name: ih-task3-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: devpassword
+      POSTGRES_DB: ih_task3
+    ports:
+      # Loopback-only — never bind DB ports to 0.0.0.0 even for local dev.
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - ih-task3-db-data:/var/lib/postgresql/data
+
+volumes:
+  ih-task3-db-data:
