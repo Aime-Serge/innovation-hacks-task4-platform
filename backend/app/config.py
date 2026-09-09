@@ -24,6 +24,12 @@ class Settings(BaseSettings):
     # explicit origin list, not "*".
     cors_origins: str = "http://localhost:3000"
 
+    # AI feature. Optional — the AI-assisted task generation endpoint
+    # falls back to a deterministic generator when this is unset or the
+    # API call fails.
+    anthropic_api_key: str | None = None
+    anthropic_model: str = "claude-haiku-4-5-20251001"
+
     @property
     def cors_origin_list(self) -> list[str]:
         return [origin.strip() for origin in self.cors_origins.split(",") if origin.strip()]
