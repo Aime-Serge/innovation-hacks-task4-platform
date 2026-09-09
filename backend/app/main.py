@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import get_settings
+from app.csrf import RequireFetchHeaderMiddleware
 from app.exceptions import register_exception_handlers
 from app.routers import ai, auth, projects, tasks, users
 
@@ -13,6 +14,11 @@ app = FastAPI(
     version="0.1.0",
 )
 
+# Order matters: CORS must run first so its preflight (OPTIONS) handling
+# is unaffected — RequireFetchHeaderMiddleware only inspects
+# POST/PUT/PATCH/DELETE and is a no-op for OPTIONS either way, but CORS
+# is kept outermost (added last) to stay the first thing a request hits.
+app.add_middleware(RequireFetchHeaderMiddleware)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origin_list,

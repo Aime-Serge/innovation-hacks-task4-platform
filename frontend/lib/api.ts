@@ -20,6 +20,11 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
     credentials: "include",
     headers: {
       "Content-Type": "application/json",
+      // CSRF defense: a plain HTML form can never set this header, so
+      // its presence proves the request went through fetch — which
+      // means the browser enforced a CORS preflight and the backend's
+      // origin allowlist already had to approve it. See backend/app/csrf.py.
+      "X-Requested-With": "XMLHttpRequest",
       ...options.headers,
     },
   });

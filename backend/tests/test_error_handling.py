@@ -14,7 +14,9 @@ def test_unhandled_exception_returns_500_with_generic_body(monkeypatch):
     # exceptions for debugging; disabling that is what actually exercises
     # the global handler's HTTP response path instead of the exception
     # propagating up through the test.
-    client = TestClient(app, raise_server_exceptions=False)
+    client = TestClient(
+        app, raise_server_exceptions=False, headers={"X-Requested-With": "XMLHttpRequest"}
+    )
     client.post(
         "/auth/register",
         json={"name": "Ada", "email": "ada@example.com", "password": "supersecret"},

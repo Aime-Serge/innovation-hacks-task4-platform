@@ -11,6 +11,11 @@ from app.main import app
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 
+# Every real client sends this — see app/csrf.py. Tests construct
+# TestClient directly (not through a browser), so it has to be set
+# explicitly here to exercise the same request shape the frontend sends.
+FETCH_HEADERS = {"X-Requested-With": "XMLHttpRequest"}
+
 
 @pytest.fixture(scope="session", autouse=True)
 def apply_migrations():
@@ -32,7 +37,7 @@ def reset_database():
 
 
 def _register(email: str, name: str = "Ada Lovelace", password: str = "supersecret") -> TestClient:
-    c = TestClient(app)
+    c = TestClient(app, headers=FETCH_HEADERS)
     c.post("/auth/register", json={"name": name, "email": email, "password": password})
     return c
 
@@ -41,7 +46,7 @@ def _register(email: str, name: str = "Ada Lovelace", password: str = "supersecr
 def anon_client() -> TestClient:
     """No session cookie — for asserting protected routes reject anonymous
     requests, and for exercising register/login themselves."""
-    return TestClient(app)
+    return TestClient(app, headers=FETCH_HEADERS)
 
 
 @pytest.fixture
