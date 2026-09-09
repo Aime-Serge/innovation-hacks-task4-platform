@@ -7,7 +7,7 @@ const PUBLIC_PATHS = ["/login", "/register"];
 // The real authorization decision is always re-made by the API on every
 // request; this just avoids flashing a protected page before the client
 // redirect would otherwise kick in.
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const isPublicPath = PUBLIC_PATHS.includes(pathname);
   const hasSession = request.cookies.has("access_token");
