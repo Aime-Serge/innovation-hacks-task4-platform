@@ -11,10 +11,13 @@ class Settings(BaseSettings):
     port: int = 8000
     log_level: str = "info"
 
-    # Placeholders for future tasks — no consumer yet, defined now so
-    # Task 3 (database) and Task 4 (auth) don't need new config plumbing.
     database_url: str | None = None
+
+    # Auth (Task 4). secret_key signs JWTs — must be set to a long random
+    # value outside development; there is no insecure default.
     secret_key: str | None = None
+    jwt_algorithm: str = "HS256"
+    access_token_expire_minutes: int = 60 * 24  # 1 day
 
 
 @lru_cache

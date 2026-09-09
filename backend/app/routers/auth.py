@@ -1,15 +1,32 @@
-from fastapi import APIRouter, status
+from fastapi import APIRouter, Depends, HTTPException, Response, status
 
+from app.config import get_settings
+from app.deps import ACCESS_TOKEN_COOKIE, get_current_user
 from app.exceptions import ConflictError
+from app.models.auth import TokenOut, UserLogin
 from app.models.user import UserCreate, UserInDB, UserOut
 from app.repositories.user_repo import user_repository
-from app.security import hash_password
+from app.security import DUMMY_PASSWORD_HASH, create_access_token, hash_password, verify_password
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 
-@router.post("/register", response_model=UserOut, status_code=status.HTTP_201_CREATED)
-def register(payload: UserCreate) -> UserOut:
+def _set_session_cookie(response: Response, token: str) -> None:
+    settings = get_settings()
+    is_production = settings.app_env == "production"
+    response.set_cookie(
+        key=ACCESS_TOKEN_COOKIE,
+        value=token,
+        httponly=True,
+        secure=is_production,
+        samesite="none" if is_production else "lax",
+        max_age=settings.access_token_expire_minutes * 60,
+        path="/",
+    )
+
+
+@router.post("/register", response_model=TokenOut, status_code=status.HTTP_201_CREATED)
+def register(payload: UserCreate, response: Response) -> TokenOut:
     if user_repository.get_by_email(payload.email):
         raise ConflictError(f"A user with email '{payload.email}' already exists.")
 
@@ -20,4 +37,33 @@ def register(payload: UserCreate) -> UserOut:
             password_hash=hash_password(payload.password),
         )
     )
-    return user.to_out()
+    token = create_access_token(user.id)
+    _set_session_cookie(response, token)
+    return TokenOut(access_token=token, user=user.to_out())
+
+
+@router.post("/login", response_model=TokenOut)
+def login(payload: UserLogin, response: Response) -> TokenOut:
+    user = user_repository.get_by_email(payload.email)
+    # Constant-shape response: run verify_password even when no user exists
+    # (against a dummy hash) so login timing doesn't reveal account existence.
+    password_ok = verify_password(
+        payload.password, user.password_hash if user else DUMMY_PASSWORD_HASH
+    )
+
+    if user is None or not password_ok:
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, detail="Invalid email or password.")
+
+    token = create_access_token(user.id)
+    _set_session_cookie(response, token)
+    return TokenOut(access_token=token, user=user.to_out())
+
+
+@router.post("/logout", status_code=status.HTTP_204_NO_CONTENT)
+def logout(response: Response) -> None:
+    response.delete_cookie(ACCESS_TOKEN_COOKIE, path="/")
+
+
+@router.get("/me", response_model=UserOut)
+def me(current_user: UserInDB = Depends(get_current_user)) -> UserOut:
+    return current_user.to_out()
