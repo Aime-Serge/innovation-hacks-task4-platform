@@ -1,19 +1,18 @@
-import hashlib
-import hmac
-import os
+from argon2 import PasswordHasher
+from argon2.exceptions import InvalidHash, VerificationError, VerifyMismatchError
 
-_ITERATIONS = 260_000
+# Argon2id, library defaults (OWASP's current top recommendation for
+# password hashing — memory-hard, resists GPU/ASIC cracking better than
+# PBKDF2 at any reasonable iteration count).
+_password_hasher = PasswordHasher()
 
 
 def hash_password(password: str) -> str:
-    salt = os.urandom(16)
-    digest = hashlib.pbkdf2_hmac("sha256", password.encode(), salt, _ITERATIONS)
-    return f"{salt.hex()}${digest.hex()}"
+    return _password_hasher.hash(password)
 
 
 def verify_password(password: str, password_hash: str) -> bool:
-    salt_hex, digest_hex = password_hash.split("$")
-    salt = bytes.fromhex(salt_hex)
-    expected = bytes.fromhex(digest_hex)
-    actual = hashlib.pbkdf2_hmac("sha256", password.encode(), salt, _ITERATIONS)
-    return hmac.compare_digest(expected, actual)
+    try:
+        return _password_hasher.verify(password_hash, password)
+    except (VerifyMismatchError, VerificationError, InvalidHash):
+        return False
