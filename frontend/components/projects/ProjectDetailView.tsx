@@ -22,6 +22,7 @@ import { FilterBar } from "@/components/controls/FilterBar";
 import { TaskList } from "@/components/tasks/TaskList";
 import { ProjectFormModal } from "@/components/projects/ProjectFormModal";
 import { TaskFormModal } from "@/components/tasks/TaskFormModal";
+import { GenerateTasksPanel } from "@/components/ai/GenerateTasksPanel";
 
 const EMPTY_TASKS: Task[] = [];
 
@@ -109,6 +110,12 @@ export function ProjectDetailView({ projectId }: { projectId: string }) {
           </>
         )}
       </div>
+
+      {project && (
+        <div className="mt-6">
+          <GenerateTasksPanel projectId={projectId} onTasksAdded={() => tasksState.retry()} />
+        </div>
+      )}
 
       <section aria-labelledby="tasks-heading" className="mt-8">
         <div className="flex flex-wrap items-center justify-between gap-3">
