@@ -1,12 +1,12 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { fetchCurrentUser } from "@/lib/mock-data";
-import { useAsync } from "@/lib/useAsync";
+import { useAuth } from "@/lib/auth-context";
 
 export function ProfileMenu() {
-  const { status, data: user } = useAsync(() => fetchCurrentUser(), []);
+  const { user, status, logout } = useAuth();
   const [open, setOpen] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
 
@@ -31,6 +31,15 @@ export function ProfileMenu() {
     };
   }, [open, close]);
 
+  async function handleSignOut() {
+    setLoggingOut(true);
+    try {
+      await logout();
+    } finally {
+      setLoggingOut(false);
+    }
+  }
+
   if (status === "loading") {
     return (
       <div className="flex items-center gap-2" aria-busy="true" aria-label="Loading profile">
@@ -40,9 +49,7 @@ export function ProfileMenu() {
     );
   }
 
-  const initials = status === "success" && user ? user.initials : "?";
-  const displayName = status === "success" && user ? user.name : "Unknown user";
-  const role = status === "success" && user ? user.role : "—";
+  if (!user) return null;
 
   return (
     <div className="relative" ref={containerRef}>
@@ -58,10 +65,10 @@ export function ProfileMenu() {
           className="flex h-8 w-8 items-center justify-center rounded-full bg-surface font-mono text-xs font-semibold text-text-primary"
           aria-hidden="true"
         >
-          {initials}
+          {user.initials}
         </span>
         <span className="hidden text-sm font-medium text-text-primary sm:block">
-          {displayName}
+          {user.name}
         </span>
       </button>
       {open && (
@@ -71,22 +78,17 @@ export function ProfileMenu() {
           className="absolute right-0 top-full mt-2 w-56 rounded border border-border-hairline bg-surface p-1 shadow-none"
         >
           <div className="px-3 py-2 border-b border-border-hairline">
-            <p className="text-sm font-medium text-text-primary">{displayName}</p>
-            <p className="text-xs text-text-secondary">{role}</p>
+            <p className="text-sm font-medium text-text-primary">{user.name}</p>
+            <p className="truncate text-xs text-text-secondary">{user.email}</p>
           </div>
           <button
             role="menuitem"
             type="button"
-            className="w-full rounded px-3 py-2 text-left text-sm text-text-secondary hover:bg-canvas hover:text-text-primary"
+            disabled={loggingOut}
+            onClick={handleSignOut}
+            className="w-full rounded px-3 py-2 text-left text-sm text-text-secondary hover:bg-canvas hover:text-text-primary disabled:opacity-60"
           >
-            Settings
-          </button>
-          <button
-            role="menuitem"
-            type="button"
-            className="w-full rounded px-3 py-2 text-left text-sm text-text-secondary hover:bg-canvas hover:text-text-primary"
-          >
-            Sign out
+            {loggingOut ? "Signing out…" : "Sign out"}
           </button>
         </div>
       )}
