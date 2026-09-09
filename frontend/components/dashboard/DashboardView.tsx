@@ -15,10 +15,12 @@ import { ProjectGrid } from "@/components/projects/ProjectGrid";
 import { TaskList } from "@/components/tasks/TaskList";
 import { SearchBar } from "@/components/controls/SearchBar";
 import { FilterBar } from "@/components/controls/FilterBar";
+import { ProjectFormModal } from "@/components/projects/ProjectFormModal";
 
 export function DashboardView() {
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<TaskStatus | null>(null);
+  const [creatingProject, setCreatingProject] = useState(false);
 
   const projectsState = useAsync(() => fetchProjects(), []);
   const tasksState = useAsync(() => fetchTasks(), []);
@@ -63,6 +65,13 @@ export function DashboardView() {
             See where every project stands, at a glance.
           </p>
         </div>
+        <button
+          type="button"
+          onClick={() => setCreatingProject(true)}
+          className="rounded bg-interactive px-3 py-1.5 text-sm font-medium text-canvas"
+        >
+          New Project
+        </button>
       </div>
 
       <section aria-label="Activity summary" className="mt-6">
@@ -111,6 +120,16 @@ export function DashboardView() {
           />
         </div>
       </section>
+
+      {creatingProject && (
+        <ProjectFormModal
+          onClose={() => setCreatingProject(false)}
+          onSaved={() => {
+            setCreatingProject(false);
+            projectsState.retry();
+          }}
+        />
+      )}
     </div>
   );
 }
