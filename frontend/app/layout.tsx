@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import { NavBar } from "@/components/nav/NavBar";
+import { Footer } from "@/components/nav/Footer";
 import { AuthProvider } from "@/lib/auth-context";
 import "./globals.css";
 
@@ -15,8 +16,9 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Developer Productivity Dashboard",
-  description: "See where every project stands, at a glance.",
+  title: "devdash — AI-Powered Project & Task Management",
+  description:
+    "Real authentication, real projects and tasks, and one AI feature that actually works — see where every project stands, at a glance.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
@@ -31,6 +33,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           <main id="main-content" className="flex-1">
             {children}
           </main>
+          <Footer />
         </AuthProvider>
       </body>
     </html>

@@ -1,7 +1,46 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { useAuth } from "@/lib/auth-context";
+import { avatarUrl } from "@/lib/auth";
+
+export function Avatar({
+  userId,
+  hasAvatar,
+  initials,
+  size = 32,
+}: {
+  userId: string;
+  hasAvatar: boolean;
+  initials: string;
+  size?: number;
+}) {
+  const [imageFailed, setImageFailed] = useState(false);
+  const showImage = hasAvatar && !imageFailed;
+  return (
+    <span
+      className="flex shrink-0 items-center justify-center overflow-hidden rounded-full bg-surface font-mono text-xs font-semibold text-text-primary"
+      style={{ width: size, height: size }}
+      aria-hidden="true"
+    >
+      {showImage ? (
+        // Plain <img>, not next/image — the source is a cross-origin
+        // backend URL in production, which would need remote-pattern
+        // config for zero real benefit on an image this small.
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={avatarUrl(userId)}
+          alt=""
+          className="h-full w-full object-cover"
+          onError={() => setImageFailed(true)}
+        />
+      ) : (
+        initials
+      )}
+    </span>
+  );
+}
 
 export function ProfileMenu() {
   const { user, status, logout } = useAuth();
@@ -61,12 +100,7 @@ export function ProfileMenu() {
         onClick={() => setOpen((o) => !o)}
         className="flex items-center gap-2 rounded px-1.5 py-1 hover:bg-surface"
       >
-        <span
-          className="flex h-8 w-8 items-center justify-center rounded-full bg-surface font-mono text-xs font-semibold text-text-primary"
-          aria-hidden="true"
-        >
-          {user.initials}
-        </span>
+        <Avatar userId={user.id} hasAvatar={user.hasAvatar} initials={user.initials} />
         <span className="hidden text-sm font-medium text-text-primary sm:block">
           {user.name}
         </span>
@@ -81,6 +115,14 @@ export function ProfileMenu() {
             <p className="text-sm font-medium text-text-primary">{user.name}</p>
             <p className="truncate text-xs text-text-secondary">{user.email}</p>
           </div>
+          <Link
+            role="menuitem"
+            href="/settings"
+            onClick={() => setOpen(false)}
+            className="block w-full rounded px-3 py-2 text-left text-sm text-text-secondary hover:bg-canvas hover:text-text-primary"
+          >
+            Settings
+          </Link>
           <button
             role="menuitem"
             type="button"
