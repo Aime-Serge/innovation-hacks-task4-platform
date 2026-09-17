@@ -6,6 +6,7 @@ from alembic.config import Config
 from fastapi.testclient import TestClient
 from sqlalchemy import text
 
+from app.config import get_settings
 from app.db.session import get_engine
 from app.main import app
 
@@ -25,6 +26,29 @@ def apply_migrations():
     alembic_cfg = Config(str(REPO_ROOT / "alembic.ini"))
     command.upgrade(alembic_cfg, "head")
     yield
+
+
+@pytest.fixture(autouse=True)
+def no_real_gemini_key_by_default(monkeypatch):
+    """Settings reads GEMINI_API_KEY straight out of .env (pydantic-
+    settings' env_file loading — not conditional on the shell's own
+    exports), so a developer's real local key would otherwise make
+    every AI-related test either hit the live API for real (burning
+    quota, adding real latency/flakiness) or fail outright when a test
+    asserts on the fallback path specifically. Tests are supposed to be
+    hermetic regardless of what happens to be sitting in a local .env;
+    test_ai_failure_modes.py's own fixture sets a fake key afterward for
+    the handful of tests that need one configured to exercise the call
+    path against a mocked client.
+
+    Important: this sets an empty string, not monkeypatch.delenv. Pydantic-
+    settings' precedence is real env vars > .env file > field default —
+    deleting the OS var just makes it fall through to .env's real value
+    again; an explicit empty string is what actually wins over it."""
+    monkeypatch.setenv("GEMINI_API_KEY", "")
+    get_settings.cache_clear()
+    yield
+    get_settings.cache_clear()
 
 
 @pytest.fixture(autouse=True)
