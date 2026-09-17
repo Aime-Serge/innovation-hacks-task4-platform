@@ -13,11 +13,19 @@ interface AuthContextValue {
   login: (email: string, password: string) => Promise<void>;
   register: (name: string, email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
+  setUser: (user: User) => void;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-const PUBLIC_PATHS = ["/login", "/register"];
+// Redirect away from these if a session already exists.
+const AUTH_ENTRY_PATHS = ["/login", "/register"];
+// Never require a session — and, unlike the entry paths above, never
+// redirect away from these even if one exists (a signed-in user, or one
+// with a stale/different-account cookie, must still be able to open a
+// real reset-password link).
+const ALWAYS_PUBLIC_PATHS = ["/forgot-password", "/reset-password"];
+const PUBLIC_PATHS = [...AUTH_ENTRY_PATHS, ...ALWAYS_PUBLIC_PATHS];
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -44,7 +52,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (status === "unauthenticated" && !PUBLIC_PATHS.includes(pathname)) {
       router.replace(`/login?next=${encodeURIComponent(pathname)}`);
     }
-    if (status === "authenticated" && PUBLIC_PATHS.includes(pathname)) {
+    if (status === "authenticated" && AUTH_ENTRY_PATHS.includes(pathname)) {
       router.replace("/");
     }
   }, [status, pathname, router]);
@@ -69,7 +77,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [router]);
 
   return (
-    <AuthContext.Provider value={{ user, status, login, register, logout }}>
+    <AuthContext.Provider value={{ user, status, login, register, logout, setUser }}>
       {children}
     </AuthContext.Provider>
   );

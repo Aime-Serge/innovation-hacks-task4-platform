@@ -32,4 +32,5 @@ export interface User {
   name: string;
   email: string;
   initials: string;
+  hasAvatar: boolean;
 }

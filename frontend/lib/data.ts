@@ -28,6 +28,7 @@ interface ApiUser {
   name: string;
   email: string;
   created_at: string;
+  has_avatar: boolean;
 }
 
 function toProject(p: ApiProject): Project {
@@ -49,7 +50,13 @@ function toTask(t: ApiTask): Task {
 }
 
 function toUser(u: ApiUser): User {
-  return { id: u.id, name: u.name, email: u.email, initials: getInitials(u.name) };
+  return {
+    id: u.id,
+    name: u.name,
+    email: u.email,
+    initials: getInitials(u.name),
+    hasAvatar: u.has_avatar,
+  };
 }
 
 export async function fetchProjects(opts: { search?: string } = {}): Promise<Project[]> {

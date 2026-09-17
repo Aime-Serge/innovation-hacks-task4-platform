@@ -62,6 +62,11 @@ export function LoginForm() {
         required
         autoComplete="current-password"
       />
+      <p className="-mt-2 text-right text-xs">
+        <Link href="/forgot-password" className="text-interactive underline hover:no-underline">
+          Forgot password?
+        </Link>
+      </p>
       <button
         type="submit"
         disabled={submitting}
