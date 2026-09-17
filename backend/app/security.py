@@ -1,3 +1,6 @@
+import hashlib
+import hmac
+import secrets
 from datetime import datetime, timedelta, timezone
 from uuid import UUID
 
@@ -6,6 +9,8 @@ from argon2 import PasswordHasher
 from argon2.exceptions import InvalidHash, VerificationError, VerifyMismatchError
 
 from app.config import get_settings
+
+RESET_TOKEN_EXPIRE_MINUTES = 30
 
 _TOKEN_SUBJECT_CLAIM = "sub"
 
@@ -30,6 +35,24 @@ def verify_password(password: str, password_hash: str) -> bool:
 # to run a real verify() against a nonexistent account, so a failed login's
 # timing doesn't reveal whether the email exists.
 DUMMY_PASSWORD_HASH = _password_hasher.hash("dummy-password-for-constant-time-login")
+
+
+def generate_reset_token() -> tuple[str, str]:
+    """Returns (raw_token, token_hash). Only the hash is ever stored;
+    the raw token goes into the reset link/response and is unrecoverable
+    from the hash — same one-way discipline as password_hash, just a
+    fast hash since this is a high-entropy random value, not low-entropy
+    user input a slow hash would need to defend."""
+    raw = secrets.token_urlsafe(32)
+    return raw, hash_reset_token(raw)
+
+
+def hash_reset_token(raw_token: str) -> str:
+    return hashlib.sha256(raw_token.encode()).hexdigest()
+
+
+def reset_token_matches(raw_token: str, token_hash: str) -> bool:
+    return hmac.compare_digest(hash_reset_token(raw_token), token_hash)
 
 
 def _require_secret_key() -> str:

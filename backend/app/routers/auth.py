@@ -1,12 +1,28 @@
+from datetime import datetime, timedelta, timezone
+
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 
 from app.config import get_settings
 from app.deps import ACCESS_TOKEN_COOKIE, get_current_user
 from app.exceptions import ConflictError
-from app.models.auth import TokenOut, UserLogin
+from app.models.auth import (
+    ForgotPasswordRequest,
+    ForgotPasswordResponse,
+    ResetPasswordRequest,
+    TokenOut,
+    UserLogin,
+)
 from app.models.user import UserCreate, UserInDB, UserOut
 from app.repositories.user_repo import user_repository
-from app.security import DUMMY_PASSWORD_HASH, create_access_token, hash_password, verify_password
+from app.security import (
+    DUMMY_PASSWORD_HASH,
+    RESET_TOKEN_EXPIRE_MINUTES,
+    create_access_token,
+    generate_reset_token,
+    hash_password,
+    hash_reset_token,
+    verify_password,
+)
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -67,3 +83,41 @@ def logout(response: Response) -> None:
 @router.get("/me", response_model=UserOut)
 def me(current_user: UserInDB = Depends(get_current_user)) -> UserOut:
     return current_user.to_out()
+
+
+@router.post("/forgot-password", response_model=ForgotPasswordResponse)
+def forgot_password(payload: ForgotPasswordRequest) -> ForgotPasswordResponse:
+    settings = get_settings()
+    message = "If an account exists for that email, a password reset link has been generated."
+    user = user_repository.get_by_email(payload.email)
+    if user is None:
+        return ForgotPasswordResponse(message=message)
+
+    raw_token, token_hash = generate_reset_token()
+    expires_at = datetime.now(timezone.utc) + timedelta(minutes=RESET_TOKEN_EXPIRE_MINUTES)
+    user_repository.set_reset_token(user.id, token_hash, expires_at)
+
+    reset_url = f"{settings.frontend_url}/reset-password?token={raw_token}"
+    return ForgotPasswordResponse(message=message, dev_reset_url=reset_url)
+
+
+@router.post("/reset-password", status_code=status.HTTP_204_NO_CONTENT)
+def reset_password(payload: ResetPasswordRequest) -> None:
+    invalid = HTTPException(status.HTTP_400_BAD_REQUEST, detail="Invalid or expired reset link.")
+
+    token_hash = hash_reset_token(payload.token)
+    user = user_repository.get_by_reset_token_hash(token_hash)
+    if user is None or user.password_reset_expires_at is None:
+        raise invalid
+
+    expires_at = user.password_reset_expires_at
+    if expires_at.tzinfo is None:
+        expires_at = expires_at.replace(tzinfo=timezone.utc)
+    if expires_at < datetime.now(timezone.utc):
+        user_repository.set_reset_token(user.id, None, None)
+        raise invalid
+
+    user.password_hash = hash_password(payload.new_password)
+    user.password_reset_token_hash = None
+    user.password_reset_expires_at = None
+    user_repository.update(user)

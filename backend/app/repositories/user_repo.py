@@ -1,3 +1,4 @@
+from datetime import datetime
 from uuid import UUID
 
 from sqlalchemy import func
@@ -14,6 +15,9 @@ def _to_schema(row: UserModel) -> UserInDB:
         email=row.email,
         password_hash=row.password_hash,
         created_at=row.created_at,
+        password_reset_token_hash=row.password_reset_token_hash,
+        password_reset_expires_at=row.password_reset_expires_at,
+        has_avatar=row.avatar_data is not None,
     )
 
 
@@ -41,6 +45,15 @@ class UserRepository:
             )
             return _to_schema(row) if row is not None else None
 
+    def get_by_reset_token_hash(self, token_hash: str) -> UserInDB | None:
+        with session_scope() as session:
+            row = (
+                session.query(UserModel)
+                .filter(UserModel.password_reset_token_hash == token_hash)
+                .first()
+            )
+            return _to_schema(row) if row is not None else None
+
     def create(self, user: UserInDB) -> UserInDB:
         with session_scope() as session:
             row = UserModel(
@@ -60,6 +73,8 @@ class UserRepository:
             row.name = user.name
             row.email = user.email
             row.password_hash = user.password_hash
+            row.password_reset_token_hash = user.password_reset_token_hash
+            row.password_reset_expires_at = user.password_reset_expires_at
             session.flush()
             session.refresh(row)
             return _to_schema(row)
@@ -69,6 +84,36 @@ class UserRepository:
             row = session.get(UserModel, user_id)
             if row is not None:
                 session.delete(row)
+
+    def set_reset_token(
+        self, user_id: UUID, token_hash: str | None, expires_at: datetime | None
+    ) -> None:
+        with session_scope() as session:
+            row = session.get(UserModel, user_id)
+            if row is not None:
+                row.password_reset_token_hash = token_hash
+                row.password_reset_expires_at = expires_at
+
+    def get_avatar(self, user_id: UUID) -> tuple[bytes, str] | None:
+        with session_scope() as session:
+            row = session.get(UserModel, user_id)
+            if row is None or row.avatar_data is None or row.avatar_mime is None:
+                return None
+            return row.avatar_data, row.avatar_mime
+
+    def set_avatar(self, user_id: UUID, data: bytes, mime: str) -> None:
+        with session_scope() as session:
+            row = session.get(UserModel, user_id)
+            if row is not None:
+                row.avatar_data = data
+                row.avatar_mime = mime
+
+    def clear_avatar(self, user_id: UUID) -> None:
+        with session_scope() as session:
+            row = session.get(UserModel, user_id)
+            if row is not None:
+                row.avatar_data = None
+                row.avatar_mime = None
 
 
 user_repository = UserRepository()

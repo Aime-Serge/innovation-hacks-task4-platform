@@ -1,7 +1,7 @@
 import uuid
 from datetime import date, datetime
 
-from sqlalchemy import Date, DateTime, ForeignKey, Index, String, Text
+from sqlalchemy import Date, DateTime, ForeignKey, Index, LargeBinary, String, Text
 from sqlalchemy import Enum as SAEnum
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -23,6 +23,23 @@ class UserModel(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, server_default=func.now()
     )
+
+    # Password reset: token is never stored raw, only its SHA-256 hash —
+    # same discipline as password_hash, just a fast hash since reset
+    # tokens are high-entropy random values (not low-entropy user input),
+    # so there's no dictionary-attack surface a slow hash would defend.
+    password_reset_token_hash: Mapped[str | None] = mapped_column(
+        String(64), nullable=True, index=True
+    )
+    password_reset_expires_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+
+    # Avatar stored directly on the row rather than an external object
+    # store — capped small (see app/config.py's AVATAR_MAX_BYTES) so this
+    # doesn't need its own storage service/credential.
+    avatar_data: Mapped[bytes | None] = mapped_column(LargeBinary(), nullable=True)
+    avatar_mime: Mapped[str | None] = mapped_column(String(50), nullable=True)
 
     projects: Mapped[list["ProjectModel"]] = relationship(
         back_populates="owner", cascade="all, delete-orphan", passive_deletes=True
