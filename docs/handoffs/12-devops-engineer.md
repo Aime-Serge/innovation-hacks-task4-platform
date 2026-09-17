@@ -29,6 +29,8 @@ recommended list, chosen because:
 - `CORS_ORIGINS`
 - `GEMINI_API_KEY`
 - `GEMINI_MODEL`
+- `FRONTEND_URL` — not secret, but must be the real Vercel URL, not the
+  localhost default, or password-reset links point nowhere reachable
 - `APP_ENV`, `LOG_LEVEL` — non-secret, set directly in `render.yaml`
 
 **Frontend (Vercel dashboard → Environment Variables):**

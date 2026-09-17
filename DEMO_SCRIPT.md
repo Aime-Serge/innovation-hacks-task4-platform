@@ -28,6 +28,6 @@ once is worth it if a key is available).
   happens rather than re-recording to avoid it.
 - Skip the "(if deployed)" beat entirely if there's no live URL yet —
   it's optional per the submission guide.
-- `pytest` (90 tests) and `npm test` (15 tests) are worth a 2–3 second
+- `pytest` (107 tests) and `npm test` (15 tests) are worth a 2–3 second
   cut if there's time left, but — same as Task 1's script — the guide
   asks for the app running end-to-end, not the test suite.

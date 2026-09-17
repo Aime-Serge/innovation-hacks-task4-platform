@@ -36,3 +36,8 @@ services:
         sync: false
       - key: GEMINI_MODEL
         sync: false
+      # Not secret, but must be set to the real Vercel URL in production
+      # — left at the code default (localhost), password-reset links
+      # would point at a dev server nobody but the developer can reach.
+      - key: FRONTEND_URL
+        sync: false

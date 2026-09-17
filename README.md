@@ -18,6 +18,9 @@ requires on top: auth, full CRUD, and AI-assisted task generation.
 
 ## Screenshots
 
+All captured against the actual running app — real Postgres, real
+session, and (for the AI panel) a real Gemini response.
+
 | Login | Register |
 | --- | --- |
 | ![Login](frontend/docs/screenshots/01-login-desktop.png) | ![Register](frontend/docs/screenshots/02-register-desktop.png) |
@@ -26,18 +29,21 @@ requires on top: auth, full CRUD, and AI-assisted task generation.
 | --- |
 | ![Login mobile](frontend/docs/screenshots/03-login-mobile.png) |
 
-Screenshots of the authenticated app (dashboard, project detail, task
-management, the AI panel) aren't captured yet — they need a live
-database session, which this development environment couldn't reach
-locally (Docker access blocked; see
-[docs/handoffs/04-backend-database-engineer.md](docs/handoffs/04-backend-database-engineer.md)).
-Add them here once the app is running against a real database — the
-UI/UX handoff (`docs/handoffs/02-ui-ux-specialist.md`) describes every
-screen in detail in the meantime.
+| Dashboard (desktop) | Dashboard (mobile) |
+| --- | --- |
+| ![Dashboard](frontend/docs/screenshots/04-dashboard-desktop.png) | ![Dashboard mobile](frontend/docs/screenshots/05-dashboard-mobile.png) |
+
+| Project detail | AI-generated tasks |
+| --- | --- |
+| ![Project detail](frontend/docs/screenshots/06-project-detail.png) | ![AI generate tasks](frontend/docs/screenshots/07-ai-generate-tasks.png) |
+
+| New task modal | Settings |
+| --- | --- |
+| ![New task modal](frontend/docs/screenshots/08-new-task-modal.png) | ![Settings](frontend/docs/screenshots/09-settings.png) |
 
 ## Feature List
 
-**Authentication**
+**Authentication & Profile**
 - Register, log in, log out
 - Passwords hashed with Argon2id — never stored, logged, or returned in
   plaintext
@@ -46,6 +52,17 @@ screen in detail in the meantime.
   unauthenticated request
 - CSRF-hardened: every mutating request requires a header a plain
   cross-site form can never send
+- Forgot/reset password — single-use, 30-minute-expiring, hashed
+  reset token (dev mode: the reset link is returned directly rather
+  than emailed, since this build has no email provider wired up; see
+  [Security](#security) for what that means and what a real deployment
+  needs to change)
+- Change password (while logged in — requires the current password,
+  distinct from the reset flow above)
+- Edit profile (name, email)
+- Avatar upload/remove (PNG/JPEG/WebP, capped at 500 KB, stored directly
+  in Postgres — no external object-storage dependency)
+- Delete account (self-service, with a confirmation step)
 
 **Dashboard**
 - Real-time stats: active projects, open/in-progress/blocked task counts
@@ -84,7 +101,7 @@ screen in detail in the meantime.
 | Database | PostgreSQL 16, SQLAlchemy 2.0, Alembic migrations |
 | Auth | PyJWT (HS256), Argon2id (`argon2-cffi`) |
 | AI | Gemini API (`gemini-3.6-flash` by default), JSON-schema structured output |
-| Testing | pytest (backend, 90 tests), Vitest + Testing Library (frontend, 15 tests), Playwright + axe-core (browser/a11y QA) |
+| Testing | pytest (backend, 107 tests), Vitest + Testing Library (frontend, 15 tests), Playwright + axe-core (browser/a11y QA) |
 | Deployment target | Render (API + managed Postgres) + Vercel (frontend) |
 
 ## Architecture
@@ -166,6 +183,9 @@ documents the keys with placeholders, never real values.
 | `CORS_ORIGINS` | Yes | Comma-separated allowed frontend origins, e.g. `http://localhost:3000` |
 | `GEMINI_API_KEY` | No | Powers real AI task generation; omitted → deterministic fallback, feature still works. Free tier available at [aistudio.google.com/apikey](https://aistudio.google.com/apikey) |
 | `GEMINI_MODEL` | No | Default `gemini-3.6-flash` |
+| `FRONTEND_URL` | No | Used to build the password-reset link. **Set this to the real frontend URL in production** — left at the `http://localhost:3000` default, reset links would point at a dev server no one can reach. |
+| `AVATAR_MAX_BYTES` | No | Default 500 KB |
+| `AVATAR_ALLOWED_MIME_TYPES` | No | Default `image/png,image/jpeg,image/webp` |
 | `APP_ENV` | No | `development` (default) or `production` — controls cookie `Secure`/`SameSite` flags |
 | `HOST` / `PORT` / `LOG_LEVEL` | No | Server bind config |
 
@@ -180,7 +200,7 @@ documents the keys with placeholders, never real values.
 ```bash
 # Backend (needs the database running and migrated)
 cd backend && source .venv/bin/activate
-pytest                    # 90 tests: unit + integration + end-to-end journey
+pytest                    # 107 tests: unit + integration + end-to-end journey
 
 # Frontend
 cd frontend
@@ -189,6 +209,11 @@ npx tsc --noEmit           # type-check
 
 # Frontend browser/accessibility QA (needs `npm run dev` running)
 BASE_URL=http://localhost:3000 node scripts/qa-checks.mjs
+
+# Full live end-to-end check — real browser, real backend, real DB, and
+# (if GEMINI_API_KEY is set) a real Gemini call. Needs the database,
+# backend, and frontend all actually running (see Getting Started above).
+BASE_URL=http://localhost:3000 node scripts/live-e2e-check.mjs
 ```
 
 ## Deployment
@@ -211,7 +236,7 @@ backend/
     security.py    Argon2id hashing, JWT issue/verify
     csrf.py         mutation CSRF guard
   migrations/       Alembic, versioned
-  tests/            90 tests: unit, integration, end-to-end
+  tests/            107 tests: unit, integration, end-to-end
 
 frontend/
   app/              Next.js App Router pages (/, /login, /register, /projects/[id])
@@ -236,3 +261,15 @@ before this sign-off.
 **Never commit real values** for `SECRET_KEY`, `DATABASE_URL`, or
 `GEMINI_API_KEY` — both `.env.example` files list every key with
 placeholders only.
+
+**Known, deliberate tradeoff — forgot-password in dev mode**: this build
+has no email provider wired up, so `POST /auth/forgot-password` returns
+the reset link directly in its response instead of emailing it (see the
+loud comment on `ForgotPasswordResponse` in
+`backend/app/models/auth.py`). That means anyone who can call that
+endpoint with a known email gets that account's reset link — a real
+account-takeover vector if this were ever pointed at genuine user data.
+It's acceptable here only because this is a demo/internship build with
+no real users; a real deployment must swap this for actually emailing
+the link (e.g. Resend, which also has a free tier) and drop
+`dev_reset_url` from the response entirely.
