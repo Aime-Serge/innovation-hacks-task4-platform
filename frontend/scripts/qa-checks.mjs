@@ -103,6 +103,16 @@ async function newPage(viewport) {
   focused = await page.evaluate(() => document.activeElement?.id);
   report("Tab order reaches the password field", focused === "password", `got: ${focused}`);
 
+  await page.keyboard.press("Tab"); // "Forgot password?" link
+  const forgotPasswordFocused = await page.evaluate(
+    () => document.activeElement?.tagName === "A" && document.activeElement?.textContent,
+  );
+  report(
+    "Tab order reaches the Forgot password link",
+    forgotPasswordFocused === "Forgot password?",
+    `got: ${forgotPasswordFocused}`,
+  );
+
   await page.keyboard.press("Tab"); // submit button
   const tag = await page.evaluate(() => document.activeElement?.tagName);
   const type = await page.evaluate(() => document.activeElement?.getAttribute("type"));
