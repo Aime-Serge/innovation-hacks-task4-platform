@@ -12,9 +12,15 @@ requires on top: auth, full CRUD, and AI-assisted task generation.
 - **Demo video**: _add link here after recording_ — see
   [`DEMO_SCRIPT.md`](DEMO_SCRIPT.md) for the timestamped shot list
   (2–5 min, per the internship's Demo Video Requirements).
-- **Live deployment**: _pending — add the link here once deployed._
-  Deployment is optional per the submission requirements; this repo is
-  ready to deploy (see [Deployment](#deployment) below).
+- **Live deployment**: https://task-management-ai-blush.vercel.app
+  — frontend on Vercel, API on Render
+  ([Swagger docs](https://ih-task4-api-h4jr.onrender.com/docs),
+  [health](https://ih-task4-api-h4jr.onrender.com/health)), PostgreSQL on
+  Render. Register a new account to try it. The free tier sleeps when idle,
+  so the first request after a quiet period can take up to a minute.
+  Verified end to end against this deployment: register, project and task
+  creation, a real Gemini call, logout, password reset, settings and avatar
+  upload (15 of 15 browser checks passing).
 
 ## Screenshots
 
