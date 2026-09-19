@@ -24,7 +24,7 @@ authentication (Argon2id password hashing, CSRF-hardened sessions) and a
 Postgres-backed API underneath. The AI feature takes a project's name and
 description and proposes a concrete task list you can edit before
 adding — and if the AI call ever fails, it falls back to a real checklist
-instead of breaking, so the feature never leaves you stuck. 89 backend
+instead of breaking, so the feature never leaves you stuck. 107 backend
 tests, a full security review, and four connected build stages later,
 here's the result.
 
@@ -40,4 +40,4 @@ below. Would love feedback from anyone who's built something similar.
 
 Repo: [link]
 Demo: [link]
-Live: [link, if deployed]
+Live: https://task-management-ai-blush.vercel.app
