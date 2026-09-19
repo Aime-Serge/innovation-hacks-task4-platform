@@ -33,5 +33,8 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next|favicon.ico).*)"],
+  // /api/* is the same-origin pass-through to the backend (see
+  // next.config.ts) — it must not be redirected to /login, since the
+  // login request itself goes through it.
+  matcher: ["/((?!api/|_next|favicon.ico).*)"],
 };

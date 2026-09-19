@@ -1,4 +1,8 @@
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+// When API_URL is the same-origin "/api" proxy, Swagger UI can't load
+// through it (it fetches /openapi.json from the site root), so production
+// sets this to the API's real public URL.
+const API_DOCS_URL = process.env.NEXT_PUBLIC_API_DOCS_URL ?? `${API_URL}/docs`;
 
 export function Footer() {
   const year = new Date().getFullYear();
@@ -19,7 +23,7 @@ export function Footer() {
             Source on GitHub
           </a>
           <a
-            href={`${API_URL}/docs`}
+            href={API_DOCS_URL}
             className="hover:text-text-primary hover:underline"
             target="_blank"
             rel="noreferrer"

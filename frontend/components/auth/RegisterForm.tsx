@@ -2,7 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { hardNavigate } from "@/lib/navigation";
 import { useAuth } from "@/lib/auth-context";
 import { ApiError } from "@/lib/api";
 import { FormField } from "@/components/shared/FormField";
@@ -11,7 +11,6 @@ const MIN_PASSWORD_LENGTH = 8;
 
 export function RegisterForm() {
   const { register } = useAuth();
-  const router = useRouter();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -44,7 +43,7 @@ export function RegisterForm() {
     setSubmitting(true);
     try {
       await register(name, email, password);
-      router.push("/");
+      hardNavigate("/");
     } catch (err) {
       if (err instanceof ApiError && err.status === 409) {
         setEmailError("An account with this email already exists.");

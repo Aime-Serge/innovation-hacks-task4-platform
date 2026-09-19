@@ -2,6 +2,7 @@
 
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
+import { hardNavigate } from "./navigation";
 import type { User } from "./types";
 import { fetchCurrentUser, login as apiLogin, logout as apiLogout, register as apiRegister } from "./auth";
 
@@ -73,8 +74,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await apiLogout();
     setUser(null);
     setStatus("unauthenticated");
-    router.push("/login");
-  }, [router]);
+    hardNavigate("/login");
+  }, []);
 
   return (
     <AuthContext.Provider value={{ user, status, login, register, logout, setUser }}>

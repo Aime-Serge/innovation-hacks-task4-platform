@@ -11,9 +11,13 @@ services:
     plan: free
     rootDir: backend
     buildCommand: "pip install -r requirements.txt && alembic upgrade head"
-    startCommand: "uvicorn app.main:app --host 0.0.0.0 --port $PORT"
+    startCommand: "python -m uvicorn app.main:app --host 0.0.0.0 --port $PORT"
     healthCheckPath: /health
     envVars:
+      # Pinned so builds match local dev (Render's own default is also
+      # 3.14.x, this just keeps it from drifting).
+      - key: PYTHON_VERSION
+        value: 3.14.3
       - key: APP_ENV
         value: production
       - key: LOG_LEVEL

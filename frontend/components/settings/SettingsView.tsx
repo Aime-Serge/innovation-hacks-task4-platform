@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState, type FormEvent } from "react";
-import { useRouter } from "next/navigation";
+import { hardNavigate } from "@/lib/navigation";
 import { useAuth } from "@/lib/auth-context";
 import {
   changePassword,
@@ -257,7 +257,6 @@ function ChangePasswordSection() {
 
 function DeleteAccountSection() {
   const { user: maybeUser, logout } = useAuth();
-  const router = useRouter();
   const [confirming, setConfirming] = useState(false);
 
   if (!maybeUser) return null;
@@ -288,7 +287,7 @@ function DeleteAccountSection() {
             // clear client state and land on login rather than relying on
             // the next authenticated request to discover that itself.
             await logout().catch(() => undefined);
-            router.push("/login");
+            hardNavigate("/login");
           }}
         />
       )}

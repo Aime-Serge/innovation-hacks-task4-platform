@@ -2,14 +2,14 @@
 
 import { useState, type FormEvent } from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
+import { hardNavigate } from "@/lib/navigation";
 import { useAuth } from "@/lib/auth-context";
 import { ApiError } from "@/lib/api";
 import { FormField } from "@/components/shared/FormField";
 
 export function LoginForm() {
   const { login } = useAuth();
-  const router = useRouter();
   const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -22,7 +22,7 @@ export function LoginForm() {
     setError(null);
     try {
       await login(email, password);
-      router.push(searchParams.get("next") || "/");
+      hardNavigate(searchParams.get("next") ?? "/");
     } catch (err) {
       // Deliberately generic — matches the backend's constant-shape 401,
       // never says which of email/password was wrong.

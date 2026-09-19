@@ -34,7 +34,10 @@ recommended list, chosen because:
 - `APP_ENV`, `LOG_LEVEL` — non-secret, set directly in `render.yaml`
 
 **Frontend (Vercel dashboard → Environment Variables):**
-- `NEXT_PUBLIC_API_URL`
+- `NEXT_PUBLIC_API_URL` — set to `/api` (same-origin proxy, see the README's
+  Deployment section for why calling Render directly breaks login)
+- `API_PROXY_TARGET` — the Render API URL, server-side only
+- `NEXT_PUBLIC_API_DOCS_URL` — optional, the footer's API-docs link
 
 Confirmed: none of these have a value anywhere in this repo.
 `render.yaml` marks every secret `sync: false` — Render's own way of
@@ -96,9 +99,26 @@ actually produced.
 **Vercel:**
 1. vercel.com → Add New → Project → import the same repo.
 2. Set **Root Directory** to `frontend`.
-3. Add env var `NEXT_PUBLIC_API_URL` = the Render URL from above.
+3. Add env vars `NEXT_PUBLIC_API_URL` = `/api`, `API_PROXY_TARGET` = the Render URL from above.
 4. Deploy. Note the resulting frontend URL.
 5. Go back to Render and update `CORS_ORIGINS` to that Vercel URL,
    redeploy the backend so CORS actually allows it.
 
 Send me both URLs (or the tokens) and I'll take it from there.
+
+## Update (pre-deploy hardening)
+
+Testing the app the way production runs it (production build, API in
+`APP_ENV=production`) found two bugs that dev mode hides, both fixed
+before deploying:
+
+1. **Cross-domain session cookie.** The API's cookie belongs to
+   `*.onrender.com`; the frontend's route guard runs on `*.vercel.app`
+   and could never see it, so login would loop back to `/login`. Fixed by
+   proxying `/api/*` through Next.js (`next.config.ts`).
+2. **Stale prefetch cache.** Production builds prefetch links; the guard's
+   logged-out redirect for `/` was cached and replayed after login. Fixed
+   by using a full page load after login/register/logout.
+
+Also added: `?next=` redirect validation (was an open redirect), a pinned
+`PYTHON_VERSION`, and `python -m uvicorn` as the start command.

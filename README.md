@@ -101,7 +101,7 @@ session, and (for the AI panel) a real Gemini response.
 | Database | PostgreSQL 16, SQLAlchemy 2.0, Alembic migrations |
 | Auth | PyJWT (HS256), Argon2id (`argon2-cffi`) |
 | AI | Gemini API (`gemini-3.6-flash` by default), JSON-schema structured output |
-| Testing | pytest (backend, 107 tests), Vitest + Testing Library (frontend, 15 tests), Playwright + axe-core (browser/a11y QA) |
+| Testing | pytest (backend, 107 tests), Vitest + Testing Library (frontend, 18 tests), Playwright + axe-core (browser/a11y QA) |
 | Deployment target | Render (API + managed Postgres) + Vercel (frontend) |
 
 ## Architecture
@@ -193,7 +193,9 @@ documents the keys with placeholders, never real values.
 
 | Variable | Required | Notes |
 | --- | --- | --- |
-| `NEXT_PUBLIC_API_URL` | Yes | Base URL of the backend, no trailing slash |
+| `NEXT_PUBLIC_API_URL` | Yes | Local dev: the backend's URL, no trailing slash. Production: `/api` (calls are proxied same-origin — see [Deployment](#deployment)) |
+| `API_PROXY_TARGET` | Production only | Server-side. The API's real base URL that `/api/*` is proxied to, e.g. `https://ih-task4-api.onrender.com` |
+| `NEXT_PUBLIC_API_DOCS_URL` | No | Public URL of the API's Swagger docs, used by the footer link when `NEXT_PUBLIC_API_URL` is `/api` |
 
 ## Testing
 
@@ -204,7 +206,7 @@ pytest                    # 107 tests: unit + integration + end-to-end journey
 
 # Frontend
 cd frontend
-npm test                  # Vitest, 15 tests
+npm test                  # Vitest, 18 tests
 npx tsc --noEmit           # type-check
 
 # Frontend browser/accessibility QA (needs `npm run dev` running)
@@ -218,11 +220,64 @@ BASE_URL=http://localhost:3000 node scripts/live-e2e-check.mjs
 
 ## Deployment
 
-Target: **Render** for the API + a managed Postgres instance, **Vercel**
-for the frontend — chosen for zero-config fit with FastAPI/Uvicorn and
-Next.js respectively, and both have workable free tiers for a project
-this size. See [`docs/handoffs/`](docs/handoffs/) for the full role-by-
-role build record, including the security review that gated deployment.
+Target: **Render** (API + managed Postgres) and **Vercel** (frontend),
+both on free tiers. Config is already in the repo: [`render.yaml`](render.yaml)
+is a Render Blueprint for the API and database; Vercel needs only a root
+directory and three variables.
+
+### 1. Render (API + database)
+
+1. render.com → **New → Blueprint** → select this repo. It reads
+   `render.yaml` and creates `ih-task4-db` and `ih-task4-api`.
+2. Fill in the prompted values: `SECRET_KEY` (generate with
+   `python3 -c "import secrets; print(secrets.token_urlsafe(48))"`),
+   `GEMINI_API_KEY` (optional — without it the AI feature uses its
+   labeled fallback), `GEMINI_MODEL` (`gemini-3.6-flash`), and
+   placeholder values for `CORS_ORIGINS` / `FRONTEND_URL` for now.
+   `DATABASE_URL` is wired in automatically.
+3. Wait for the build (`pip install` + `alembic upgrade head`), then check
+   `https://<your-api>.onrender.com/health`.
+
+### 2. Vercel (frontend)
+
+1. vercel.com → **Add New → Project** → import this repo, set **Root
+   Directory** to `frontend`.
+2. Add three environment variables:
+   - `NEXT_PUBLIC_API_URL` = `/api`
+   - `API_PROXY_TARGET` = your Render API URL (no trailing slash)
+   - `NEXT_PUBLIC_API_DOCS_URL` = `<your Render API URL>/docs` (optional)
+3. Deploy.
+
+### 3. Connect them
+
+Back on Render, set `CORS_ORIGINS` and `FRONTEND_URL` to the Vercel URL
+and let the service redeploy.
+
+### Why the frontend proxies `/api` instead of calling Render directly
+
+The API sets the session cookie on its own domain (`*.onrender.com`).
+The frontend runs on a different one (`*.vercel.app`), so that cookie is
+never sent to the frontend's route guard (`proxy.ts`) — a logged-in user
+would be bounced back to `/login` forever — and Safari and Firefox block
+such cross-site cookies outright. Routing API calls through
+`/api/*` (a Next.js rewrite, `next.config.ts`) makes them same-origin, so
+the cookie is first-party. Related: after login, register, and logout the
+app does a full page load rather than a client-side navigation, because
+production builds prefetch links and cache the guard's logged-out
+redirect, which would otherwise be replayed right after login.
+
+Both behaviours were verified with the full browser journey
+(`frontend/scripts/live-e2e-check.mjs`) against a production build,
+with the API in `APP_ENV=production` so cookies carry the real
+`SameSite=None; Secure` flags.
+
+### Notes
+
+- Render's free tier sleeps after inactivity; the first request after a
+  while takes ~30s to wake it.
+- Pushes to `main` redeploy both platforms automatically.
+- See [`docs/handoffs/`](docs/handoffs/) for the full role-by-role build
+  record, including the security review that gated deployment.
 
 ## Project Structure
 
