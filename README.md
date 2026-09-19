@@ -20,7 +20,7 @@ requires on top: auth, full CRUD, and AI-assisted task generation.
   so the first request after a quiet period can take up to a minute.
   Verified end to end against this deployment: register, project and task
   creation, a real Gemini call, logout, password reset, settings and avatar
-  upload (15 of 15 browser checks passing).
+  upload (18 of 18 browser checks passing, including register then login).
 
 ## Screenshots
 

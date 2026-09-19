@@ -23,6 +23,9 @@ import { chromium } from "@playwright/test";
 const BASE = process.env.BASE_URL || "http://localhost:3000";
 const browser = await chromium.launch({ args: ["--no-sandbox"] });
 const page = await browser.newPage();
+// Live free-tier services can take a while to wake; be patient rather than flaky.
+page.setDefaultTimeout(30000);
+page.setDefaultNavigationTimeout(60000);
 
 // Only uncaught exceptions count as real failures here — a 401 in the
 // network log right after logout is expected (that's the redirect-on-401
@@ -97,7 +100,7 @@ check("task created and visible on project detail", true);
 // the honest fallback if no key is set or the call fails — the point of
 // this check is that the feature never breaks, not which path it took.
 await page.click('button:has-text("Generate tasks with AI")');
-await page.waitForSelector('button:has-text("Add"):has-text("task")', { timeout: 20000 });
+await page.waitForSelector('button:has-text("Add"):has-text("task")', { timeout: 45000 });
 const aiPanelText = await page.textContent("body");
 const usedFallback = aiPanelText.includes("AI suggestions aren't available");
 check(
@@ -111,7 +114,7 @@ await page.click('button:has-text("Discard")').catch(() => {});
 await page.click('button[aria-haspopup="menu"]');
 await page.waitForSelector('[role="menu"]');
 await page.click('button:has-text("Sign out")');
-await page.waitForURL(new RegExp(`^${BASE}/login`), { timeout: 10000 });
+await page.waitForURL(new RegExp(`^${BASE}/login`), { timeout: 30000 });
 check("logout redirects to /login", page.url().startsWith(`${BASE}/login`));
 
 await page.goto(`${BASE}/`, { waitUntil: "networkidle" });
@@ -121,7 +124,7 @@ check("visiting / after logout redirects back to /login", page.url().includes("/
 await page.goto(`${BASE}/forgot-password`, { waitUntil: "networkidle" });
 await page.fill("#email", email);
 await page.click('button:has-text("Send reset link")');
-await page.waitForSelector('a[href*="/reset-password?token="]', { timeout: 10000 });
+await page.waitForSelector('a[href*="/reset-password?token="]', { timeout: 30000 });
 const resetLinkHref = await page.getAttribute('a[href*="/reset-password?token="]', "href");
 check("forgot-password page surfaces a dev reset link", Boolean(resetLinkHref));
 
@@ -130,7 +133,7 @@ await page.goto(`${BASE}${resetLinkHref}`, { waitUntil: "networkidle" });
 await page.fill("#password", newPassword);
 await page.fill("#confirm-password", newPassword);
 await page.click('button:has-text("Reset password")');
-await page.waitForSelector("text=Your password has been reset", { timeout: 10000 });
+await page.waitForSelector("text=Your password has been reset", { timeout: 30000 });
 check("reset-password flow completes", true);
 
 await page.click('a:has-text("Log in")');
@@ -138,7 +141,7 @@ await page.waitForURL(new RegExp(`^${BASE}/login`));
 await page.fill("#email", email);
 await page.fill("#password", newPassword);
 await page.click('button[type="submit"]');
-await page.waitForURL(`${BASE}/`, { timeout: 10000 });
+await page.waitForURL(`${BASE}/`, { timeout: 30000 });
 check("login with the newly reset password works", page.url() === `${BASE}/`);
 
 // 7. Settings: avatar upload, change password
@@ -154,14 +157,14 @@ check(
 );
 
 await page.setInputFiles('input[type="file"]', tinyPngPath);
-await page.waitForSelector('button:has-text("Remove")', { timeout: 10000 });
+await page.waitForSelector('button:has-text("Remove")', { timeout: 30000 });
 check("avatar upload succeeds (Remove button now shown)", true);
 
 await page.fill("#current-password", newPassword);
 await page.fill("#new-password", "yetanotherpassword1");
 await page.fill("#confirm-new-password", "yetanotherpassword1");
 await page.click('button:has-text("Change password")');
-await page.waitForSelector("text=Password changed.", { timeout: 10000 });
+await page.waitForSelector("text=Password changed.", { timeout: 30000 });
 check("change-password flow completes", true);
 
 check("no uncaught client-side exceptions during the run", uncaughtErrors.length === 0, uncaughtErrors.join(" | "));
