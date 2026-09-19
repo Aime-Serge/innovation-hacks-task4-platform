@@ -55,11 +55,24 @@ await page.fill("#email", email);
 await page.fill("#password", password);
 await page.fill("#confirm-password", password);
 await page.click('button[type="submit"]');
-await page.waitForURL(`${BASE}/`, { timeout: 10000 });
-check("register lands on dashboard", page.url() === `${BASE}/`);
+// Registering must not sign you in: it sends you to the login page.
+await page.waitForURL(new RegExp(`^${BASE}/login`), { timeout: 30000 });
+check("register redirects to the login page, not the dashboard", page.url().includes("registered=1"));
+check(
+  "login page confirms the account was created",
+  await page.isVisible("text=Account created. Log in to continue."),
+);
+await page.goto(`${BASE}/`, { waitUntil: "networkidle" });
+check("still signed out after registering (dashboard redirects to login)", page.url().includes("/login"));
+
+await page.fill("#email", email);
+await page.fill("#password", password);
+await page.click('button[type="submit"]');
+await page.waitForURL(`${BASE}/`, { timeout: 30000 });
+check("logging in after registering lands on dashboard", page.url() === `${BASE}/`);
 
 await page.waitForSelector("h1:has-text('Dashboard')");
-check("dashboard renders after register", await page.isVisible("text=Dashboard"));
+check("dashboard renders after login", await page.isVisible("text=Dashboard"));
 
 // 2. Create a project
 await page.click('button:has-text("New Project")');

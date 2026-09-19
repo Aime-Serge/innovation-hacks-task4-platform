@@ -36,9 +36,11 @@ export async function login(email: string, password: string): Promise<User> {
   return toUser(data.user);
 }
 
+// Creates the account only — the API issues no session for it, so the
+// caller must send the user through login next.
 export async function register(name: string, email: string, password: string): Promise<User> {
-  const data = await api.post<{ user: ApiUser }>("/auth/register", { name, email, password });
-  return toUser(data.user);
+  const data = await api.post<ApiUser>("/auth/register", { name, email, password });
+  return toUser(data);
 }
 
 export async function logout(): Promise<void> {

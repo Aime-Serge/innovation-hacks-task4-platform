@@ -34,8 +34,18 @@ export function LoginForm() {
     }
   }
 
+  const justRegistered = searchParams.get("registered") === "1";
+
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4" noValidate>
+      {justRegistered && !error && (
+        <div
+          role="status"
+          className="rounded border border-status-done/40 bg-status-done/10 px-3 py-2 text-sm text-text-primary"
+        >
+          Account created. Log in to continue.
+        </div>
+      )}
       {error && (
         <div
           role="alert"

@@ -3,18 +3,26 @@ from fastapi.testclient import TestClient
 from app.main import app
 
 
-def test_register_returns_201_with_token_and_sets_cookie(anon_client):
+def test_register_creates_the_account_but_does_not_sign_in(anon_client):
     r = anon_client.post(
         "/auth/register",
         json={"name": "Grace Hopper", "email": "grace@example.com", "password": "supersecret"},
     )
     assert r.status_code == 201
     body = r.json()
-    assert body["user"]["email"] == "grace@example.com"
-    assert "password" not in body["user"]
-    assert "password_hash" not in body["user"]
-    assert body["access_token"]
-    assert "access_token" in r.cookies
+    assert body["email"] == "grace@example.com"
+    assert "password" not in body and "password_hash" not in body
+    # No token in the body and no session cookie: registering is not a login.
+    assert "access_token" not in body
+    assert "access_token" not in r.cookies
+    assert anon_client.get("/auth/me").status_code == 401
+
+
+def test_a_registered_user_can_then_log_in(anon_client):
+    creds = {"email": "grace@example.com", "password": "supersecret"}
+    anon_client.post("/auth/register", json={"name": "Grace Hopper", **creds})
+    assert anon_client.post("/auth/login", json=creds).status_code == 200
+    assert anon_client.get("/auth/me").status_code == 200
 
 
 def test_register_duplicate_email_returns_409(anon_client):
@@ -90,9 +98,12 @@ def test_logout_clears_session(client):
 
 
 def test_bearer_token_authenticates_without_a_cookie(anon_client):
-    r = anon_client.post(
+    anon_client.post(
         "/auth/register",
         json={"name": "Grace", "email": "grace@example.com", "password": "supersecret"},
+    )
+    r = anon_client.post(
+        "/auth/login", json={"email": "grace@example.com", "password": "supersecret"}
     )
     token = r.json()["access_token"]
 

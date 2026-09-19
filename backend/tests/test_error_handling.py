@@ -17,10 +17,9 @@ def test_unhandled_exception_returns_500_with_generic_body(monkeypatch):
     client = TestClient(
         app, raise_server_exceptions=False, headers={"X-Requested-With": "XMLHttpRequest"}
     )
-    client.post(
-        "/auth/register",
-        json={"name": "Ada", "email": "ada@example.com", "password": "supersecret"},
-    )
+    creds = {"email": "ada@example.com", "password": "supersecret"}
+    client.post("/auth/register", json={"name": "Ada", **creds})
+    client.post("/auth/login", json=creds)
 
     r = client.get("/users")
 

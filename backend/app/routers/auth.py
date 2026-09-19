@@ -41,8 +41,12 @@ def _set_session_cookie(response: Response, token: str) -> None:
     )
 
 
-@router.post("/register", response_model=TokenOut, status_code=status.HTTP_201_CREATED)
-def register(payload: UserCreate, response: Response) -> TokenOut:
+@router.post("/register", response_model=UserOut, status_code=status.HTTP_201_CREATED)
+def register(payload: UserCreate) -> UserOut:
+    """Creates the account and nothing else: no session cookie and no token.
+    The user signs in through /auth/login afterwards — registering is not
+    a login, and issuing a session here would let the client skip the
+    login step entirely."""
     if user_repository.get_by_email(payload.email):
         raise ConflictError(f"A user with email '{payload.email}' already exists.")
 
@@ -53,9 +57,7 @@ def register(payload: UserCreate, response: Response) -> TokenOut:
             password_hash=hash_password(payload.password),
         )
     )
-    token = create_access_token(user.id)
-    _set_session_cookie(response, token)
-    return TokenOut(access_token=token, user=user.to_out())
+    return user.to_out()
 
 
 @router.post("/login", response_model=TokenOut)

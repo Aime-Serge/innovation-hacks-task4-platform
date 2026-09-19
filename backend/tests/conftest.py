@@ -63,6 +63,9 @@ def reset_database():
 def _register(email: str, name: str = "Ada Lovelace", password: str = "supersecret") -> TestClient:
     c = TestClient(app, headers=FETCH_HEADERS)
     c.post("/auth/register", json={"name": name, "email": email, "password": password})
+    # Registering no longer signs you in — log in explicitly, the way a
+    # real user now has to.
+    c.post("/auth/login", json={"email": email, "password": password})
     return c
 
 
@@ -75,9 +78,8 @@ def anon_client() -> TestClient:
 
 @pytest.fixture
 def client() -> TestClient:
-    """An authenticated client (session cookie already set from
-    /auth/register) — the default for tests exercising normal, logged-in
-    behavior."""
+    """An authenticated client (registered, then logged in) — the default
+    for tests exercising normal, logged-in behavior."""
     return _register("ada@example.com")
 
 

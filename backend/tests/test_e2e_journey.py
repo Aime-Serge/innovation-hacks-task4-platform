@@ -16,14 +16,16 @@ FETCH_HEADERS = {"X-Requested-With": "XMLHttpRequest"}
 def test_full_user_journey():
     client = TestClient(app, headers=FETCH_HEADERS)
 
-    # 1. Register (creates the account, hashes the password, starts a session).
+    # 1. Register (creates the account and hashes the password). It does
+    #    NOT sign you in: the same client is still anonymous afterwards.
     register = client.post(
         "/auth/register",
         json={"name": "Jordan Lee", "email": "jordan@example.com", "password": "supersecret1"},
     )
     assert register.status_code == 201
-    me = register.json()["user"]
+    me = register.json()
     assert "password" not in me and "password_hash" not in me
+    assert client.get("/auth/me").status_code == 401
 
     # A second account, to assign a task to and to prove tenant isolation
     # doesn't leak into this same journey.
@@ -31,10 +33,9 @@ def test_full_user_journey():
     teammate = teammate_client.post(
         "/auth/register",
         json={"name": "Priya Shah", "email": "priya@example.com", "password": "supersecret2"},
-    ).json()["user"]
+    ).json()
 
-    # 2. Login (separately from the register-issued session, proving the
-    #    login path independently issues a working session).
+    # 2. Login — the only way to get a session.
     fresh_login_client = TestClient(app, headers=FETCH_HEADERS)
     login = fresh_login_client.post(
         "/auth/login", json={"email": "jordan@example.com", "password": "supersecret1"}

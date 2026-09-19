@@ -16,7 +16,7 @@ requires on top: auth, full CRUD, and AI-assisted task generation.
   — frontend on Vercel, API on Render
   ([Swagger docs](https://ih-task4-api-h4jr.onrender.com/docs),
   [health](https://ih-task4-api-h4jr.onrender.com/health)), PostgreSQL on
-  Render. Register a new account to try it. The free tier sleeps when idle,
+  Render. Register a new account, then log in, to try it. The free tier sleeps when idle,
   so the first request after a quiet period can take up to a minute.
   Verified end to end against this deployment: register, project and task
   creation, a real Gemini call, logout, password reset, settings and avatar
@@ -50,7 +50,8 @@ session, and (for the AI panel) a real Gemini response.
 ## Feature List
 
 **Authentication & Profile**
-- Register, log in, log out
+- Register, then log in (registering creates the account but does not
+  sign you in), log out
 - Passwords hashed with Argon2id — never stored, logged, or returned in
   plaintext
 - Session via an httpOnly JWT cookie (with a Bearer-header fallback for
@@ -107,7 +108,7 @@ session, and (for the AI panel) a real Gemini response.
 | Database | PostgreSQL 16, SQLAlchemy 2.0, Alembic migrations |
 | Auth | PyJWT (HS256), Argon2id (`argon2-cffi`) |
 | AI | Gemini API (`gemini-3.6-flash` by default), JSON-schema structured output |
-| Testing | pytest (backend, 107 tests), Vitest + Testing Library (frontend, 18 tests), Playwright + axe-core (browser/a11y QA) |
+| Testing | pytest (backend, 108 tests), Vitest + Testing Library (frontend, 18 tests), Playwright + axe-core (browser/a11y QA) |
 | Deployment target | Render (API + managed Postgres) + Vercel (frontend) |
 
 ## Architecture
@@ -208,7 +209,7 @@ documents the keys with placeholders, never real values.
 ```bash
 # Backend (needs the database running and migrated)
 cd backend && source .venv/bin/activate
-pytest                    # 107 tests: unit + integration + end-to-end journey
+pytest                    # 108 tests: unit + integration + end-to-end journey
 
 # Frontend
 cd frontend
@@ -267,7 +268,7 @@ never sent to the frontend's route guard (`proxy.ts`) — a logged-in user
 would be bounced back to `/login` forever — and Safari and Firefox block
 such cross-site cookies outright. Routing API calls through
 `/api/*` (a Next.js rewrite, `next.config.ts`) makes them same-origin, so
-the cookie is first-party. Related: after login, register, and logout the
+the cookie is first-party. Related: after login, register (which redirects to the login page), and logout the
 app does a full page load rather than a client-side navigation, because
 production builds prefetch links and cache the guard's logged-out
 redirect, which would otherwise be replayed right after login.
@@ -297,7 +298,7 @@ backend/
     security.py    Argon2id hashing, JWT issue/verify
     csrf.py         mutation CSRF guard
   migrations/       Alembic, versioned
-  tests/            107 tests: unit, integration, end-to-end
+  tests/            108 tests: unit, integration, end-to-end
 
 frontend/
   app/              Next.js App Router pages (/, /login, /register, /projects/[id])
