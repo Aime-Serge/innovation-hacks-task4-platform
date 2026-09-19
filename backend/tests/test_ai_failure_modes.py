@@ -38,7 +38,7 @@ def gemini_api_key(monkeypatch):
 @pytest.fixture
 def patch_gemini_client(monkeypatch):
     def _patch(client_factory):
-        monkeypatch.setattr(ai_module.genai, "Client", client_factory)
+        monkeypatch.setattr("google.genai.Client", client_factory)
 
     return _patch
 

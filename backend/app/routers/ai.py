@@ -3,9 +3,6 @@ import logging
 from uuid import UUID
 
 from fastapi import APIRouter, Depends
-from google import genai
-from google.genai import errors as genai_errors
-from google.genai import types as genai_types
 from pydantic import BaseModel, Field
 
 from app.config import get_settings
@@ -86,6 +83,14 @@ def _call_gemini(project_name: str, project_description: str | None, instruction
     settings = get_settings()
     if not settings.gemini_api_key:
         return None
+
+    # Imported here rather than at module level: the SDK costs about 1.3s of
+    # CPU to import (roughly a third of this app's whole startup), and the
+    # fallback path above never needs it. On a free tier that throttles CPU
+    # and sleeps when idle, that is a large share of every cold start.
+    from google import genai
+    from google.genai import errors as genai_errors
+    from google.genai import types as genai_types
 
     prompt = (
         f"Project name: {project_name}\n"
