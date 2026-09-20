@@ -1,0 +1,1358 @@
+Developer Productivity Dashboard — Engineering Standards Pack (Task 1)
+
+
+
+
+  Developer Productivity Dashboard —
+  Engineering Standards Pack (Task 1)
+    2026-09-19         · ​@Someone
+
+
+  1. How to use this pack
+  Developers edit the mock-based build until every item in the Standards Gate (section 11)
+  passes. This pack is the single source of truth for Task 1, and it is structured so Tasks 2 to 4
+  extend it without rework.
+
+     flowchart LR
+       A["Read requirement<br/>FR / NFR / UC"] --> B["Edit mock data<br/>or
+     component"]
+       B --> C["Run automated<br/>checks"]
+       C --> D{"Standards Gate<br/>passes?"}
+       D -- No --> B
+       D -- Yes --> E["Tag release<br/>task-1-submission"]
+
+
+  The loop repeats per requirement: change a mock scenario or a component, run the
+  checks, and fix until the gate is green.
+
+
+     Section          Document                                           Primary owner    Used for
+
+     2                Product Vision and Scope                           Product          Agreeing what is and is not built
+                                                                         Manager
+
+     3                System Analysis                                    Systems          Actors, use cases, domain
+                                                                         Analyst          model, rules
+
+     4 to 5           SRS (functional, non-                              Systems          Testable requirements
+                      functional)                                        Analyst
+
+     6                UX/UI Handoff Spec                                 UX/UI Designer   Layout, tokens, states,
+                                                                                          accessibility
+
+     7                Architecture and ADRs                              Tech Lead        Structure and TypeScript rules
+
+     8                Mock Data and Service                              Frontend         Scenarios developers modify
+                      Contract                                           Engineer
+
+
+
+
+                                                                                                                       Page 1 of 26
+Developer Productivity Dashboard — Engineering Standards Pack (Task 1)
+
+
+
+
+     Section          Document                                           Primary owner   Used for
+
+     9                Test Strategy and                                  QA Engineer     Proving each requirement
+                      Traceability
+
+     10               Security and Threat Model                          Security        Frontend risk controls
+                                                                         Engineer
+
+     11               Standards Gate                                     Whole team      Pass or fail verification
+
+     12               Conventions, CI and                                Tech Lead       Working rules and scaling path
+                      Roadmap
+
+
+  ID conventions. Requirements use FR-### and NFR-### , use cases UC-## , tests TC-
+  ### , decisions ADR-### . Every test names the requirement it proves, and every
+  requirement has at least one test.
+
+
+
+  2. Product vision and scope
+  The Developer Productivity Dashboard gives a developer one screen to see what to work
+  on next, how projects are progressing, and what is overdue. Task 1 delivers the complete
+  frontend on mock data; Tasks 2 to 4 replace the mocks with a real API, database, and an AI
+  feature.
+
+  Vision. A fast, accessible, responsive workspace that a small product team could ship as-
+  is.
+
+  Users
+
+
+     Persona                            Goal                                                      Key screens
+
+     Individual                         See today's tasks and progress at a glance                Dashboard, Tasks
+     developer
+
+     Team lead                          Track project health and spot overdue work                Dashboard, Projects
+
+     Evaluator /                        Confirm quality, states, and responsiveness               All, with scenario
+     reviewer                           quickly                                                   switcher
+
+
+  Success metrics
+
+
+
+
+                                                                                                                       Page 2 of 26
+Developer Productivity Dashboard — Engineering Standards Pack (Task 1)
+
+
+
+
+     Metric                                                                   Target
+
+     Lighthouse (performance, accessibility, best                             90 or higher each, mobile profile
+     practices)
+
+     axe automated accessibility violations                                   0 on every route
+
+     Guide requirements covered by a passing test                             100%
+
+     TypeScript strict errors, any usage, .js files in                        0
+     repo
+
+
+  In scope (Task 1)
+
+        Dashboard, projects, tasks, and profile screens on mock data
+        Search, filter, sort, and progress indicators
+        Loading, empty, and error states on every dynamic view
+        Light and dark themes, responsive at mobile, tablet, and desktop
+
+  Out of scope (Task 1)
+
+        Real authentication, persistence, and server APIs (Tasks 2 and 3)
+        AI features (Task 4)
+        Multi-user collaboration and real-time updates
+
+  Deliverables from the guide: GitHub repository, demo video, LinkedIn post. The
+  evaluation weights responsiveness, component structure, state handling, and visual
+  consistency.
+
+
+  3. System analysis
+  The system has one human actor and one external boundary in Task 1: the developer, and a
+  data service that is mocked now and becomes the FastAPI backend in Task 2.
+
+  Actors
+
+
+     Actor                          Type                                 Responsibility
+
+     Developer                      Human                                Views dashboard, manages tasks, edits
+     (User)                                                              own profile
+
+
+
+
+                                                                                                                  Page 3 of 26
+Developer Productivity Dashboard — Engineering Standards Pack (Task 1)
+
+
+
+
+     Actor                          Type                                     Responsibility
+
+     Team Lead                      Human, same UI with                      Views all projects and team progress
+                                    wider view
+
+     Data Service                   System                                   Supplies projects, tasks, users (mock
+                                                                             adapter now, REST API later)
+
+
+  Use cases
+
+
+     ID             Use case                                      Actor   Main flow
+
+     UC-01          View dashboard                                User    Open app, see KPIs, deadlines, recent activity
+                    summary
+
+     UC-            Browse projects                               User    Open Projects, see cards with progress
+     02
+
+     UC-            Browse tasks                                  User    Open Tasks, see task cards grouped or listed
+     03
+
+     UC-            Search tasks and                              User    Type in search, list narrows, empty state if
+     04             projects                                              none
+
+     UC-            Filter and sort                               User    Choose status, priority, project, sort order
+     05
+
+     UC-            Inspect a project                             User    Open project, see its tasks and progress ring
+     06
+
+     UC-            Update a task's status                        User    Change status, progress recalculates
+     07
+
+     UC-            View and edit profile                         User    Open profile, edit name and preferences,
+     08                                                                   validate, save
+
+     UC-            Recover from a failed                         User    See error state, press Retry
+     09             load
+
+     UC-10          Switch theme                                  User    Toggle light, dark, or system
+
+
+  Domain model
+
+
+
+
+                                                                                                                         Page 4 of 26
+Developer Productivity Dashboard — Engineering Standards Pack (Task 1)
+
+
+
+
+     erDiagram
+       USER ||--o{ PROJECT : owns
+       PROJECT ||--o{ TASK : contains
+       USER ||--o{ TASK : assigned
+       USER ||--o{ ACTIVITY : performs
+       PROJECT ||--o{ ACTIVITY : logs
+       USER {
+         string id
+         string name
+         string email
+         string role
+       }
+       PROJECT {
+         string id
+         string name
+         string status
+         date dueDate
+       }
+       TASK {
+         string id
+         string title
+         string status
+         string priority
+         date dueDate
+       }
+
+
+  The entity fields above are the minimum; full field lists and types are in section 8.
+
+  Business rules
+
+
+     ID             Rule
+
+     BR-01          Task status is one of todo , in_progress ,
+                     in_review , done .
+
+     BR-02          Task priority is one of low , medium , high ,
+                     urgent .
+
+     BR-03          Project progress = done tasks divided by total
+                    tasks, rounded to a whole percent; a project with
+                    no tasks shows 0% and an empty state.
+
+
+
+
+                                                                                          Page 5 of 26
+Developer Productivity Dashboard — Engineering Standards Pack (Task 1)
+
+
+
+
+     ID             Rule
+
+     BR-04          A task is overdue when its due date is before today
+                    and its status is not done .
+
+     BR-05          Search matches title and description, case-
+                    insensitive, and ignores leading and trailing spaces.
+
+     BR-06          Filters combine with AND; multiple values inside
+                    one filter combine with OR.
+
+
+  Task status workflow
+
+     stateDiagram-v2
+       [*] --> todo
+       todo --> in_progress
+       in_progress --> in_review
+       in_review --> in_progress
+       in_review --> done
+       done --> in_progress
+
+
+
+
+  4. SRS: functional requirements
+  There are 24 functional requirements; each item in the guide's Task 1 list is covered by at
+  least one, and the rest raise the build to production standard. The guide's reusable-
+  component item is governed by section 7. Priority uses MoSCoW: M = must, S = should, C
+  = could.
+
+
+     ID           Requirement                                            Pri   Acceptance criteria                Use
+                                                                                                                  case
+
+     FR-          Dashboard is the default                               M     Opening / shows KPIs, deadlines,   UC-01
+     01           landing route /                                              and activity without extra
+                                                                               navigation
+
+     FR-          Dashboard shows four KPIs:                             M     Values match mock data and BR-     UC-01
+     02           active projects, open tasks,                                 03, BR-04
+                  overdue tasks, completion
+                  rate
+
+
+
+
+                                                                                                                     Page 6 of 26
+Developer Productivity Dashboard — Engineering Standards Pack (Task 1)
+
+
+
+
+     ID           Requirement                                            Pri   Acceptance criteria                   Use
+                                                                                                                     case
+
+     FR-          Dashboard lists upcoming                               S     List excludes done tasks; empty       UC-01
+     03           deadlines (next 7 days)                                      state when none
+                  sorted soonest first
+
+     FR-          Dashboard shows a recent                               S     Newest first, relative times, empty   UC-01
+     04           activity feed (latest 10)                                    state
+
+     FR-          Navigation bar with links to                           M     Current page marked with aria-        UC-01
+     05           Dashboard, Projects, Tasks,                                  current="page" ; reachable by         to 08
+                  Profile                                                      keyboard
+
+     FR-          Navigation is a sidebar at                             M     Drawer opens with a button, traps     UC-01
+     06           1024px and wider and a                                       focus, closes on Escape and on
+                  drawer below 1024px                                          link selection
+
+     FR-          Skip-to-content link is the                            M     Visible on focus and moves focus      UC-01
+     07           first focusable element                                      to main
+
+     FR-          Profile menu in header with                            M     Opens by click and keyboard;          UC-10
+     08           avatar, name, theme toggle                                   closes on Escape
+
+     FR-          Profile page shows avatar,                             M     Stats derive from that user's tasks   UC-08
+     09           name, email, role, personal
+                  stats
+
+     FR-          Profile form edits name and                            S     Invalid input shows a message         UC-08
+     10           preferences with inline                                      linked by aria-describedby ;
+                  validation                                                   save disabled while invalid or
+                                                                               saving
+
+     FR-          Project cards show name,                               M     All fields render for every mock      UC-02
+     11           status, due date, progress,                                  project; long names truncate with
+                  task counts                                                  a title tooltip
+
+     FR-          Task cards show title, status,                         M     Overdue tasks are visibly marked      UC-03
+     12           priority, due date, assignee,                                and announced to screen readers
+                  project
+
+     FR-          Progress indicator                                     M     Uses role="progressbar" with          UC-02,
+     13           component (bar and ring)                                     aria-valuenow , aria-valuemin ,       06
+                  with percentage                                              aria-valuemax
+
+
+
+
+                                                                                                                        Page 7 of 26
+Developer Productivity Dashboard — Engineering Standards Pack (Task 1)
+
+
+
+
+     ID           Requirement                                            Pri   Acceptance criteria                    Use
+                                                                                                                      case
+
+     FR-          Project detail view lists that                         S     Route /projects/[id] ; unknown         UC-06
+     14           project's tasks and progress                                 id shows a not-found state
+
+     FR-          Search box filters projects                            M     Debounced 250 ms; result count         UC-04
+     15           and tasks by text (BR-05)                                    announced via a live region
+
+     FR-          Filters: status, priority,                             M     Combine per BR-06; a clear-all         UC-05
+     16           project; sort: due date,                                     control resets them
+                  priority, title
+
+     FR-          Search, filter, and sort state                         S     Reloading or sharing the URL           UC-04,
+     17           is stored in the URL query                                   restores the same view                 05
+                  string
+
+     FR-          No-results state distinct                              M     No-results offers Clear filters; no-   UC-04
+     18           from no-data state                                           data offers a create-first action
+
+     FR-          Change a task's status from                            S     Optimistic update, rolls back and      UC-07
+     19           its card                                                     shows an error toast on failure
+
+     FR-          Loading state: skeletons                               M     No layout shift when data arrives      UC-01
+     20           matching final layout on                                     (CLS under 0.1)                        to 06
+                  every dynamic view
+
+     FR-          Empty state on every list and                          M     Each empty state is reachable          UC-01
+     21           feed, with icon, message, and                                through a mock scenario                to 06
+                  action
+
+     FR-          Error state on every dynamic                           M     Retry refetches; error text is plain   UC-09
+     22           view with a Retry action                                     language with no stack traces
+
+     FR-          Fully responsive at 360, 768,                          M     Verified by automated viewport         All
+     23           and 1280 px and wider, with                                  tests
+                  no horizontal page scroll
+
+     FR-          Light, dark, and system                                S     No flash of wrong theme on load        UC-10
+     24           themes, persisted per
+                  browser
+
+
+  Every Must requirement blocks submission. Should requirements are expected and
+  tracked in the gate but do not block.
+
+
+
+
+                                                                                                                            Page 8 of 26
+Developer Productivity Dashboard — Engineering Standards Pack (Task 1)
+
+
+
+
+  5. SRS: non-functional requirements
+  Every non-functional requirement has a number and a tool that measures it, so a
+  developer knows when it is met.
+
+
+     ID            Category                              Requirement             Target               Verified by
+
+     NFR-          Performance                           Largest Contentful      2.5 s or less        Lighthouse CI
+     01                                                  Paint on mobile
+                                                         profile
+
+     NFR-          Performance                           Cumulative Layout       Under 0.1            Lighthouse CI
+     02                                                  Shift
+
+     NFR-          Performance                           Interaction to Next     200 ms or less       Lighthouse CI,
+     03                                                  Paint                                        Playwright
+                                                                                                      trace
+
+     NFR-          Performance                           JavaScript shipped      170 KB or less       Bundle analyzer
+     04                                                  on first load per                            in CI
+                                                         route (gzip)
+
+     NFR-          Accessibility                         WCAG 2.2 level AA       0 axe violations     axe in
+     05                                                  on every route                               Playwright
+
+     NFR-          Accessibility                         Full keyboard           All flows operable   Manual
+     06                                                  operation, visible      without a mouse      checklist plus
+                                                         focus, logical tab                           Playwright
+                                                         order
+
+     NFR-          Accessibility                         Text contrast 4.5:1,    No failures          Contrast test
+     07                                                  UI component                                 on tokens
+                                                         contrast 3:1, in both
+                                                         themes
+
+     NFR-          Accessibility                         Respects prefers-       Animations off or    Component
+     08                                                  reduced-motion          minimal              test
+
+     NFR-          Responsiveness                        Supported widths        360 px to 2560 px    Playwright
+     09                                                                                               viewports
+
+     NFR-          Responsiveness                        Touch targets           44 by 44 px          Visual test
+     10                                                                          minimum on
+                                                                                 touch layouts
+
+
+
+
+                                                                                                                    Page 9 of 26
+Developer Productivity Dashboard — Engineering Standards Pack (Task 1)
+
+
+
+
+     ID            Category                              Requirement            Target               Verified by
+
+     NFR-          Type safety                           TypeScript strict      0 violations         tsc --noEmit ,
+     11                                                  mode, zero any ,                            ESLint, file
+                                                         zero .js or .jsx                            check in CI
+                                                         files
+
+     NFR-          Maintainability                       Component size and     No component         ESLint
+     12                                                  layering               over 200 lines; UI   boundary rule
+                                                                                layer imports no
+                                                                                feature code
+
+     NFR-          Maintainability                       Code style             Prettier and         CI lint step
+     13                                                  consistent             ESLint clean
+
+     NFR-          Testability                           Unit and component     80% lines or         Vitest coverage
+     14                                                  coverage on src/       higher
+
+     NFR-          Security                              No secrets in client   0 findings           Secret scan in
+     15                                                  code or repo                                CI
+
+     NFR-          Security                              Content Security       A rating or higher   Headers test
+     16                                                  Policy and security
+                                                         headers set
+
+     NFR-          Security                              Dependencies free      0 findings           npm audit in
+     17                                                  of known high or                            CI
+                                                         critical
+                                                         vulnerabilities
+
+     NFR-          Compatibility                         Latest two versions    All flows pass       Playwright
+     18                                                  of Chrome, Edge,                            projects
+                                                         Firefox, Safari
+
+     NFR-          Resilience                            Any single failed      Error isolated to    Error-boundary
+     19                                                  request leaves the     its region           test
+                                                         rest of the page
+                                                         usable
+
+     NFR-          Observability                         Client errors          Single interface,    Unit test
+     20                                                  captured through       swappable
+                                                         one reporting
+                                                         function
+
+
+
+
+                                                                                                                    Page 10 of 26
+Developer Productivity Dashboard — Engineering Standards Pack (Task 1)
+
+
+
+
+     ID            Category                              Requirement           Target               Verified by
+
+     NFR-          Internationalisation                  User-facing strings   Strings in one       Lint rule and
+     21                                                  kept out of           dictionary           review
+                                                         components
+
+     NFR-          Deployability                         Reproducible build    Fresh clone builds   CI
+     22                                                  and preview           with 3 commands
+                                                         deployment
+
+     NFR-          Documentation                         README covers         Follows README       Review
+     23                                                  setup, scripts,       template
+                                                         architecture, and
+                                                         how to add a screen
+
+     NFR-          Portability                           Backend swap          Only the data        Contract tests
+     24                                                  needs no              adapter changes
+                                                         component change
+
+
+
+
+  6. UX/UI handoff spec
+  The interface uses four routes inside one app shell, a token-based design system, and a
+  fixed set of states for every dynamic region. Designers own the tokens and layouts;
+  developers implement them without hard-coded values.
+
+  Information architecture
+
+     flowchart TD
+       Shell["App shell<br/>header + navigation"] --> D["Dashboard /"]
+          Shell --> P["Projects /projects"]
+          Shell --> T["Tasks /tasks"]
+          Shell --> U["Profile /profile"]
+          P --> PD["Project detail<br/>/projects/[id]"]
+
+
+  Responsive layout
+
+
+     Breakpoint             Width                   Navigation                          Dashboard grid     Card list
+
+     Mobile                 360 to 639              Drawer, bottom-safe actions         1 column, KPIs 2   1 column
+                            px                                                          by 2
+
+
+
+
+                                                                                                                  Page 11 of 26
+Developer Productivity Dashboard — Engineering Standards Pack (Task 1)
+
+
+
+
+     Breakpoint             Width                   Navigation                           Dashboard grid   Card list
+
+     Tablet                 640 to                  Drawer                               2 columns        2
+                            1023 px                                                                       columns
+
+     Desktop                1024 to                 Fixed sidebar 256 px                 12-column grid   3
+                            1439 px                                                                       columns
+
+     Wide                   1440 px                 Fixed sidebar 256 px, content        12-column grid   4
+                            and up                  max width 1280 px                                     columns
+
+
+  Design tokens (defined once as CSS variables and mapped in the Tailwind config; no raw
+  hex or pixel values in components)
+
+
+     Token group                            Definition
+
+     Colour                                 Brand gradient cyan to blue to violet (from the
+                                            Innovation Hacks guide); neutral scale 50 to 950;
+                                            semantic success, warning, danger, info; light and
+                                            dark sets
+
+     Typography                             One sans family with system fallback; scale 12, 14,
+                                            16, 18, 20, 24, 30, 36 px; weights 400, 500, 600, 700;
+                                            line height 1.5 body, 1.2 headings
+
+     Spacing                                4 px base unit; steps 4, 8, 12, 16, 24, 32, 48, 64
+
+     Radius and elevation                   Radius 6, 10, 16 px; three shadow levels
+
+     Motion                                 150 ms and 250 ms durations; ease-out; disabled
+                                            under reduced motion
+
+
+  Component inventory (built once, reused everywhere)
+
+
+     Layer                    Components
+
+     Primitives               Button, IconButton, Input, Select, Checkbox,
+                              Badge, Avatar, Tooltip, Skeleton, Spinner, Toast
+
+     Composites               Card, ProgressBar, ProgressRing, SearchField,
+                              FilterBar, SortMenu, Drawer, DropdownMenu,
+                              EmptyState, ErrorState
+
+
+
+
+                                                                                                               Page 12 of 26
+Developer Productivity Dashboard — Engineering Standards Pack (Task 1)
+
+
+
+
+     Layer                    Components
+
+     Features                 ProjectCard, TaskCard, KpiTile, DeadlineList,
+                              ActivityFeed, ProfileForm, ThemeToggle
+
+     Layout                   AppShell, Header, Sidebar, PageHeader, Grid
+
+
+  State matrix. Every dynamic region implements all five states; none may be skipped.
+
+
+     State                      Behaviour                                Accessibility
+
+     Loading                    Skeletons the same size as final         Region marked aria-busy="true"
+                                content
+
+     Success                    Data displayed                           Headings and landmarks in order
+
+     Empty (no                  Icon, one-line explanation, primary      Message in reading order
+     data)                      action
+
+     No results                 Message, active filters shown, Clear     Count announced in live region
+                                filters action
+
+     Error                      Plain-language message, Retry            role="alert" , focus moves to Retry
+                                button, region-only impact               on first failure
+
+
+  Accessibility rules for design and code
+
+        One h1 per page, headings never skip levels, landmarks header , nav , main .
+        Colour is never the only signal: status and priority also carry text or an icon.
+        Focus ring 2 px, offset 2 px, contrast 3:1 or higher against adjacent colours.
+        Forms use visible labels, not placeholders alone; errors name the field and the fix.
+
+  Design handoff checklist: tokens exported, all four breakpoints mocked, all five states
+  mocked per region, dark theme mocked, focus and hover states shown, empty-state copy
+  written.
+
+
+  7. Architecture, TypeScript rules and decisions
+  The frontend is a layered Next.js application in strict TypeScript, where components
+  depend on a service interface and never on mock data directly. That single seam lets Task
+  2 swap in the FastAPI backend by changing one adapter.
+
+
+
+
+                                                                                                          Page 13 of 26
+Developer Productivity Dashboard — Engineering Standards Pack (Task 1)
+
+
+
+
+  Stack
+
+
+     Concern                                 Choice
+
+     Framework                               Next.js (App Router) with React, TypeScript strict
+
+     Styling                                 Tailwind CSS driven by design tokens
+
+     Server state                            TanStack Query (caching, loading, error, retry)
+
+     Runtime validation                      Zod schemas at the service boundary
+
+     Accessible primitives                   Radix UI headless components
+
+     Testing                                 Vitest, Testing Library, Playwright, axe-core
+
+     Quality                                 ESLint (typescript-eslint strict), Prettier, tsc --
+                                             noEmit
+
+
+  Layers and allowed dependencies
+
+     flowchart TD
+         A["app/ routes"] --> F["features/"]
+         F --> U["ui/ primitives"]
+         F --> S["services/ interfaces"]
+         S --> M["adapters/mock"]
+         S -.-> H["adapters/http (Task 2)"]
+         U --> T["tokens / lib"]
+
+
+  Dependencies point downward only. ui/ imports nothing from features/ or
+   services/ , and an ESLint boundary rule fails the build if that is broken.
+
+  Folder structure
+
+
+
+
+                                                                                                   Page 14 of 26
+Developer Productivity Dashboard — Engineering Standards Pack (Task 1)
+
+
+
+
+     frontend/
+       src/
+             app/                                      routes, layouts, loading.tsx, error.tsx, not-
+     found.tsx
+             features/
+               dashboard/                projects/             tasks/    profile/
+             ui/                                       primitives and composites (no business logic)
+             services/                                 ProjectService, TaskService, UserService interfaces
+             adapters/
+               mock/                                   data, scenarios, latency and failure injection
+                 http/                                 added in Task 2
+             schemas/                                  Zod schemas and inferred types
+             lib/                                      formatting, dates, a11y helpers, error reporting
+             i18n/                                     string dictionary
+             styles/                                   tokens.css, globals.css
+         tests/                                        unit, component, e2e, a11y
+         docs/                                         this pack, ADRs
+
+
+  TypeScript rules (enforced, not advisory)
+
+
+
+
+                                                                                                          Page 15 of 26
+Developer Productivity Dashboard — Engineering Standards Pack (Task 1)
+
+
+
+
+     Rule                                             Setting
+
+     Strictness                                        strict: true , noUncheckedIndexedAccess ,
+                                                       exactOptionalPropertyTypes ,
+                                                       noImplicitOverride
+
+     No JavaScript source                              allowJs: false ; CI fails if any .js or .jsx file
+                                                      exists outside the allowlist
+
+     No any                                            @typescript-eslint/no-explicit-any as error;
+                                                      use unknown and narrow
+
+     Types come from schemas                          Zod schema first, z.infer for the type; no hand-
+                                                      written duplicates
+
+     Exhaustive unions                                Status and priority are string unions with never
+                                                      exhaustiveness checks
+
+     Config in TypeScript                              next.config.ts , vitest.config.ts ,
+                                                       playwright.config.ts , eslint.config.ts
+
+     Allowlist                                        Only files the toolchain accepts solely as
+                                                      JavaScript, currently postcss.config.mjs ;
+                                                      declarative, no logic
+
+
+  Architecture decision records
+
+
+     ADR               Decision                                                Reason
+
+     ADR-              Next.js App Router, with Vite plus                      Guide-approved; layouts, loading and
+     001               React as the documented alternative                     error files map to required states
+
+     ADR-              TypeScript strict everywhere                            Guide-approved; removes a class of
+     002                                                                       runtime defects
+
+     ADR-              Service interface with mock adapter                     Backend does not exist yet; keeps
+     003                                                                       components unchanged in Task 2
+
+     ADR-              TanStack Query for server state                         Gives loading, error, retry, and cache
+     004                                                                       without custom code
+
+     ADR-              Filter state in the URL                                 Shareable views and restore on reload
+     005
+
+
+
+
+                                                                                                                   Page 16 of 26
+Developer Productivity Dashboard — Engineering Standards Pack (Task 1)
+
+
+
+
+     ADR               Decision                                          Reason
+
+     ADR-              Radix primitives for menus, dialogs,              Correct keyboard and ARIA behaviour
+     006               drawers                                           by default
+
+     ADR-              Design tokens as CSS variables                    One place to change brand and theme
+     007               mapped in Tailwind
+
+     ADR-              Types generated from the FastAPI                  One contract shared by Python
+     008               OpenAPI schema from Task 2 onward                 backend and TypeScript client
+
+
+
+
+  8. Mock data and service contract
+  Developers change scenarios and fixtures, not components, to prove every state works.
+  Mocks live in adapters/mock/ and implement the same interfaces the real API will
+  implement in Task 2.
+
+  Entities
+
+
+     Entity            Fields (type)
+
+     User               id (string), name (string), email (string), role
+                       ( developer or lead ), avatarUrl (string,
+                       optional), preferences.theme ( light , dark ,
+                        system )
+
+     Project            id , name (1 to 80 chars), description , status
+                       ( planned , active , on_hold , completed ),
+                        dueDate (ISO date), ownerId
+
+     Task               id , projectId , title (1 to 120 chars),
+                        description , status (BR-01), priority (BR-02),
+                        dueDate , assigneeId
+
+     Activity           id , actorId , projectId , taskId (optional),
+                        type ( created , status_changed , completed ),
+                        at (ISO datetime)
+
+
+  Contract shape (illustrative; the schemas file is the source of truth)
+
+
+
+
+                                                                                                         Page 17 of 26
+Developer Productivity Dashboard — Engineering Standards Pack (Task 1)
+
+
+
+
+     export const TaskStatus = z.enum(["todo", "in_progress", "in_review",
+     "done"]);
+     export type TaskStatus = z.infer<typeof TaskStatus>;
+
+     export interface TaskService {
+         list(query: TaskQuery, signal?: AbortSignal): Promise<Page<Task>>;
+         updateStatus(id: string, status: TaskStatus): Promise<Task>;
+     }
+
+     export type ApiError = { error: { code: string; message: string } };
+
+
+  The error envelope matches the one the Task 2 FastAPI backend returns, so the http
+  adapter needs no translation layer. Every adapter response is parsed with its Zod schema,
+  and a parse failure is treated as an error state.
+
+  Scenarios (selected with ?scenario=<name> in development, or the dev-only scenario
+  switcher)
+
+
+     Scenario                        What it proves                                         Requirements
+
+      default                        Realistic mixed data                                   FR-01 to FR-14
+
+      loading                        Requests take 3 s, skeletons hold layout               FR-20
+
+      empty                          Zero projects, tasks, activity                         FR-18, FR-21
+
+      error                          Every list request fails with 500                      FR-22, NFR-19
+
+      partial-error                  Only the tasks request fails, rest of page works       NFR-19
+
+      flaky                          First request fails, retry succeeds                    FR-22
+
+      update-fails                   Status change returns error and rolls back             FR-19
+
+      large                          500 tasks, 40 projects, scrolling and search stay      NFR-01, NFR-03
+                                     fast
+
+      edge-text                      80-character names, long words, emoji, right-to-left   FR-11, FR-12
+                                     text
+
+
+  Minimum fixture set for default : 4 users, 8 projects (one with no tasks, one completed,
+  one on hold), 60 tasks spread across all statuses and priorities, 40 activity items. Dates
+  are computed relative to today, so overdue, due-today, and upcoming items stay present
+  whenever the app runs.
+
+
+
+                                                                                                             Page 18 of 26
+Developer Productivity Dashboard — Engineering Standards Pack (Task 1)
+
+
+
+
+  Mock rules
+
+        Latency defaults to 300 to 900 ms random, configurable, and 0 in unit tests.
+        Mock state is in memory and resets on reload; no browser storage holds task data.
+        Components import services from a single provider and never import from adapters/ .
+        Adding a scenario means one file plus one row in the table above and a test that
+        references it.
+
+
+  9. Test strategy and traceability
+  Automated tests carry most of the proof, with manual checks reserved for what tools
+  cannot judge. Each guide requirement traces to functional requirements and to named
+  tests, so a failing test points straight to what is broken.
+
+  Test levels
+
+
+     Level                     Tool                                      Scope                            Runs
+
+     Static                     tsc --noEmit , ESLint,                   Types, style, boundaries, no     Every
+                               Prettier, secret scan                      .js files                       commit
+
+     Unit                      Vitest                                    Pure logic: progress, overdue,   Every
+                                                                         filters, sort, formatters        commit
+
+     Component                 Vitest and Testing Library                Each UI component across its     Every
+                                                                         states and props                 commit
+
+     End to end                Playwright                                Full flows per scenario, at 3    Every pull
+                                                                         viewports, 4 browsers            request
+
+     Accessibility             axe-core in Playwright                    Every route, both themes,        Every pull
+                                                                         every scenario                   request
+
+     Performance               Lighthouse CI                             Mobile profile on / ,            Every pull
+                                                                         /projects , /tasks ,             request
+                                                                         /profile
+
+     Manual                    Checklist                                 Keyboard walkthrough, screen     Before
+                                                                         reader smoke test, visual        tagging
+                                                                         review
+
+
+  Traceability matrix
+
+
+
+                                                                                                                    Page 19 of 26
+Developer Productivity Dashboard — Engineering Standards Pack (Task 1)
+
+
+
+
+     Guide requirement                        Requirements               Tests                       Level
+
+     Dashboard as landing                     FR-01 to FR-04             TC-001 landing route, TC-   E2E, unit
+     view                                                                002 KPI calculations, TC-
+                                                                         003 deadlines and feed
+
+     Accessible navigation                    FR-05 to FR-08, NFR-       TC-010 aria-current, TC-    Component,
+                                              06                         011 keyboard and drawer     E2E
+                                                                         focus trap, TC-012 skip
+                                                                         link
+
+     User and profile                         FR-09, FR-10               TC-020 profile stats, TC-   Component,
+     section                                                             021 form validation and     E2E
+                                                                         messages
+
+     Project and task                         FR-11, FR-12, NFR-07       TC-030 card fields and      Component,
+     cards, consistent                                                   truncation, TC-031          visual
+     visuals                                                             overdue marking, TC-032
+                                                                         visual snapshots
+
+     Progress indicators                      FR-13, BR-03               TC-040 progress math,       Unit,
+                                                                         TC-041 progressbar ARIA     component
+
+     Search and filter                        FR-15 to FR-18, BR-        TC-050 search matching,     Unit, E2E
+                                              05, BR-06                  TC-051 filter
+                                                                         combination, TC-052
+                                                                         sort, TC-053 URL restore,
+                                                                         TC-054 no-results vs no-
+                                                                         data
+
+     Fully responsive                         FR-23, NFR-09, NFR-        TC-060 no horizontal        E2E
+                                              10                         scroll at 360, 768, 1280,
+                                                                         2560 px, TC-061 touch
+                                                                         target size
+
+     Loading and empty                        FR-20 to FR-22, NFR-       TC-070 loading, TC-071      E2E
+     states (plus error)                      19                         empty, TC-072 error and
+                                                                         retry, TC-073 partial
+                                                                         error, one per scenario
+
+     Clean reusable                           NFR-11 to NFR-13           TC-080 boundary lint,       Static
+     component                                                           TC-081 strict types, TC-
+     architecture                                                        082 no JavaScript files,
+                                                                         TC-083 component size
+
+
+
+                                                                                                                 Page 20 of 26
+Developer Productivity Dashboard — Engineering Standards Pack (Task 1)
+
+
+
+
+     Guide requirement                        Requirements                      Tests                        Level
+
+     Quality bar                              NFR-01 to NFR-05,                 TC-090 Lighthouse            CI
+                                              NFR-15 to NFR-17                  budgets, TC-091 axe zero
+                                                                                violations, TC-092 secret
+                                                                                scan, TC-093
+                                                                                dependency audit
+
+
+  Rules for tests
+
+        A test's title starts with its TC-### and names the requirement it proves.
+        Each scenario in section 8 has at least one end-to-end test that fails if the state is
+        missing.
+        Tests use role and label queries, not CSS selectors, which also proves accessible
+        names exist.
+        A bug fix adds a test that failed before the fix.
+
+
+  10. Frontend security and threat model
+  Task 1 has no real users or server data, so the goal is to build habits and controls that stay
+  correct when the backend arrives. The main risks are script injection, unsafe URL state,
+  leaked secrets, and vulnerable dependencies.
+
+  Assets and trust boundaries. Assets: user profile data, task and project data, and, from
+  Task 2, session credentials. Untrusted inputs: form fields, the URL query string, and every
+  API response until it passes schema validation.
+
+  Threats and controls (STRIDE categories in brackets)
+
+
+     ID           Threat                                           Control                                  Verified by
+
+     TH-          Cross-site scripting                             React escaping by default;               Lint rule,
+     01           through rendered text                             dangerouslySetInnerHTML banned          headers test
+                  [Tampering]                                      by lint; strict CSP
+
+     TH-          Malicious query                                  Parse all URL state with Zod;            Unit test on
+     02           parameters alter                                 unknown values fall back to              URL parser
+                  behaviour [Tampering]                            defaults
+
+
+
+
+                                                                                                                          Page 21 of 26
+Developer Productivity Dashboard — Engineering Standards Pack (Task 1)
+
+
+
+
+     ID           Threat                                           Control                                 Verified by
+
+     TH-          Malformed or hostile API                         Zod validation at the adapter; parse    Contract tests
+     03           response breaks UI                               failure becomes the error state
+                  [Denial of service]
+
+     TH-          Secrets committed or                             No secrets in the repo; only non-       TC-092
+     04           shipped to the browser                           sensitive NEXT_PUBLIC_ variables;
+                  [Information disclosure]                         secret scan in CI
+
+     TH-          Vulnerable or malicious                          Lockfile committed, exact versions,     TC-093
+     05           dependency [Tampering]                           npm audit gate, automated update
+                                                                   pull requests, no unused packages
+
+     TH-          Clickjacking [Spoofing]                           frame-ancestors 'none' in CSP          Headers test
+     06                                                            and X-Frame-Options: DENY
+
+     TH-          Error messages leak                              Plain-language messages only;           Component
+     07           internals [Information                           details go to the reporting function,   test
+                  disclosure]                                      never the screen
+
+     TH-          Tokens stolen from                               Task 2 onward: session in an            Review at Task
+     08           browser storage                                   HttpOnly , Secure , SameSite           2 gate
+                  [Information disclosure]                         cookie; nothing sensitive in
+                                                                    localStorage
+
+     TH-          Third-party scripts run                          No third-party scripts; fonts and       CSP report
+     09           with page privileges                             assets self-hosted
+                  [Elevation of privilege]
+
+     TH-          Prompt injection through                         Task 4: treat model output as           Task 4 gate
+     10           AI feature [Tampering]                           untrusted text, never as HTML;
+                                                                   server-side guardrails
+
+
+  Required response headers
+
+
+     Header                                                 Value
+
+      Content-Security-Policy                                default-src 'self'; script-src 'self'
+                                                            'nonce-…'; style-src 'self'; img-src 'self'
+                                                            data:; frame-ancestors 'none'; base-uri
+                                                            'self'; form-action 'self'
+
+      X-Content-Type-Options                                 nosniff
+
+
+
+
+                                                                                                                         Page 22 of 26
+Developer Productivity Dashboard — Engineering Standards Pack (Task 1)
+
+
+
+
+     Header                                                 Value
+
+      Referrer-Policy                                        strict-origin-when-cross-origin
+
+      Permissions-Policy                                    Camera, microphone, geolocation disabled
+
+      Strict-Transport-Security                              max-age=63072000; includeSubDomains on the
+                                                            deployed site
+
+
+  The controls map to OWASP Top 10 and ASVS; the AI feature will additionally be reviewed
+  against the OWASP Top 10 for LLM applications in Task 4.
+
+
+  11. Standards Gate
+  The build is submission-ready only when every Must item below passes; anything failing
+  goes back into the edit loop from section 1. Part A is a single command, and parts B to F
+  are checked by a reviewer who did not write the code.
+
+  A. Automated gate
+
+     npm run gate                  # runs all of the following in order and stops at the first
+     failure
+
+     npm run typecheck                         # tsc --noEmit, strict
+     npm run lint                              # ESLint, Prettier, boundary and no-any rules
+     npm run check:no-js                       # fails on any .js/.jsx outside the allowlist
+     npm run test                              # Vitest unit and component, coverage 80% or higher
+     npm run test:e2e                          # Playwright, 3 viewports, all scenarios
+     npm run test:a11y                         # axe, zero violations, both themes
+     npm run lighthouse                        # budgets from NFR-01 to NFR-04, scores 90 or higher
+     npm run audit                             # no high or critical vulnerabilities, secret scan clean
+     npm run build                             # production build succeeds with no warnings
+
+
+  B. Functional review (Must items from section 4)
+
+         / opens the dashboard with four correct KPIs, deadlines, and activity (FR-01, FR-02)
+        Navigation reaches all four routes by mouse and by keyboard; current page is marked
+        (FR-05)
+        Drawer opens, traps focus, closes on Escape at widths under 1024 px (FR-06)
+        Skip link is first in tab order and works (FR-07)
+        Profile page and menu show correct data; theme toggle works (FR-08, FR-09)
+
+
+
+                                                                                                          Page 23 of 26
+Developer Productivity Dashboard — Engineering Standards Pack (Task 1)
+
+
+
+
+        Project and task cards show every field; long text truncates cleanly (FR-11, FR-12)
+        Progress bars and rings match the calculated percentage (FR-13)
+        Search, filters, and sort combine correctly and can be cleared (FR-15, FR-16)
+        No-results and no-data states are different and each has the right action (FR-18)
+
+  C. States review
+
+        Each of the nine scenarios in section 8 is reachable and renders the expected state
+        No layout shift when skeletons are replaced by data
+        Retry works from every error state, and a failed region never blanks the page (FR-22,
+        NFR-19)
+
+  D. Responsive review
+
+        360, 768, 1280, and 2560 px show no horizontal page scroll, clipped text, or overlap (FR-
+        23)
+        Touch targets are 44 px or larger on touch layouts (NFR-10)
+        Layout reflows correctly at 200% browser zoom
+
+  E. Accessibility review
+
+        Every flow completes with the keyboard only; focus is always visible (NFR-06)
+        Screen reader smoke test on dashboard and task list: landmarks, headings, and status
+        announcements make sense
+        Reduced-motion setting removes animation (NFR-08)
+        Colour is never the only signal for status or priority
+
+  F. Design consistency review
+
+        No raw colour, spacing, or font values outside the token files
+        All cards, buttons, inputs, and badges come from ui/ with no local restyling
+        Light and dark themes both meet contrast requirements (NFR-07)
+
+  G. Delivery
+
+        README follows the template, and a fresh clone runs in 3 commands (NFR-22, NFR-
+        23)
+        Any relaxation of the CSP or other rule is recorded as an ADR
+        Commits follow type(scope): description with scope frontend
+        Git tag task-1-submission created on the passing commit
+        Demo video recorded, showing each scenario and the responsive layouts
+
+
+
+                                                                                              Page 24 of 26
+Developer Productivity Dashboard — Engineering Standards Pack (Task 1)
+
+
+
+
+        LinkedIn post published
+
+  Failure handling. A failed item gets a defect note naming the requirement ID, the fix, and
+  the test that now covers it; the gate is then rerun in full.
+
+
+  12. Conventions, CI and scaling roadmap
+  The same gate that developers run locally runs in CI on every pull request, so the standard
+  cannot be skipped. The roadmap then shows what each later task changes, so the team
+  scales this build rather than restarting it.
+
+  Repository and Git conventions
+
+
+     Topic                     Rule
+
+     Layout                    Monorepo folders frontend/ , backend/ ,
+                               database/ , docs/ ; Task 1 lives in frontend/
+
+     Branching                  task/1-frontend for the work; short-lived feature
+                               branches merged by pull request
+
+     Commits                    type(scope): description ; scopes frontend ,
+                                api , db , ai , auth , deploy , env , docs ;
+                               committed file by file in logical groups, not in one
+                               bulk commit
+
+     Releases                  Tag task-1-submission on the commit that
+                               passes the gate; later tags follow the same pattern
+
+     Environment                .env.example committed; real .env files never
+                               committed
+
+
+  CI pipeline
+
+     flowchart LR
+       A["Push or<br/>pull request"] --> B["Static checks<br/>types, lint, no-JS"]
+         B --> C["Unit and<br/>component tests"]
+         C --> D["Production<br/>build"]
+         D --> E["E2E and<br/>accessibility"]
+         E --> F["Lighthouse<br/>and audit"]
+         F --> G["Preview<br/>deployment"]
+
+
+
+
+                                                                                       Page 25 of 26
+Developer Productivity Dashboard — Engineering Standards Pack (Task 1)
+
+
+
+
+  Each stage blocks the next, and a pull request cannot merge until all stages pass. Preview
+  deployments run on the host chosen for Task 1 (Vercel is the default for Next.js).
+
+  Pull request definition of done: requirement IDs listed in the description, tests added or
+  updated, screenshots at mobile and desktop for UI changes, section 11 items affected are
+  ticked, documentation updated.
+
+  Scaling roadmap
+
+
+     Task                       Frontend change                          Documents to update     Gate additions
+
+     2. Backend                 Add adapters/http ;                      SRS (API                Contract tests, API
+     API                        generate types from the                  requirements), threat   status codes and
+                                FastAPI OpenAPI                          model TH-08, ADR-008    error envelope
+                                schema; session in                                               checks
+                                 HttpOnly cookie; same
+                                scenarios replayed
+                                against the API
+
+     3. Database                No component change;                     Domain model, data      Migration and data
+                                add pagination and                       model and ERD, NFR-24   integrity checks,
+                                server-side search;                      evidence                 large scenario
+                                verify optimistic updates                                        against real data
+                                against real persistence
+
+     4. AI                      AI feature with                          UX spec (AI states),    LLM Top 10 review,
+     platform                   streaming, cancel, and                   threat model TH-10,     prompt-injection
+                                failure states added to                  new NFRs for latency    tests, cost and rate-
+                                the state matrix; output                 and cost                limit checks
+                                rendered as plain text
+
+     Beyond the                 Roles and permissions,                   Full SRS revision,      Load tests,
+     internship                 i18n languages, error                    runbook, on-call and    monitoring alerts,
+                                monitoring, feature flags,               incident process        release checklist
+                                Storybook, extracted
+                                design-system package
+
+
+  Change control. A new or changed requirement gets a new ID or a version note, its tests
+  are added in the same pull request, and the traceability matrix in section 9 is updated so it
+  never drifts from the code.
+
+
+
+
+                                                                                                                  Page 26 of 26
+
