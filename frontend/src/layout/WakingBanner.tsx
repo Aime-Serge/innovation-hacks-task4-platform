@@ -18,7 +18,8 @@ export function WakingBanner() {
     };
   }, []);
   return (
-    <div role="status" aria-live="polite">
+    // aria-live without role="status": the page already has one status region for its own counts.
+    <div aria-live="polite" data-testid="waking-region">
       {waking && (
         <p className="border-b border-line bg-subtle px-4 py-2 text-center text-sm">
           {t("waking.message")}

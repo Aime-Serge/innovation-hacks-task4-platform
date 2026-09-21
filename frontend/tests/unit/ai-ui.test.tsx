@@ -331,6 +331,6 @@ describe("TC-444 messages and the waking banner", () => {
       window.dispatchEvent(new CustomEvent(AWAKE_EVENT));
     });
     expect(screen.queryByText(/waking up/)).not.toBeInTheDocument();
-    expect(screen.getByRole("status")).toBeInTheDocument(); // the region stays, so it is announced
+    expect(screen.getByTestId("waking-region")).toHaveAttribute("aria-live", "polite"); // stays, so it is announced
   });
 });
