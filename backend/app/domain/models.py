@@ -77,3 +77,21 @@ class RefreshToken:
     used_at: datetime | None
     revoked_at: datetime | None
     created_at: datetime
+
+
+@dataclass(frozen=True, slots=True)
+class AiRequest:
+    """One AI call's metadata. No prompt or output text is ever stored (FR-430, ADR-411)."""
+
+    id: UUID
+    user_id: UUID | None
+    feature: str
+    status: str
+    provider: str
+    model: str | None
+    prompt_version: str
+    input_tokens: int | None
+    output_tokens: int | None
+    latency_ms: int | None
+    error_code: str | None
+    created_at: datetime

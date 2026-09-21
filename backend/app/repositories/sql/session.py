@@ -22,6 +22,7 @@ from sqlalchemy.pool import AsyncAdaptedQueuePool
 from app.core.config import Settings
 from app.core.logging import LOGGER_NAME
 from app.repositories.sql.activity import SqlActivityRepository
+from app.repositories.sql.ai_requests import SqlAiRequestRepository
 from app.repositories.sql.errors import translate
 from app.repositories.sql.projects import SqlProjectRepository
 from app.repositories.sql.refresh_tokens import SqlRefreshTokenRepository
@@ -47,6 +48,7 @@ class SqlUnitOfWork:
         self.tasks = SqlTaskRepository(session)
         self.activity = SqlActivityRepository(session)
         self.refresh_tokens = SqlRefreshTokenRepository(session)
+        self.ai_requests = SqlAiRequestRepository(session)
         return self
 
     async def __aexit__(

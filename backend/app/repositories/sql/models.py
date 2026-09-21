@@ -15,6 +15,7 @@ from sqlalchemy import (
     DateTime,
     ForeignKey,
     Index,
+    Integer,
     MetaData,
     SmallInteger,
     Text,
@@ -145,6 +146,12 @@ class TaskRow(Base):
         Index("ix_tasks_due_date_open", "due_date", postgresql_where=text("status <> 'done'")),
         Index("ix_tasks_due_date_id", "due_date", "id"),
         Index("ix_tasks_created_at_id", "created_at", "id"),
+        Index(
+            "ix_tasks_assignee_id_project_id",
+            "assignee_id",
+            "project_id",
+            postgresql_where=text("assignee_id IS NOT NULL"),
+        ),
         Index("ix_tasks_priority_rank_id", text("priority_rank DESC"), "id"),
         Index(
             "ix_tasks_title_trgm",
@@ -198,4 +205,43 @@ class RefreshTokenRow(Base):
         Index("ix_refresh_tokens_user_id", "user_id"),
         Index("ix_refresh_tokens_family_id", "family_id"),
         Index("ix_refresh_tokens_expires_at", "expires_at"),
+    )
+
+
+class AiRequestRow(Base):
+    __tablename__ = "ai_requests"
+
+    id: Mapped[UUID] = mapped_column(Uuid, primary_key=True, server_default=UUID_DEFAULT)
+    user_id: Mapped[UUID | None] = mapped_column(Uuid, ForeignKey("users.id", ondelete="SET NULL"))
+    feature: Mapped[str] = mapped_column(Text)
+    status: Mapped[str] = mapped_column(Text)
+    provider: Mapped[str] = mapped_column(Text)
+    model: Mapped[str | None] = mapped_column(Text)
+    prompt_version: Mapped[str] = mapped_column(Text)
+    input_tokens: Mapped[int | None] = mapped_column(Integer)
+    output_tokens: Mapped[int | None] = mapped_column(Integer)
+    latency_ms: Mapped[int | None] = mapped_column(Integer)
+    error_code: Mapped[str | None] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+    __table_args__ = (
+        CheckConstraint(
+            "feature IN ('task_generation', 'prioritization', 'project_summary')", name="feature"
+        ),
+        CheckConstraint(
+            "status IN ('pending', 'success', 'provider_error', 'invalid_output', "
+            "'quota_blocked', 'disabled')",
+            name="status",
+        ),
+        CheckConstraint("char_length(provider) <= 40", name="provider_length"),
+        CheckConstraint("model IS NULL OR char_length(model) <= 100", name="model_length"),
+        CheckConstraint("char_length(prompt_version) <= 60", name="prompt_version_length"),
+        CheckConstraint("input_tokens IS NULL OR input_tokens >= 0", name="input_tokens_min"),
+        CheckConstraint("output_tokens IS NULL OR output_tokens >= 0", name="output_tokens_min"),
+        CheckConstraint("latency_ms IS NULL OR latency_ms >= 0", name="latency_ms_min"),
+        CheckConstraint(
+            "error_code IS NULL OR char_length(error_code) <= 60", name="error_code_length"
+        ),
+        Index("ix_ai_requests_user_id_created_at", "user_id", text("created_at DESC")),
+        Index("ix_ai_requests_created_at", "created_at"),
     )

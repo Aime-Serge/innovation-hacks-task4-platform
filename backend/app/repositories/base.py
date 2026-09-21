@@ -18,7 +18,7 @@ from typing import Protocol, Self
 from uuid import UUID
 
 from app.domain.enums import ProjectStatus
-from app.domain.models import Activity, Progress, Project, RefreshToken, Task, User
+from app.domain.models import Activity, AiRequest, Progress, Project, RefreshToken, Task, User
 from app.domain.queries import (
     ActivityQuery,
     Page,
@@ -89,6 +89,19 @@ class RefreshTokenRepository(Protocol):
     async def delete_expired(self, before: datetime) -> int: ...
 
 
+class AiRequestRepository(Protocol):
+    async def lock_quota(self) -> None: ...
+    async def add(self, request: AiRequest) -> AiRequest: ...
+    async def get(self, request_id: UUID) -> AiRequest | None: ...
+    async def list_recent(self, limit: int = 100) -> list[AiRequest]: ...
+    async def update(self, request: AiRequest) -> None: ...
+    async def count(self, *, since: datetime, user_id: UUID | None = None) -> int: ...
+    async def oldest_at(
+        self, *, since: datetime, user_id: UUID | None = None
+    ) -> datetime | None: ...
+    async def delete_older_than(self, cutoff: datetime) -> int: ...
+
+
 class UnitOfWork(Protocol):
     """One transaction: everything inside commits together or rolls back together (BR-305)."""
 
@@ -107,6 +120,9 @@ class UnitOfWork(Protocol):
     @property
     def refresh_tokens(self) -> RefreshTokenRepository: ...
 
+    @property
+    def ai_requests(self) -> AiRequestRepository: ...
+
     async def __aenter__(self) -> Self: ...
 
     async def __aexit__(
@@ -122,6 +138,7 @@ class UnitOfWork(Protocol):
 __all__ = [
     "ActivityQuery",
     "ActivityRepository",
+    "AiRequestRepository",
     "Page",
     "ProjectQuery",
     "ProjectRepository",
