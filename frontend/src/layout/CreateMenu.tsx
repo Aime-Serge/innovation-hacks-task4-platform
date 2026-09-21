@@ -17,9 +17,10 @@ export function CreateMenu() {
           type="button"
           aria-label={t("layout.create")}
           title={t("layout.create")}
-          className="touch-target inline-flex h-10 items-center gap-1 rounded-md px-2 hover:bg-subtle"
+          className="touch-target inline-flex h-10 items-center gap-1.5 rounded-md border border-line px-3 text-sm font-medium hover:bg-subtle"
         >
           <Icon name="plus" />
+          <span className="hidden sm:inline">{t("layout.create")}</span>
           <Icon name="chevronDown" className="size-3 text-muted" />
         </button>
       }

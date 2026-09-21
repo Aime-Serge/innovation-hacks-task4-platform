@@ -128,21 +128,18 @@ describe("TC-010 navigation (FR-05..08)", () => {
     expect(container).toBeEmptyDOMElement();
   });
 
-  it("TC-009 Appearance lists system, light and dark, marks the current one and applies a choice", async () => {
+  it("TC-009 the account menu no longer carries an Appearance entry (the header toggle owns it)", async () => {
     render(<UserMenu />);
     await userEvent.click(
       screen.getByRole("button", { name: "Account menu for Aime Serge UKOBIZABA" }),
     );
-    await userEvent.click(await screen.findByRole("menuitem", { name: "Appearance" }));
-    expect(await screen.findAllByRole("menuitemradio")).toHaveLength(3);
-    expect(screen.getByRole("menuitemradio", { name: "System" })).toBeChecked();
-    await userEvent.click(screen.getByRole("menuitemradio", { name: "Dark" }));
-    expect(themeState.setTheme).toHaveBeenLastCalledWith("dark");
+    expect(await screen.findByRole("menuitem", { name: "Log out" })).toBeInTheDocument();
+    expect(screen.queryByRole("menuitem", { name: "Appearance" })).not.toBeInTheDocument();
   });
 
   it("the create menu offers a new project and a new task", async () => {
     render(<CreateMenu />);
-    await userEvent.click(screen.getByRole("button", { name: "Create new…" }));
+    await userEvent.click(screen.getByRole("button", { name: "Create" }));
     expect(await screen.findByRole("menuitem", { name: "New project" })).toHaveAttribute(
       "href",
       "/projects?new=1",

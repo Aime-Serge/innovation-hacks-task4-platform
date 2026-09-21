@@ -111,7 +111,7 @@ test.describe("TC-009 theme (FR-24)", () => {
     await context.close();
   });
 
-  test("TC-009 the Appearance menu switches light and dark, and the choice survives a reload", async ({
+  test("TC-009 the header icon toggles light and dark, and the choice survives a reload", async ({
     page,
     context,
   }) => {
@@ -119,19 +119,27 @@ test.describe("TC-009 theme (FR-24)", () => {
     await page.setViewportSize({ width: 1280, height: 800 });
     await visit(page, "/");
     const html = page.locator("html");
-    const choose = async (name: string) => {
-      await page.getByRole("button", { name: /Account menu for/ }).click();
-      await page.getByRole("menuitem", { name: "Appearance" }).focus();
-      await page.keyboard.press("ArrowRight");
-      await page.getByRole("menuitemradio", { name }).focus();
-      await page.keyboard.press("Enter");
-    };
-    await choose("Light");
+    await expect(html).toHaveAttribute("data-theme", "dark");
+    await page.getByRole("button", { name: "Switch to light theme" }).click();
     await expect(html).toHaveAttribute("data-theme", "light");
-    await choose("Dark");
-    await expect(html).toHaveAttribute("data-theme", "dark");
     await page.reload();
+    await expect(html).toHaveAttribute("data-theme", "light");
+    await page.getByRole("button", { name: "Switch to dark theme" }).click();
     await expect(html).toHaveAttribute("data-theme", "dark");
+  });
+
+  test("TC-012 the header spans the top and the sidebar starts beneath it", async ({
+    page,
+    context,
+  }) => {
+    await signIn(context);
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await visit(page, "/");
+    const header = await page.locator("header").first().boundingBox();
+    const sidebar = await page.locator("aside").boundingBox();
+    expect(header?.x).toBe(0);
+    expect(header?.width).toBe(1280);
+    expect(sidebar?.y).toBeGreaterThanOrEqual((header?.y ?? 0) + (header?.height ?? 0) - 1);
   });
 
   test("TC-009 the profile form theme select applies immediately", async ({ page, context }) => {

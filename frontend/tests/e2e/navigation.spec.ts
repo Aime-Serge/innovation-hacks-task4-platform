@@ -27,8 +27,10 @@ test.describe("TC-010 navigation", () => {
   }) => {
     await page.setViewportSize({ width: 1280, height: 800 });
     await visit(page, "/");
-    await page.keyboard.press("Tab"); // skip link
-    await page.keyboard.press("Tab"); // Dashboard
+    await page.keyboard.press("Tab"); // skip link comes first
+    await expect(page.getByRole("link", { name: "Skip to main content" })).toBeFocused();
+    const nav = page.getByRole("navigation", { name: "Primary" });
+    await nav.getByRole("link", { name: "Dashboard" }).focus(); // header controls come before the sidebar
     await page.keyboard.press("Tab"); // Projects
     await expect(
       page.getByRole("navigation", { name: "Primary" }).getByRole("link", { name: "Projects" }),

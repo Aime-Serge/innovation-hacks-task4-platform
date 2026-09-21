@@ -44,7 +44,7 @@ export const en = {
   "layout.scenario": "Scenario",
   "layout.userMenu": "Account menu for {name}",
   "layout.appearance": "Appearance",
-  "layout.create": "Create new…",
+  "layout.create": "Create",
   "layout.search": "Quick search",
   "layout.searchPlaceholder": "Type / to search",
   "nav.dashboard": "Dashboard",

@@ -3,6 +3,7 @@
 import { useId, useState, type SyntheticEvent } from "react";
 import { useAuth } from "@/providers/AuthProvider";
 import { useTheme } from "@/providers/ThemeProvider";
+import { THEME_CHOICES } from "@/providers/theme";
 import { t } from "@/i18n";
 import { reportError } from "@/lib/report-error";
 import { Theme, User } from "@/schemas";
@@ -65,7 +66,7 @@ export function ProfileForm({ user }: { user: User }) {
             value={theme}
             onChange={(event) => setTheme(Theme.parse(event.target.value))}
           >
-            {Theme.options.map((option) => (
+            {THEME_CHOICES.map((option) => (
               <option key={option} value={option}>
                 {t(`theme.${option}`)}
               </option>

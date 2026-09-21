@@ -1,12 +1,11 @@
 import { t } from "@/i18n";
 import { NavLinks } from "./NavLinks";
 
-/** Persistent from the lg breakpoint up; below it the header opens a drawer. */
+/** Persistent from the lg breakpoint up, starting under the header; below it the header opens a drawer. */
 export function Sidebar() {
   return (
-    <aside className="hidden w-(--sidebar-width) shrink-0 border-r border-line bg-surface lg:block">
-      <div className="brand-bar" />
-      <nav aria-label={t("layout.primaryNav")} className="sticky top-0 p-4">
+    <aside className="sticky top-(--header-height) hidden h-[calc(100dvh-var(--header-height))] w-(--sidebar-width) shrink-0 overflow-y-auto border-r border-line bg-surface lg:block">
+      <nav aria-label={t("layout.primaryNav")} className="p-4">
         <NavLinks />
       </nav>
     </aside>

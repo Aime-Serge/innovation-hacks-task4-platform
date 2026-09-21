@@ -1,5 +1,5 @@
 import vm from "node:vm";
-import { render, renderHook, screen, waitFor, act } from "@testing-library/react";
+import { render, renderHook, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AuthCard } from "@/features/auth/AuthCard";
@@ -53,16 +53,17 @@ describe("TC-009 theme (FR-24)", () => {
     expect(readTheme()).toBe("dark");
     window.localStorage.setItem(THEME_KEY, "light");
     expect(readTheme()).toBe("light");
+    window.localStorage.setItem(THEME_KEY, "system");
+    expect(readTheme()).toBe("dark");
     window.localStorage.setItem(THEME_KEY, "purple");
     expect(readTheme()).toBe("dark");
   });
 
-  it("TC-009 resolves system to the OS preference", () => {
-    matchMedia(true);
-    expect(resolveTheme("system")).toBe("dark");
-    expect(resolveTheme("light")).toBe("light");
+  it("TC-009 resolves every stored value to light or dark, never following the OS", () => {
     matchMedia(false);
-    expect(resolveTheme("system")).toBe("light");
+    expect(resolveTheme("system")).toBe("dark");
+    expect(resolveTheme("dark")).toBe("dark");
+    expect(resolveTheme("light")).toBe("light");
   });
 
   it("TC-009 the no-flash script sets data-theme before paint from storage or the OS", () => {
@@ -78,7 +79,7 @@ describe("TC-009 theme (FR-24)", () => {
     expect(document.documentElement.dataset["theme"]).toBe("dark");
     window.localStorage.setItem(THEME_KEY, "system");
     runThemeScript();
-    expect(document.documentElement.dataset["theme"]).toBe("light");
+    expect(document.documentElement.dataset["theme"]).toBe("dark");
   });
 
   it("TC-009 changing the theme updates data-theme and persists it", async () => {
@@ -100,20 +101,6 @@ describe("TC-009 theme (FR-24)", () => {
     expect(await screen.findByRole("button", { name: "light" })).toBeInTheDocument();
     expect(document.documentElement.dataset["theme"]).toBe("light");
     expect(window.localStorage.getItem(THEME_KEY)).toBe("light");
-  });
-
-  it("TC-009 the system theme follows OS changes live", async () => {
-    const listeners = matchMedia(false);
-    window.localStorage.setItem(THEME_KEY, "system");
-    render(
-      <ThemeProvider>
-        <p>x</p>
-      </ThemeProvider>,
-    );
-    await waitFor(() => expect(document.documentElement.dataset["theme"]).toBe("light"));
-    matchMedia(true);
-    act(() => listeners.forEach((fn) => fn()));
-    expect(document.documentElement.dataset["theme"]).toBe("dark");
   });
 
   it("TC-009 useTheme outside its provider is a programming error", () => {

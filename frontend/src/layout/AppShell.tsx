@@ -5,23 +5,28 @@ import { Sidebar } from "./Sidebar";
 import { SkipLink } from "./SkipLink";
 import { WakingBanner } from "./WakingBanner";
 
-/** Authenticated frame: skip link, sidebar, header, one <main> landmark, footer. */
+/**
+ * Authenticated frame: the header spans the full width on top; below it the sidebar
+ * and the content column sit side by side. One <main> landmark, footer under the content.
+ */
 export function AppShell({ children }: { children: ReactNode }) {
   return (
-    <div className="flex min-h-dvh">
+    <div className="flex min-h-dvh flex-col">
       <SkipLink />
-      <Sidebar />
-      <div className="flex min-w-0 flex-1 flex-col">
-        <Header />
-        <WakingBanner />
-        <main
-          id="main-content"
-          tabIndex={-1}
-          className="mx-auto w-full max-w-(--content-max) flex-1 p-4 sm:p-6"
-        >
-          {children}
-        </main>
-        <Footer />
+      <Header />
+      <div className="flex flex-1">
+        <Sidebar />
+        <div className="flex min-w-0 flex-1 flex-col">
+          <WakingBanner />
+          <main
+            id="main-content"
+            tabIndex={-1}
+            className="mx-auto w-full max-w-(--content-max) flex-1 p-4 sm:p-6"
+          >
+            {children}
+          </main>
+          <Footer />
+        </div>
       </div>
     </div>
   );

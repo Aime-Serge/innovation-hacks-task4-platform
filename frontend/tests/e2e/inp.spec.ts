@@ -54,7 +54,7 @@ test.describe("TC-090 interaction latency (NFR-03)", () => {
       await page.getByRole("menuitem", { name: "Title" }).click();
       await settled(page);
       const first = page.getByRole("article").first().getByRole("combobox");
-      await first.selectOption((await first.inputValue()) === "done" ? "todo" : "done");
+      await first.selectOption((await first.locator("option").nth(1).getAttribute("value")));
       await page.getByRole("button", { name: "New task" }).click();
       await page.keyboard.press("Escape");
       await page.waitForTimeout(500);
