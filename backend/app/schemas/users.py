@@ -48,17 +48,17 @@ class UserUpdate(PatchModel):
 class UserOut(TimestampedOut):
     id: UUID
     name: str
-    email: str
+    email: str | None  # BR-403: the user themself and leads only, otherwise null
     role: Role
     avatar_url: str | None
     preferences: Preferences
 
     @classmethod
-    def of(cls, user: User) -> "UserOut":
+    def of(cls, user: User, *, show_email: bool) -> "UserOut":
         return cls(
             id=user.id,
             name=user.name,
-            email=user.email,
+            email=user.email if show_email else None,
             role=user.role,
             avatar_url=user.avatar_url,
             preferences=Preferences(theme=user.theme),

@@ -48,12 +48,10 @@ class SqlUserRepository:
             conditions.append(UserRow.role == query.role.value)
         pattern = common.like_pattern(query.q)
         if pattern is not None:
-            conditions.append(
-                or_(
-                    UserRow.name.ilike(pattern, escape="\\"),
-                    UserRow.email.ilike(pattern, escape="\\"),
-                )
-            )
+            matches = [UserRow.name.ilike(pattern, escape="\\")]
+            if query.match_email:
+                matches.append(UserRow.email.ilike(pattern, escape="\\"))
+            conditions.append(or_(*matches))
         sort = {
             "name": common.codepoint_order(func.lower(UserRow.name)),
             "email": common.codepoint_order(UserRow.email),

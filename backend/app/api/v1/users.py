@@ -1,15 +1,23 @@
 from typing import Annotated
+from uuid import UUID
 
 from fastapi import APIRouter, Query, Request, Response
 
-from app.api.deps import ContainerDep, CurrentActor, CurrentUser, UserId, enforce_rate_limit
+from app.api.deps import ContainerDep, CurrentActor, UserId, enforce_rate_limit
 from app.api.docs import errors
 from app.domain.enums import Theme
 from app.domain.queries import UserQuery
 from app.domain.unset import UNSET
 from app.schemas.common import PageOut
 from app.schemas.users import UserCreate, UserListQuery, UserOut, UserUpdate
+from app.services.authz import Actor
 from app.services.users import UserChanges
+
+
+def _sees_email(actor: Actor, user_id: UUID) -> bool:
+    """BR-403: an email is shown to its owner and to leads, and is null for everyone else."""
+    return actor.is_lead or actor.id == user_id
+
 
 router = APIRouter(prefix="/users", tags=["Users"])
 _WRITE = ("PAYLOAD_TOO_LARGE", "UNSUPPORTED_MEDIA_TYPE", "MALFORMED_REQUEST", "INTERNAL_ERROR")
@@ -40,7 +48,7 @@ async def register(
         payload.preferences.theme if payload.preferences else Theme.SYSTEM,
     )
     response.headers["Location"] = f"/api/v1/users/{user.id}"
-    return UserOut.of(user)
+    return UserOut.of(user, show_email=True)  # the new account's owner
 
 
 @router.get(
@@ -53,20 +61,21 @@ async def register(
     responses=errors("UNAUTHENTICATED", "VALIDATION_ERROR", "INTERNAL_ERROR"),
 )
 async def list_users(
-    query: Annotated[UserListQuery, Query()], _: CurrentUser, container: ContainerDep
+    query: Annotated[UserListQuery, Query()], actor: CurrentActor, container: ContainerDep
 ) -> PageOut[UserOut]:
     page = await container.users.list(
         UserQuery(
             q=query.q,
             role=query.role,
-            sort=query.sort_field,
+            match_email=actor.is_lead,  # BR-403: no email search, so no email oracle
+            sort=query.sort_field if actor.is_lead or query.sort_field != "email" else "name",
             descending=query.descending,
             page=query.page,
             page_size=query.page_size,
         )
     )
     return PageOut(
-        items=[UserOut.of(user) for user in page.items],
+        items=[UserOut.of(user, show_email=_sees_email(actor, user.id)) for user in page.items],
         page=page.page,
         page_size=page.page_size,
         total=page.total,
@@ -80,8 +89,9 @@ async def list_users(
     description="Return one user, or `404 NOT_FOUND`.",
     responses=errors("UNAUTHENTICATED", "NOT_FOUND", "VALIDATION_ERROR", "INTERNAL_ERROR"),
 )
-async def get_user(user_id: UserId, _: CurrentUser, container: ContainerDep) -> UserOut:
-    return UserOut.of(await container.users.get(user_id))
+async def get_user(user_id: UserId, actor: CurrentActor, container: ContainerDep) -> UserOut:
+    user = await container.users.get(user_id)
+    return UserOut.of(user, show_email=_sees_email(actor, user.id))
 
 
 @router.patch(
@@ -106,7 +116,8 @@ async def update_user(
         theme=payload.preferences.theme if payload.preferences is not None else UNSET,
         role=payload.role if payload.role is not None else UNSET,
     )
-    return UserOut.of(await container.users.update(actor, user_id, changes))
+    user = await container.users.update(actor, user_id, changes)
+    return UserOut.of(user, show_email=_sees_email(actor, user.id))
 
 
 @router.delete(

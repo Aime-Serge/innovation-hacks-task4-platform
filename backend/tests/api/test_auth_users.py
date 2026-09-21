@@ -150,8 +150,17 @@ async def test_tc306_user_list_is_paged_searchable_and_hides_hashes(env: Env) ->
     body = response.json()
     assert response.status_code == 200
     assert body["total"] == 1
-    assert body["items"][0]["email"] == LEAD
+    assert body["items"][0]["email"] is None  # S2 (BR-403): a developer never sees another email
     assert "passwordHash" not in response.text
+    # TC-412: a lead sees emails; a developer cannot find one by searching for it either.
+    as_lead = (await env.client.get("/api/v1/users?q=amara", headers=env.auth(LEAD))).json()
+    assert as_lead["items"][0]["email"] == LEAD
+    by_email = "/api/v1/users?q=diallo@example"
+    assert (await env.client.get(by_email, headers=env.auth(DEV))).json()["total"] == 0
+    assert (await env.client.get(by_email, headers=env.auth(LEAD))).json()["total"] == 1
+    own = (await env.client.get("/api/v1/auth/me", headers=env.auth(DEV))).json()
+    mine = await env.client.get(f"/api/v1/users/{own['id']}", headers=env.auth(DEV))
+    assert mine.json()["email"] == DEV  # the user themself
 
 
 async def test_tc307_lead_changes_role_member_cannot(env: Env) -> None:

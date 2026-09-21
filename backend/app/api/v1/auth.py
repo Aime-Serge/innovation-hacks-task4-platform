@@ -55,4 +55,4 @@ async def login(payload: LoginRequest, request: Request, container: ContainerDep
     responses=errors("UNAUTHENTICATED", "INTERNAL_ERROR"),
 )
 async def me(user: CurrentUser) -> UserOut:
-    return UserOut.of(user)
+    return UserOut.of(user, show_email=True)  # the caller's own profile

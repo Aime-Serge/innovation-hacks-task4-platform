@@ -25,7 +25,7 @@ class MemoryUserRepository:
             user
             for user in self._items.values()
             if (query.role is None or user.role is query.role)
-            and matches_text([user.name, user.email], query.q)
+            and matches_text([user.name, user.email] if query.match_email else [user.name], query.q)
         ]
         keys = {
             "name": lambda user: user.name.lower(),

@@ -24,6 +24,7 @@ class Page[T]:
 class UserQuery:
     q: str | None = None
     role: Role | None = None
+    match_email: bool = True  # BR-403: only a lead may search by email
     sort: str = "createdAt"
     descending: bool = False
     page: int = 1
