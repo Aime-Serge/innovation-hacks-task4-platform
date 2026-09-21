@@ -266,6 +266,40 @@ describe("TC-453 services keep the Task 1 interfaces", () => {
     await services.projects.remove(P1);
     expect(seen.slice(-3).map((s) => s.method)).toEqual(["POST", "PATCH", "DELETE"]);
   });
+  it("sends only the fields the API accepts (no owner, no status on create)", async () => {
+    queue.push(
+      json(201, project),
+      json(200, project),
+      json(201, task),
+      json(200, task),
+      json(200, task),
+      json(200, { ...task, status: "done" }),
+    );
+    await services.projects.create(newProject);
+    await services.projects.update(P1, { name: "New", ownerId: "someone-else" });
+    await services.tasks.create(newTask);
+    await services.tasks.update("t1", { title: "New", status: "todo" });
+    const bodies = seen.map((s) =>
+      s.body === null ? null : (JSON.parse(s.body) as Record<string, unknown>),
+    );
+    expect(bodies[0]).toEqual({ name: "Atlas", description: "", status: "active", dueDate: null });
+    expect(bodies[1]).toEqual({ name: "New" });
+    expect(bodies[2]).not.toHaveProperty("status");
+    expect(bodies[2]).toMatchObject({
+      projectId: P1,
+      title: "Write",
+      priority: "high",
+      assigneeId: null,
+    });
+    // The status of an update goes to its own route, after the other fields.
+    expect(seen.slice(3).map((s) => `${s.method} ${s.url}`)).toEqual([
+      "PATCH /api/bff/tasks/t1",
+      "PATCH /api/bff/tasks/t1/status",
+    ]);
+    queue.push(json(200, { ...task, status: "done" }));
+    expect((await services.tasks.update("t1", { status: "done" })).status).toBe("done");
+    await expect(services.tasks.update("t1", {})).rejects.toMatchObject({ status: 422 });
+  });
   it("changes a task's status through its own route, and creates, edits and removes tasks", async () => {
     queue.push(
       json(200, { ...task, status: "in_progress" }),
@@ -293,9 +327,18 @@ describe("TC-453 services keep the Task 1 interfaces", () => {
     expect(seen.at(-1)?.body).toBe(
       JSON.stringify({ name: "Ada L", preferences: { theme: "dark" } }),
     );
-    queue.push(json(200, { items: [], page: 1, pageSize: 10, total: 0 }));
-    await services.activity.list(500);
-    expect(seen.at(-1)?.url).toBe("/api/bff/activity?limit=50");
+    const event = {
+      id: "a1",
+      actorId: "u1",
+      projectId: "p1",
+      taskId: null,
+      type: "created",
+      at: "2026-09-21T10:00:00Z",
+    };
+    queue.push(json(200, { items: [event], page: 1, pageSize: 50, total: 1 }));
+    const feed = await services.activity.list(500);
+    expect(feed[0]?.taskId).toBeUndefined();
+    expect(seen.at(-1)?.url).toContain("/api/bff/activity?limit=50");
   });
   it("reaches the AI endpoints", async () => {
     queue.push(
@@ -324,6 +367,7 @@ describe("TC-401 to TC-403 auth through the server layer", () => {
     queue.push(json(200, { user }));
     const found = await auth.login("a@b.co", "pw");
     expect(found.id).toBe("u1");
+    expect(found.avatarUrl).toBeUndefined(); // the API's null becomes absent
     expect(JSON.stringify(found)).not.toContain("oken");
   });
   it("reads the session, and answers null when there is none", async () => {
