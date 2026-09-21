@@ -9,6 +9,8 @@ from app.domain.models import Profile
 from app.repositories.sql import common, mappers
 from app.repositories.sql.models import ProfileRow, ProfileSkillRow
 
+_COLUMNS = tuple(ProfileRow.__table__.c)  # plain rows, so mappers read columns by name
+
 
 class SqlProfileRepository:
     def __init__(self, session: AsyncSession) -> None:
@@ -33,7 +35,7 @@ class SqlProfileRepository:
         }
 
     async def get(self, user_id: UUID, *, for_update: bool = False) -> Profile | None:
-        statement = select(ProfileRow).where(ProfileRow.user_id == user_id)
+        statement = select(*_COLUMNS).where(ProfileRow.user_id == user_id)
         if for_update:
             statement = statement.with_for_update()  # the lock PUT /me/skills serialises on
         row = (await common.run(self._session, statement, "read")).first()
@@ -42,7 +44,7 @@ class SqlProfileRepository:
     async def get_many(self, user_ids: Sequence[UUID]) -> dict[UUID, Profile]:
         if not user_ids:
             return {}
-        statement = select(ProfileRow).where(ProfileRow.user_id.in_(list(user_ids)))
+        statement = select(*_COLUMNS).where(ProfileRow.user_id.in_(list(user_ids)))
         rows = (await common.run(self._session, statement, "read")).all()
         return await self._build(rows)
 
