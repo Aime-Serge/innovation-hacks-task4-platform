@@ -71,6 +71,7 @@ export function ProjectDetailView({ id }: { id: string }) {
   }
 
   const data = project.data;
+  const canManage = user?.role === "lead" || data.ownerId === user?.id; // FR-412, BR-202
   return (
     <>
       <PageHeader
@@ -78,13 +79,15 @@ export function ProjectDetailView({ id }: { id: string }) {
         description={data.description}
         actions={
           <div className="flex gap-2">
-            <Button onClick={() => setEditing(true)}>{t("common.edit")}</Button>
-            {(user?.role === "lead" || data.ownerId === user?.id) && (
-              <DeleteProjectButton id={data.id} name={data.name} />
+            {canManage && (
+              <>
+                <Button onClick={() => setEditing(true)}>{t("common.edit")}</Button>
+                <DeleteProjectButton id={data.id} name={data.name} />
+                <Button variant="primary" onClick={() => setAdding(true)}>
+                  {t("task.new")}
+                </Button>
+              </>
             )}
-            <Button variant="primary" onClick={() => setAdding(true)}>
-              {t("task.new")}
-            </Button>
           </div>
         }
       />
