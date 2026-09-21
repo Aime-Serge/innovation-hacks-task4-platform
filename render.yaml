@@ -1,0 +1,39 @@
+# Render blueprint (FR-437, section 8). Secrets have `sync: false`: they exist only in the Render
+# dashboard and never in this file. Region and plan values are UNVERIFIED against current Render
+# documentation (docs/deploy-runbook.md): check them before creating the blueprint.
+databases:
+  - name: ih-db
+    databaseName: ih_platform
+    region: oregon
+    plan: basic-256mb
+    postgresMajorVersion: "16"
+
+services:
+  - type: web
+    name: ih-api
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    region: oregon
+    plan: starter
+    healthCheckPath: /healthz
+    autoDeploy: false # deploys follow the release order: migrate first, then this service
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: STORAGE_BACKEND
+        value: sql
+      - key: DOCS_ENABLED
+        value: "false"
+      - key: LLM_PROVIDER
+        value: gemini
+      - key: DATABASE_URL
+        sync: false # composed by hand: postgresql+asyncpg://ih_app:...@<internal host>/ih_platform?ssl=require
+      - key: JWT_SECRET
+        sync: false
+      - key: LLM_API_KEY
+        sync: false
+      - key: LLM_MODEL
+        sync: false
+      - key: CORS_ALLOWED_ORIGINS
+        sync: false # the Vercel site, no wildcard
