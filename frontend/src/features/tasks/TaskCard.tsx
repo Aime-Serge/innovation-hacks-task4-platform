@@ -6,6 +6,7 @@ import { Avatar } from "@/ui/Avatar";
 import { Badge } from "@/ui/Badge";
 import { Card } from "@/ui/Card";
 import { Icon } from "@/ui/Icon";
+import { IconButton } from "@/ui/IconButton";
 import { Select } from "@/ui/Input";
 import { PriorityBadge } from "../shared/badges";
 
@@ -14,6 +15,8 @@ type TaskCardProps = {
   projectName: string | undefined;
   assigneeName: string | undefined;
   onStatusChange: (id: string, status: TaskStatus) => void;
+  /** Present only when the person may delete this task (BR-203). */
+  onDelete?: (task: Task) => void;
   /** Headings never skip a level: h2 under the page's h1, h3 under a section's h2. */
   headingLevel?: "h2" | "h3";
 };
@@ -29,6 +32,7 @@ export const TaskCard = memo(function TaskCard({
   projectName,
   assigneeName,
   onStatusChange,
+  onDelete,
   headingLevel: Heading = "h2",
 }: TaskCardProps) {
   const overdue = isOverdue(task, todayIso());
@@ -71,7 +75,7 @@ export const TaskCard = memo(function TaskCard({
           </>
         )}
       </div>
-      <div>
+      <div className="flex items-center gap-2">
         <label htmlFor={`status-${task.id}`} className="sr-only">
           {t("task.changeStatus", { title: task.title })}
         </label>
@@ -86,6 +90,14 @@ export const TaskCard = memo(function TaskCard({
             </option>
           ))}
         </Select>
+        {onDelete !== undefined && (
+          <IconButton
+            label={t("task.delete.label", { title: task.title })}
+            onClick={() => onDelete(task)}
+          >
+            <Icon name="trash" />
+          </IconButton>
+        )}
       </div>
     </Card>
   );

@@ -20,6 +20,8 @@ import { ProjectAiPanel } from "../ai/ProjectAiPanel";
 import { ProjectStatusBadge } from "../shared/badges";
 import { TaskFormDialog } from "../tasks/TaskFormDialog";
 import { TaskList } from "../tasks/TaskList";
+import { useTaskDeletion } from "../tasks/useTaskDeletion";
+import { DeleteProjectButton } from "./DeleteProjectButton";
 import { ProjectFormDialog } from "./ProjectFormDialog";
 
 /** FR-14: /projects/[id] with progress ring, its tasks, and a not-found state. */
@@ -38,6 +40,9 @@ export function ProjectDetailView({ id }: { id: string }) {
   );
   const [editing, setEditing] = useState(false);
   const [adding, setAdding] = useState(false);
+  const deletion = useTaskDeletion(
+    project.data === null || project.data === undefined ? [] : [project.data],
+  );
   const progress = useMemo(() => projectProgress(id, tasks.data?.items ?? []), [id, tasks.data]);
 
   if (project.isPending) {
@@ -74,6 +79,9 @@ export function ProjectDetailView({ id }: { id: string }) {
         actions={
           <div className="flex gap-2">
             <Button onClick={() => setEditing(true)}>{t("common.edit")}</Button>
+            {(user?.role === "lead" || data.ownerId === user?.id) && (
+              <DeleteProjectButton id={data.id} name={data.name} />
+            )}
             <Button variant="primary" onClick={() => setAdding(true)}>
               {t("task.new")}
             </Button>
@@ -112,8 +120,11 @@ export function ProjectDetailView({ id }: { id: string }) {
         onClear={() => undefined}
         onCreate={() => setAdding(true)}
         onStatusChange={changeStatusOf}
+        onDelete={deletion.requestDelete}
+        canDelete={deletion.canDelete}
         headingLevel="h3"
       />
+      {deletion.dialog}
       <ProjectFormDialog
         open={editing}
         onOpenChange={setEditing}

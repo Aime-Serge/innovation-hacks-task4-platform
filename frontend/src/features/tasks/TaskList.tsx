@@ -32,6 +32,9 @@ type Props = {
   onClear: () => void;
   onCreate: () => void;
   onStatusChange: (id: string, status: TaskStatus) => void;
+  /** When given, each task the person may delete shows a delete action. */
+  onDelete?: (task: Task) => void;
+  canDelete?: (task: Task) => boolean;
   headingLevel?: "h2" | "h3";
 };
 
@@ -71,6 +74,9 @@ export function TaskList(props: Props) {
                   task.assigneeId === null ? undefined : users.get(task.assigneeId)?.name
                 }
                 onStatusChange={props.onStatusChange}
+                {...(props.onDelete !== undefined && props.canDelete?.(task) === true
+                  ? { onDelete: props.onDelete }
+                  : {})}
                 {...(props.headingLevel === undefined ? {} : { headingLevel: props.headingLevel })}
               />
             ))}

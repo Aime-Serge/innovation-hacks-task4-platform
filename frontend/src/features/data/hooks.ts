@@ -137,3 +137,50 @@ export function useSaveTask(onDone: () => void) {
     onError: (error) => reportError(error, "tasks.save"),
   });
 }
+
+/** FR-420: the row leaves the list at once; a failed delete puts it back and says why. */
+export function useDeleteTask(onFailure: () => void) {
+  const { tasks } = useServices();
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => tasks.remove(id),
+    onMutate: async (id) => {
+      await client.cancelQueries({ queryKey: ["tasks"] });
+      const previous = client.getQueriesData<TaskPages>({ queryKey: ["tasks"] });
+      client.setQueriesData<TaskPages>({ queryKey: ["tasks"] }, (page) =>
+        page === undefined
+          ? page
+          : {
+              ...page,
+              items: page.items.filter((task) => task.id !== id),
+              total: Math.max(0, page.total - 1),
+            },
+      );
+      return { previous };
+    },
+    onError: (error, _id, context) => {
+      reportError(error, "tasks.remove");
+      context?.previous.forEach(([key, value]) => client.setQueryData(key, value));
+      onFailure();
+    },
+    onSettled: () => {
+      for (const key of ["tasks", "activity", "projects", "project"]) {
+        void client.invalidateQueries({ queryKey: [key] });
+      }
+    },
+  });
+}
+
+/** FR-413: the caller reads the error itself, because a 409 needs its own explanation. */
+export function useDeleteProject() {
+  const { projects } = useServices();
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => projects.remove(id),
+    onSuccess: () => {
+      for (const key of ["projects", "project", "tasks", "activity"]) {
+        void client.invalidateQueries({ queryKey: [key] });
+      }
+    },
+  });
+}
