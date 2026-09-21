@@ -18,10 +18,10 @@ Statuses: **Done** = the command ran and passed; **Partial** = built, with the g
 | FR-411 | Done | journey creates a project |
 | FR-412 | Done | Edit, delete and New task shown only to the owner or a lead; the API enforces it as well; Task 1 project/task browser specs pass |
 | FR-413 | Done | TC-421 component tests (confirmation, 409 message with link) |
-| FR-414 | Partial | Fields, progress, task list, AI panel, not-found page; the project activity list is missing |
+| FR-414 | Done | Fields, progress, task list, AI panel, activity list (latest 10 for the project), not-found page |
 | FR-415 | Done | Create task (Task 1 form, AI dialog); a completed project's rejection is explained (PROJECT_CLOSED) |
 | FR-416 | Done | assignee chosen by name from the directory (Task 1 form); visibility on assignment: TC-410 |
-| FR-417 | Partial | Status change works and 409s roll back; the control offers all four statuses, not only the allowed next ones |
+| FR-417 | Done | The status control offers the current status and the allowed next ones only; 409s roll back |
 | FR-418 | Done | Task 1 form and card (native date input) |
 | FR-419 | Done | Task 1 URL filters (mock browser tests); HTTP adapter maps every filter (unit) |
 | FR-420 | Done | TC-422 component tests (confirm, optimistic removal, restore on failure) |

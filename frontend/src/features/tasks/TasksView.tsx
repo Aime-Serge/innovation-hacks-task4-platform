@@ -1,8 +1,9 @@
 "use client";
 
 import { array } from "zod/mini";
-import { useCallback, useState } from "react";
+import { useCallback } from "react";
 import { PageHeader } from "@/layout/PageHeader";
+import { useCreateIntent } from "../shared/useCreateIntent";
 import { t, tCount } from "@/i18n";
 import { Priority, TaskStatus, type TaskSort } from "@/schemas";
 import { Button } from "@/ui/Button";
@@ -23,7 +24,7 @@ const SORTS: readonly TaskSort[] = ["due_date", "priority", "title"];
 /** FR-15..19: search, filter, sort, optimistic status change, all URL-synced. */
 export function TasksView() {
   const { query, update, clear, filtered } = useTaskQuery();
-  const [creating, setCreating] = useState(false);
+  const [creating, setCreating] = useCreateIntent();
   const toast = useToast();
   const tasks = useTasks(query);
   const projects = useProjects(emptyProjectQuery());

@@ -11,7 +11,8 @@ import { MobileNav } from "@/layout/MobileNav";
 import { NavLinks } from "@/layout/NavLinks";
 import { ScenarioSwitcher } from "@/layout/ScenarioSwitcher";
 import { SkipLink } from "@/layout/SkipLink";
-import { ThemeToggle } from "@/layout/ThemeToggle";
+import { CreateMenu } from "@/layout/CreateMenu";
+import { HeaderSearch } from "@/layout/HeaderSearch";
 import { UserMenu } from "@/layout/UserMenu";
 import { t, tCount } from "@/i18n";
 import { reportError, setErrorReporter } from "@/lib/report-error";
@@ -107,12 +108,16 @@ describe("TC-010 navigation (FR-05..08)", () => {
     expect(screen.queryByRole("dialog")).toBeNull();
   });
 
-  it("TC-008 the profile menu shows the user and logs out", async () => {
+  it("TC-008 the account menu shows the user, links to their pages and logs out", async () => {
     render(<UserMenu />);
     await userEvent.click(
       screen.getByRole("button", { name: "Account menu for Aime Serge UKOBIZABA" }),
     );
-    await userEvent.click(await screen.findByRole("menuitem", { name: "Log out" }));
+    expect(await screen.findByText(testUser.email ?? "")).toBeInTheDocument();
+    expect(screen.getByRole("menuitem", { name: "Profile" })).toHaveAttribute("href", "/profile");
+    expect(screen.getByRole("menuitem", { name: "Projects" })).toHaveAttribute("href", "/projects");
+    expect(screen.getByRole("menuitem", { name: "Tasks" })).toHaveAttribute("href", "/tasks");
+    await userEvent.click(screen.getByRole("menuitem", { name: "Log out" }));
     expect(authState.logout).toHaveBeenCalled();
   });
 
@@ -122,18 +127,42 @@ describe("TC-010 navigation (FR-05..08)", () => {
     expect(container).toBeEmptyDOMElement();
   });
 
-  it("TC-009 the theme toggle cycles system, light, dark and names the current choice", async () => {
-    const { rerender } = render(<ThemeToggle />);
-    await userEvent.click(screen.getByRole("button", { name: "Theme: System. Switch to Light" }));
-    expect(themeState.setTheme).toHaveBeenLastCalledWith("light");
-    themeState.theme = "light";
-    rerender(<ThemeToggle />);
-    await userEvent.click(screen.getByRole("button", { name: "Theme: Light. Switch to Dark" }));
+  it("TC-009 Appearance lists system, light and dark, marks the current one and applies a choice", async () => {
+    render(<UserMenu />);
+    await userEvent.click(
+      screen.getByRole("button", { name: "Account menu for Aime Serge UKOBIZABA" }),
+    );
+    await userEvent.click(await screen.findByRole("menuitem", { name: "Appearance" }));
+    expect(await screen.findAllByRole("menuitemradio")).toHaveLength(3);
+    expect(screen.getByRole("menuitemradio", { name: "System" })).toBeChecked();
+    await userEvent.click(screen.getByRole("menuitemradio", { name: "Dark" }));
     expect(themeState.setTheme).toHaveBeenLastCalledWith("dark");
-    themeState.theme = "dark";
-    rerender(<ThemeToggle />);
-    await userEvent.click(screen.getByRole("button", { name: "Theme: Dark. Switch to System" }));
-    expect(themeState.setTheme).toHaveBeenLastCalledWith("system");
+  });
+
+  it("the create menu offers a new project and a new task", async () => {
+    render(<CreateMenu />);
+    await userEvent.click(screen.getByRole("button", { name: "Create new…" }));
+    expect(await screen.findByRole("menuitem", { name: "New project" })).toHaveAttribute(
+      "href",
+      "/projects?new=1",
+    );
+    expect(screen.getByRole("menuitem", { name: "New task" })).toHaveAttribute(
+      "href",
+      "/tasks?new=1",
+    );
+  });
+
+  it("the header search opens the task list with the query, and / focuses it", async () => {
+    render(<HeaderSearch />);
+    const field = screen.getByRole("searchbox", { name: "Quick search" });
+    expect(field).toHaveAttribute("placeholder", "Type / to search");
+    await userEvent.keyboard("/");
+    expect(field).toHaveFocus();
+    await userEvent.type(field, "  api docs{Enter}");
+    expect(nav.push).toHaveBeenCalledWith("/tasks?q=api%20docs");
+    await userEvent.clear(field);
+    await userEvent.type(field, "{Enter}");
+    expect(nav.push).toHaveBeenLastCalledWith("/tasks");
   });
 
   it("TC-022 the scenario switcher lists all nine scenarios and writes ?scenario=", async () => {

@@ -17,6 +17,7 @@ import { Skeleton } from "@/ui/Skeleton";
 import { useToast } from "@/ui/Toast";
 import { useProject, useProjects, useTasks, useUpdateTaskStatus, useUsers } from "../data/hooks";
 import { ProjectAiPanel } from "../ai/ProjectAiPanel";
+import { ProjectActivity } from "./ProjectActivity";
 import { ProjectStatusBadge } from "../shared/badges";
 import { TaskFormDialog } from "../tasks/TaskFormDialog";
 import { TaskList } from "../tasks/TaskList";
@@ -127,6 +128,7 @@ export function ProjectDetailView({ id }: { id: string }) {
         canDelete={deletion.canDelete}
         headingLevel="h3"
       />
+      <ProjectActivity project={data} />
       {deletion.dialog}
       <ProjectFormDialog
         open={editing}
