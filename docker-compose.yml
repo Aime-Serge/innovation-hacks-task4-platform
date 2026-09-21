@@ -48,6 +48,10 @@ services:
       JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in .env}
       CORS_ALLOWED_ORIGINS: http://localhost:3000
       LLM_PROVIDER: fake
+      FAKE_LLM_SCENARIO: ${FAKE_LLM_SCENARIO:-ok} # fault injection for the browser tests
+      AI_ENABLED: ${AI_ENABLED:-true}
+      AI_DAILY_LIMIT_PER_USER: ${AI_DAILY_LIMIT_PER_USER:-20}
+      RATE_LIMIT_ATTEMPTS: ${RATE_LIMIT_ATTEMPTS:-5} # raised only for repeated browser runs
       SEED_PROFILE: ${SEED_PROFILE:-none}
       SEED_PASSWORD: ${SEED_PASSWORD:-}
       DOCS_ENABLED: "true"
