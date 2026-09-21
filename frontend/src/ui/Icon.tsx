@@ -36,6 +36,8 @@ const PATHS = {
   flag: "M4 22V4M4 4h13l-2 4 2 4H4",
   flame: "M12 22c4 0 7-3 7-7 0-3-2-5-3-7-1 2-2 3-4 3 0-3-1-6-3-8-1 4-4 6-4 12 0 4 3 7 7 7z",
   minus: "M5 12h14",
+  sparkles:
+    "M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8zM19 16l.8 2.2L22 19l-2.2.8L19 22l-.8-2.2L16 19l2.2-.8z",
 } as const;
 
 export type IconName = keyof typeof PATHS;

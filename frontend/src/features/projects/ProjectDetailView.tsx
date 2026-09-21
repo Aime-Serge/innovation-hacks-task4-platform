@@ -16,6 +16,7 @@ import { ProgressRing } from "@/ui/ProgressRing";
 import { Skeleton } from "@/ui/Skeleton";
 import { useToast } from "@/ui/Toast";
 import { useProject, useProjects, useTasks, useUpdateTaskStatus, useUsers } from "../data/hooks";
+import { ProjectAiPanel } from "../ai/ProjectAiPanel";
 import { ProjectStatusBadge } from "../shared/badges";
 import { TaskFormDialog } from "../tasks/TaskFormDialog";
 import { TaskList } from "../tasks/TaskList";
@@ -96,6 +97,10 @@ export function ProjectDetailView({ id }: { id: string }) {
           </p>
         </div>
       </Card>
+      <ProjectAiPanel
+        projectId={id}
+        canCreateTasks={user?.role === "lead" || data.ownerId === user?.id}
+      />
       <h2 className="mb-3 text-lg font-semibold">{t("project.tasks")}</h2>
       <TaskList
         status={tasks.isPending ? "loading" : tasks.isError ? "error" : "success"}
