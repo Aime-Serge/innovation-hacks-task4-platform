@@ -1,5 +1,6 @@
 "use client";
 
+import { dataSource } from "@/lib/data-source";
 import { usePathname, useSearchParams } from "next/navigation";
 import { replaceUrl } from "@/lib/navigation";
 import { storeScenario, useScenario } from "@/providers/scenario";
@@ -16,6 +17,7 @@ export function ScenarioSwitcher() {
   const pathname = usePathname();
   const params = useSearchParams();
 
+  if (dataSource() === "http") return null; // scenarios belong to the mock adapter
   if (process.env["NEXT_PUBLIC_SCENARIO_SWITCHER"] === "off") return null;
 
   const change = (value: string) => {

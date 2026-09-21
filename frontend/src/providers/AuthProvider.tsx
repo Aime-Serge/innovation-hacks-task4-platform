@@ -11,7 +11,9 @@ import {
   type ReactNode,
 } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { createHttpAuth, onSessionEnded } from "@/adapters/http";
 import { createMockAuth } from "@/adapters/mock";
+import { dataSource } from "@/lib/data-source";
 import { hardNavigate, safeInternalPath } from "@/lib/navigation";
 import type { User } from "@/schemas";
 import type { AuthService } from "@/services/auth";
@@ -33,7 +35,7 @@ const ENTRY_PATHS = ["/login", "/register"];
 const PUBLIC_PATHS = [...ENTRY_PATHS, "/forgot-password", "/reset-password"];
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const auth = useMemo(() => createMockAuth(), []);
+  const auth = useMemo(() => (dataSource() === "mock" ? createMockAuth() : createHttpAuth()), []);
   const [user, setUser] = useState<User | null>(null);
   const [status, setStatus] = useState<SessionStatus>("loading");
   const userRef = useRef<User | null>(null);
@@ -53,6 +55,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setStatus(session === null ? "unauthenticated" : "authenticated");
     });
   }, [auth]);
+
+  // A refresh that fails ends the session wherever the person is (FR-405).
+  useEffect(
+    () =>
+      onSessionEnded(() => {
+        setUser(null);
+        setStatus("unauthenticated");
+      }),
+    [],
+  );
 
   // Backs up proxy.ts, which only checks that a cookie exists.
   useEffect(() => {

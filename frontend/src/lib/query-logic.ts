@@ -77,13 +77,13 @@ export function applyProjectQuery(projects: Project[], query: ProjectQuery): Pro
     case "name":
       return copy.sort((a, b) => sign * a.name.localeCompare(b.name));
     case "due_date":
-      return copy.sort((a, b) =>
-        a.dueDate === b.dueDate
-          ? a.name.localeCompare(b.name)
-          : a.dueDate < b.dueDate
-            ? -sign
-            : sign,
-      );
+      // Undated projects always sort last, whatever the direction (as the API does, BR-309).
+      return copy.sort((a, b) => {
+        if (a.dueDate === b.dueDate) return a.name.localeCompare(b.name);
+        if (a.dueDate === null) return 1;
+        if (b.dueDate === null) return -1;
+        return a.dueDate < b.dueDate ? -sign : sign;
+      });
     default:
       return assertNever(query.sort);
   }

@@ -45,6 +45,7 @@ export default defineConfig({
   projects,
   webServer: {
     command: `npm run build && npx next start -p ${PORT}`,
+    env: { NEXT_PUBLIC_DATA_SOURCE: "mock" }, // the Task 1 browser tests use the mock adapter (S8)
     url: `http://localhost:${PORT}/login`,
     reuseExistingServer: !process.env["CI"],
     timeout: 240_000,

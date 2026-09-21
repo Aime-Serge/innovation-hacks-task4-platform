@@ -26,7 +26,9 @@ export function ProjectCard({ project, progress }: { project: Project; progress:
       </div>
       <p className="flex items-center gap-1 text-sm text-muted">
         <Icon name="calendar" />
-        {t("project.due", { date: formatDate(project.dueDate) })}
+        {project.dueDate === null
+          ? t("project.noDue")
+          : t("project.due", { date: formatDate(project.dueDate) })}
       </p>
       <ProgressBar
         value={progress.percent}

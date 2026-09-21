@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState, type SyntheticEvent } from "react";
 import { useAuth } from "@/providers/AuthProvider";
 import { t } from "@/i18n";
+import { dataSource } from "@/lib/data-source";
 import { formText } from "@/lib/form";
 import { hardNavigate } from "@/lib/navigation";
 import { ServiceError } from "@/services/types";
@@ -14,7 +15,7 @@ import { FormAlert } from "./messages";
 
 const MIN_PASSWORD = 8;
 
-/** Creating an account never signs anyone in: it sends them to the login page. */
+/** Registering signs the person in on the real API; the mock sends them to the login page. */
 export function RegisterForm() {
   const { auth } = useAuth();
   const [errors, setErrors] = useState<{ email?: string; password?: string; form?: string }>({});
@@ -36,7 +37,8 @@ export function RegisterForm() {
     setErrors({});
     try {
       await auth.register(text("name").trim(), text("email").trim(), text("password"));
-      hardNavigate("/login?registered=1");
+      // The real API signs the new person in (FR-401); the Task 1 mock only creates the account.
+      hardNavigate(dataSource() === "http" ? "/" : "/login?registered=1");
     } catch (failure) {
       const conflict = failure instanceof ServiceError && failure.status === 409;
       setErrors(conflict ? { email: t("auth.emailTaken") } : { form: t("auth.genericError") });

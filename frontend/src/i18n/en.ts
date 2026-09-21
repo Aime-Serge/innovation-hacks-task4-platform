@@ -107,6 +107,7 @@ export const en = {
   "project.created": "Project created.",
   "project.saved": "Project saved.",
   "project.due": "Due {date}",
+  "project.noDue": "No due date",
   "project.progressOf": "Progress of {name}",
   "project.tasks": "Tasks",
   "project.tasksDone.one": "{done} of {count} task done",

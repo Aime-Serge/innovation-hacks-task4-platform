@@ -1,7 +1,9 @@
 "use client";
 
 import { createContext, useContext, useMemo, type ReactNode } from "react";
+import { createHttpServices } from "@/adapters/http";
 import { createMockServices } from "@/adapters/mock";
+import { dataSource } from "@/lib/data-source";
 import type { Services } from "@/services/types";
 import { useAuth } from "./AuthProvider";
 import { useScenario } from "./scenario";
@@ -14,8 +16,11 @@ export function ServicesProvider({ children }: { children: ReactNode }) {
   // The actor is read lazily: rebuilding the mock when the session resolves
   // would reset its state (and the "flaky" scenario's first-request failure).
   const { getUserId } = useAuth();
-  const { services } = useMemo(
-    () => createMockServices({ scenario, getActorId: getUserId }),
+  const services = useMemo(
+    () =>
+      dataSource() === "mock"
+        ? createMockServices({ scenario, getActorId: getUserId }).services
+        : createHttpServices(),
     [scenario, getUserId],
   );
   return <ServicesContext.Provider value={services}>{children}</ServicesContext.Provider>;

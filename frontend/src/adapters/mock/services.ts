@@ -1,3 +1,4 @@
+import { createMockAi } from "./ai";
 import { array } from "zod/mini";
 import { Activity, Project, Task, User, pageOf } from "@/schemas";
 import type { Scenario } from "@/schemas";
@@ -181,5 +182,5 @@ export function createMockServices(options: MockOptions): MockSession {
     },
   };
 
-  return { services: { projects, tasks, users, activity }, snapshot: built };
+  return { services: { projects, tasks, users, activity, ai: createMockAi() }, snapshot: built };
 }

@@ -60,7 +60,7 @@ export function saveAccounts(): void {
 
 export function findByEmail(email: string): Account | undefined {
   const needle = email.trim().toLowerCase();
-  return getAccounts().find((a) => a.user.email.toLowerCase() === needle);
+  return getAccounts().find((a) => (a.user.email ?? "").toLowerCase() === needle);
 }
 
 export function findById(id: string): Account | undefined {

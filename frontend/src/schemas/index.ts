@@ -58,7 +58,8 @@ const IsoDate = iso.date();
 export const User = object({
   id: string().check(minLength(1)),
   name: string().check(minLength(1), maxLength(80)),
-  email: email(),
+  // BR-403: the API returns an email only to the user themself and to leads, otherwise null.
+  email: nullable(email()),
   role: Role,
   avatarUrl: optional(string()),
   preferences: object({ theme: Theme }),
@@ -68,9 +69,9 @@ export type User = Infer<typeof User>;
 export const Project = object({
   id: string().check(minLength(1)),
   name: string().check(minLength(1), maxLength(80)),
-  description: string().check(maxLength(500)),
+  description: string().check(maxLength(2000)),
   status: ProjectStatus,
-  dueDate: IsoDate,
+  dueDate: nullable(IsoDate),
   ownerId: string().check(minLength(1)),
 });
 export type Project = Infer<typeof Project>;

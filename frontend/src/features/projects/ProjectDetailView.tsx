@@ -86,7 +86,11 @@ export function ProjectDetailView({ id }: { id: string }) {
         />
         <div className="flex flex-col gap-2 text-sm">
           <ProjectStatusBadge status={data.status} />
-          <p>{t("project.due", { date: formatDate(data.dueDate) })}</p>
+          <p>
+            {data.dueDate === null
+              ? t("project.noDue")
+              : t("project.due", { date: formatDate(data.dueDate) })}
+          </p>
           <p className="text-muted">
             {tCount("project.tasksDone", progress.total, { done: progress.done })}
           </p>

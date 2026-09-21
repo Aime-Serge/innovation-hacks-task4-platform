@@ -36,7 +36,7 @@ export function ProfileView() {
           <Avatar name={user.name} size="lg" />
           <div className="min-w-0">
             <p className="break-words text-lg font-semibold">{user.name}</p>
-            <p className="break-all text-sm text-muted">{user.email}</p>
+            <p className="break-all text-sm text-muted">{user.email ?? ""}</p>
             <p className="text-sm text-muted">{t(`role.${user.role}`)}</p>
           </div>
         </Card>

@@ -1,3 +1,4 @@
+import type { AiService } from "./ai";
 import type {
   Activity,
   NewProject,
@@ -16,9 +17,12 @@ import type {
 export class ServiceError extends Error {
   readonly code: string;
   readonly status: number;
+  /** Seconds to wait, from a 429's Retry-After header. */
+  readonly retryAfter: number | undefined;
 
-  constructor(code: string, message: string, status: number) {
+  constructor(code: string, message: string, status: number, retryAfter?: number) {
     super(message);
+    this.retryAfter = retryAfter;
     this.name = "ServiceError";
     this.code = code;
     this.status = status;
@@ -60,4 +64,5 @@ export interface Services {
   tasks: TaskService;
   users: UserService;
   activity: ActivityService;
+  ai: AiService;
 }

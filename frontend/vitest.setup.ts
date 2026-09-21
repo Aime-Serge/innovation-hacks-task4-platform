@@ -7,6 +7,9 @@ import { nav, resetNav } from "./tests/unit/next-mock";
 // to settle async UI; the assertions themselves are unchanged.
 configure({ asyncUtilTimeout: 5000 });
 
+// The Task 1 unit tests run on the mock adapter (S8); the HTTP adapter has its own tests.
+process.env["NEXT_PUBLIC_DATA_SOURCE"] = "mock";
+
 vi.mock("next/navigation", () => import("./tests/unit/next-mock"));
 
 beforeEach(() => {

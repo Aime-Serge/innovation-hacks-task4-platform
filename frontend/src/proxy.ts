@@ -1,4 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { dataSource } from "@/lib/data-source";
+import { cookieNames } from "@/lib/session/cookies";
 
 // Redirect away from these if a mock session already exists.
 const AUTH_ENTRY_PATHS = ["/login", "/register"];
@@ -25,7 +27,11 @@ export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const isAuthEntry = AUTH_ENTRY_PATHS.includes(pathname);
   const isPublic = isAuthEntry || ALWAYS_PUBLIC_PATHS.includes(pathname);
-  const hasSession = request.cookies.has("mock_session");
+  // The marker holds no token: it only says a session exists (ADR-425). The API still checks it.
+  const hasSession =
+    dataSource() === "mock"
+      ? request.cookies.has("mock_session")
+      : request.cookies.has(cookieNames(process.env["ALLOW_INSECURE_COOKIES"] === "true").marker);
 
   if (!isPublic && !hasSession) {
     const url = new URL("/login", request.url);
