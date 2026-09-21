@@ -3,12 +3,17 @@
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
 
+from app.ai.client import LLMClient
+from app.ai.fake_client import FakeLLMClient
+from app.ai.gemini_client import GeminiClient
+from app.ai.service import AiService
 from app.core.clock import Clock, IdFactory, SystemClock, UuidFactory
 from app.core.config import Settings
 from app.core.ratelimit import RateLimiter
 from app.core.security import PasswordHasher, TokenCodec
 from app.repositories.memory import (
     MemoryActivityRepository,
+    MemoryAiRequestRepository,
     MemoryProjectRepository,
     MemoryRefreshTokenRepository,
     MemoryTaskRepository,
@@ -36,6 +41,7 @@ class Container:
     uow: UowFactory
     auth: AuthService
     sessions: SessionService
+    ai: AiService
     users: UserService
     projects: ProjectService
     tasks: TaskService
@@ -58,7 +64,10 @@ class Container:
 
 
 def build_container(
-    settings: Settings, clock: Clock | None = None, ids: IdFactory | None = None
+    settings: Settings,
+    clock: Clock | None = None,
+    ids: IdFactory | None = None,
+    llm: LLMClient | None = None,
 ) -> Container:
     clock = clock or SystemClock()
     ids = ids or UuidFactory()
@@ -82,6 +91,7 @@ def build_container(
             MemoryTaskRepository(),
             MemoryActivityRepository(),
             MemoryRefreshTokenRepository(),
+            MemoryAiRequestRepository(),
         )
 
         def uow(read_only: bool = False) -> MemoryUnitOfWork:
@@ -94,6 +104,12 @@ def build_container(
         readiness = repositories_respond
     activity = ActivityService(uow, clock, ids)
     auth = AuthService(uow, hasher, tokens, clock)
+    if llm is None:
+        if settings.llm_provider == "gemini":
+            key = settings.llm_api_key.get_secret_value() if settings.llm_api_key else ""
+            llm = GeminiClient(key, settings.llm_model or "")
+        else:
+            llm = FakeLLMClient(settings.fake_llm_scenario)
     return Container(
         settings=settings,
         clock=clock,
@@ -108,6 +124,7 @@ def build_container(
         users=UserService(uow, hasher, clock, ids),
         projects=ProjectService(uow, activity, clock, ids),
         tasks=TaskService(uow, activity, clock, ids),
+        ai=AiService(uow, llm, settings, clock, ids),
         activity=activity,
         dashboard=DashboardService(uow, clock),
         database=database,

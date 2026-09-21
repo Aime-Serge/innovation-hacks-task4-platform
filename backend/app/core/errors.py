@@ -99,3 +99,24 @@ class RateLimited(AppError):
 class ServiceUnavailable(AppError):
     code = "SERVICE_UNAVAILABLE"
     status_code = 503
+
+
+class AiDisabled(AppError):
+    code = "AI_DISABLED"
+    status_code = 503
+
+
+class AiUnavailable(AppError):
+    code = "AI_UNAVAILABLE"
+    status_code = 503
+
+
+class AiBadResponse(AppError):
+    code = "AI_BAD_RESPONSE"
+    status_code = 502
+
+
+class AiQuotaExceeded(RateLimited):
+    """429 with Retry-After, like a rate limit, under its own code (BR-409)."""
+
+    code = "AI_QUOTA_EXCEEDED"

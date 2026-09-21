@@ -26,6 +26,10 @@ CATALOGUE: dict[str, tuple[int, str]] = {
     "UNSUPPORTED_MEDIA_TYPE": (415, "The content type must be application/json."),
     "VALIDATION_ERROR": (422, "One or more fields are invalid."),
     "RATE_LIMITED": (429, "Too many attempts. Try again later."),
+    "AI_BAD_RESPONSE": (502, "The AI answer could not be used. Try a shorter brief."),
+    "AI_DISABLED": (503, "AI features are switched off."),
+    "AI_UNAVAILABLE": (503, "AI is unavailable right now. You can add tasks manually."),
+    "AI_QUOTA_EXCEEDED": (429, "The AI limit was reached. Try again later."),
     "SERVICE_UNAVAILABLE": (503, "A dependency is not ready."),
     "INTERNAL_ERROR": (500, "Something went wrong on our side."),
 }
@@ -42,6 +46,7 @@ _TITLES = {
     422: "Validation error",
     429: "Rate limited",
     500: "Unexpected error",
+    502: "Bad gateway",
     503: "Service unavailable",
 }
 

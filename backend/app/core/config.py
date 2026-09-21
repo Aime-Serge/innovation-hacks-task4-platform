@@ -74,9 +74,10 @@ class Settings(BaseSettings):
 
     # AI (Task 4, section 7). The model name comes only from LLM_MODEL (never hard-coded).
     ai_enabled: bool = True  # BR-412 kill switch
-    llm_provider: Literal["anthropic", "fake"] = "fake"
+    llm_provider: Literal["gemini", "fake"] = "fake"
     llm_api_key: SecretStr | None = None
     llm_model: str | None = None
+    fake_llm_scenario: str = "ok"  # dev and test only: the fake provider is refused in production
     llm_timeout_s: float = Field(default=20.0, gt=0, le=25)
     llm_max_output_tokens: int = Field(default=1024, ge=64, le=8192)
     ai_daily_limit_per_user: int = Field(default=20, ge=1)  # BR-409
@@ -130,11 +131,11 @@ class Settings(BaseSettings):
         """FR-427: production refuses the fake provider; a live provider needs its key and model."""
         if self.is_production and self.llm_provider == "fake":
             raise ValueError("LLM_PROVIDER: fake is not allowed when APP_ENV=production")
-        if self.llm_provider == "anthropic":
+        if self.llm_provider == "gemini":
             if self.llm_api_key is None:
-                raise ValueError("LLM_API_KEY: required when LLM_PROVIDER=anthropic")
+                raise ValueError("LLM_API_KEY: required when LLM_PROVIDER=gemini")
             if not self.llm_model:
-                raise ValueError("LLM_MODEL: required when LLM_PROVIDER=anthropic")
+                raise ValueError("LLM_MODEL: required when LLM_PROVIDER=gemini")
         return self
 
     @property

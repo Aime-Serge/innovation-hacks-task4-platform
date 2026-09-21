@@ -6,6 +6,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.ai.client import LLMClient
 from app.api import health, landing
 from app.api.v1 import api_router
 from app.container import Container, build_container
@@ -49,10 +50,11 @@ def create_app(
     settings: Settings | None = None,
     clock: Clock | None = None,
     ids: IdFactory | None = None,
+    llm: LLMClient | None = None,
 ) -> FastAPI:
     settings = settings or load_settings()
     configure_logging(settings.log_level)
-    container = build_container(settings, clock, ids)
+    container = build_container(settings, clock, ids, llm)
 
     @asynccontextmanager
     async def lifespan(_: FastAPI) -> AsyncIterator[None]:
