@@ -1,0 +1,65 @@
+@import "tailwindcss";
+@import "./tokens.css";
+
+/* Touch layouts get 44px targets (NFR-10). */
+@custom-variant touch (@media (pointer: coarse));
+
+html {
+  background: var(--color-canvas);
+}
+
+body {
+  min-height: 100vh;
+  background: var(--color-canvas);
+  color: var(--color-fg);
+  font-family: var(--font-sans);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  line-height: 1.2;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+/* Interactive controls reach 44 by 44 on touch layouts */
+.touch-target {
+  @variant touch {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
+.brand-bar {
+  background-image: var(--brand-gradient);
+}
+
+@keyframes skeleton-pulse {
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.skeleton {
+  background: var(--color-line);
+  animation: skeleton-pulse 1.6s var(--ease-out) infinite;
+}
+
+/* Animations off under reduced motion (NFR-08) */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
