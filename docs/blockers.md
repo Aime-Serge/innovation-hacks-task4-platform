@@ -11,3 +11,10 @@
 - schemathesis contract test on `POST /ai/projects/{projectId}/task-suggestions` fails at baseline (undocumented 400 for a NUL byte body).
 - Prettier style failures in 3 frontend e2e test files at baseline.
 Neither is caused by the minimal profile work. Status: open.
+
+## B-F2 (2026-09-21, T+72 min): frontend phase not started
+The T+75 rule stopped new work before Phase 2 (types) and Phase 3 (frontend). Consequences, all open:
+- `frontend/src/generated/api-types.ts` is not regenerated, so `npm run check:api` will fail against the new `backend/docs/openapi.json`.
+- The registration form, mock adapter (S-D), avatar menu (S-C), profile pages, settings, people picker and dashboard banner are unchanged.
+- The current frontend registration posts `name`, which the new `POST /users` rejects (S-A). Do not deploy the API without the frontend work.
+- MT-01 (UI part), MT-06 UI, MT-10, MT-11, MT-16, MT-19, MT-23 not done.
