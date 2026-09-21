@@ -185,6 +185,11 @@ export const en = {
   "auth.passwordMismatch": "The passwords do not match.",
   "auth.emailTaken": "An account with this email already exists. Log in instead.",
   "auth.genericError": "Something went wrong. Please try again.",
+  "auth.registrationClosed":
+    "Registration is closed right now. Ask an administrator for an account.",
+  "auth.tooManyAttempts": "Too many attempts. Wait a minute and try again.",
+  "task.projectClosed":
+    "This project is completed, so it accepts no new tasks. Change the project's status first.",
   "auth.registered": "Account created. Log in to continue.",
   "auth.haveAccount": "Already have an account?",
   "auth.forgot": "Forgot password?",

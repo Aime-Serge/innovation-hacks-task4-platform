@@ -1,5 +1,6 @@
 "use client";
 
+import { ServiceError } from "@/services/types";
 import { useState, type SyntheticEvent } from "react";
 import { t } from "@/i18n";
 import { formText } from "@/lib/form";
@@ -125,7 +126,9 @@ function TaskForm({ onOpenChange, task, projects, users, defaultProjectId }: Pro
       </div>
       {save.isError && (
         <p role="alert" className="text-sm text-danger">
-          {t("form.saveFailed")}
+          {save.error instanceof ServiceError && save.error.code === "PROJECT_CLOSED"
+            ? t("task.projectClosed")
+            : t("form.saveFailed")}
         </p>
       )}
       <div className="flex justify-end gap-2">

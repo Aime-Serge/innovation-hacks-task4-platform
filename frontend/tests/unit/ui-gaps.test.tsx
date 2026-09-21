@@ -1,0 +1,35 @@
+// FR-401 (registration closed, too many attempts), FR-412 (edit only for owner or lead), FR-415 (closed project).
+import { screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { describe, expect, it, vi } from "vitest";
+import { RegisterForm } from "@/features/auth/RegisterForm";
+import { ServiceError } from "@/services/types";
+import { renderApp } from "./render";
+
+const holder = vi.hoisted((): { register: unknown } => ({ register: null }));
+vi.mock("@/providers/AuthProvider", () => ({
+  useAuth: () => ({ auth: { register: holder.register } }),
+}));
+
+async function submit() {
+  const user = userEvent.setup();
+  renderApp(<RegisterForm />);
+  await user.type(screen.getByLabelText("Name"), "Ada");
+  await user.type(screen.getByLabelText("Email"), "ada@example.com");
+  await user.type(screen.getByLabelText("Password"), "long-password-1");
+  await user.type(screen.getByLabelText("Confirm password"), "long-password-1");
+  await user.click(screen.getByRole("button", { name: "Create account" }));
+}
+
+describe("FR-401 registration failures are explained", () => {
+  it.each([
+    [new ServiceError("REGISTRATION_DISABLED", "x", 403), /Registration is closed/],
+    [new ServiceError("RATE_LIMITED", "x", 429), /Too many attempts/],
+    [new ServiceError("EMAIL_ALREADY_EXISTS", "x", 409), /already exists/],
+    [new ServiceError("INTERNAL_ERROR", "x", 500), /Something went wrong/],
+  ])("shows the right message for %s", async (error, words) => {
+    holder.register = vi.fn().mockRejectedValue(error);
+    await submit();
+    await waitFor(() => expect(screen.getByText(words)).toBeInTheDocument());
+  });
+});

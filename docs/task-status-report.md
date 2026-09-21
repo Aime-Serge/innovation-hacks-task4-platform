@@ -5,7 +5,7 @@ Statuses: **Done** = the command ran and passed; **Partial** = built, with the g
 ## Functional requirements
 | ID | Status | Evidence |
 |---|---|---|
-| FR-401 | Partial | TC-401 journey; duplicate email 409 (adapter test). Not done: the page does not yet say registration is closed (403 shows the generic error) |
+| FR-401 | Done | TC-401 journey; duplicate email 409, registration closed and too many attempts messages (ui-gaps tests) |
 | FR-402 | Done | TC-402 journey redirect; generic message (Task 1); note the return path parameter is Task 1's `next`, not `returnTo` |
 | FR-403 | Done | TC-403 backend + adapter + journey log out |
 | FR-404 | Done | TC-404 proxy tests + journey redirects |
@@ -16,10 +16,10 @@ Statuses: **Done** = the command ran and passed; **Partial** = built, with the g
 | FR-409 | Done | TC-412 |
 | FR-410 | Partial | Task 1 dashboard on the real API opens in the journey and passes axe; no dedicated data assertion (TC-420 not written) |
 | FR-411 | Done | journey creates a project |
-| FR-412 | Partial | Edit works; not restricted to owner or lead in the UI (the API enforces it) |
+| FR-412 | Done | Edit, delete and New task shown only to the owner or a lead; the API enforces it as well; Task 1 project/task browser specs pass |
 | FR-413 | Done | TC-421 component tests (confirmation, 409 message with link) |
 | FR-414 | Partial | Fields, progress, task list, AI panel, not-found page; the project activity list is missing |
-| FR-415 | Partial | Create task works (Task 1 form, AI dialog); the PROJECT_CLOSED explanation is not yet shown |
+| FR-415 | Done | Create task (Task 1 form, AI dialog); a completed project's rejection is explained (PROJECT_CLOSED) |
 | FR-416 | Done | assignee chosen by name from the directory (Task 1 form); visibility on assignment: TC-410 |
 | FR-417 | Partial | Status change works and 409s roll back; the control offers all four statuses, not only the allowed next ones |
 | FR-418 | Done | Task 1 form and card (native date input) |

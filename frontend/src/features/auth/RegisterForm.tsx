@@ -41,7 +41,12 @@ export function RegisterForm() {
       hardNavigate(dataSource() === "http" ? "/" : "/login?registered=1");
     } catch (failure) {
       const conflict = failure instanceof ServiceError && failure.status === 409;
-      setErrors(conflict ? { email: t("auth.emailTaken") } : { form: t("auth.genericError") });
+      const closed = failure instanceof ServiceError && failure.code === "REGISTRATION_DISABLED";
+      const limited = failure instanceof ServiceError && failure.status === 429;
+      if (conflict) setErrors({ email: t("auth.emailTaken") });
+      else if (closed) setErrors({ form: t("auth.registrationClosed") });
+      else if (limited) setErrors({ form: t("auth.tooManyAttempts") });
+      else setErrors({ form: t("auth.genericError") });
       setBusy(false);
     }
   };
