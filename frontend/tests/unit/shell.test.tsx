@@ -13,6 +13,7 @@ import { ScenarioSwitcher } from "@/layout/ScenarioSwitcher";
 import { SkipLink } from "@/layout/SkipLink";
 import { CreateMenu } from "@/layout/CreateMenu";
 import { HeaderSearch } from "@/layout/HeaderSearch";
+import { ThemeToggle } from "@/layout/ThemeToggle";
 import { UserMenu } from "@/layout/UserMenu";
 import { t, tCount } from "@/i18n";
 import { reportError, setErrorReporter } from "@/lib/report-error";
@@ -392,5 +393,19 @@ describe("TC-023 i18n and error reporting (NFR-20, NFR-21)", () => {
     const failure = new Error("secret internals");
     reportError(failure, "unit");
     expect(reporter).toHaveBeenCalledWith({ error: failure, context: "unit" });
+  });
+});
+
+describe("header theme toggle", () => {
+  it("switches a dark theme to light and back", async () => {
+    themeState.theme = "dark";
+    const { unmount } = render(<ThemeToggle />);
+    await userEvent.click(screen.getByRole("button", { name: t("theme.switchToLight") }));
+    expect(themeState.setTheme).toHaveBeenCalledWith("light");
+    unmount();
+    themeState.theme = "light";
+    render(<ThemeToggle />);
+    await userEvent.click(screen.getByRole("button", { name: t("theme.switchToDark") }));
+    expect(themeState.setTheme).toHaveBeenLastCalledWith("dark");
   });
 });

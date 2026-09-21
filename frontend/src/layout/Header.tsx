@@ -7,6 +7,7 @@ import { HeaderLinks } from "./HeaderLinks";
 import { HeaderSearch } from "./HeaderSearch";
 import { MobileNav } from "./MobileNav";
 import { ScenarioSwitcher } from "./ScenarioSwitcher";
+import { ThemeToggle } from "./ThemeToggle";
 import { UserMenu } from "./UserMenu";
 
 /**
@@ -33,6 +34,7 @@ export function Header() {
       <HeaderSearch />
       <CreateMenu />
       <HeaderLinks />
+      <ThemeToggle />
       <UserMenu />
     </header>
   );

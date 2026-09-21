@@ -20,7 +20,8 @@ export const readTheme = (): Theme => {
 
 export const resolveTheme = (theme: Theme): "light" | "dark" =>
   theme === "system"
-    ? window.matchMedia("(prefers-color-scheme: dark)").matches
+    ? typeof window.matchMedia === "function" &&
+      window.matchMedia("(prefers-color-scheme: dark)").matches
       ? "dark"
       : "light"
     : theme;
