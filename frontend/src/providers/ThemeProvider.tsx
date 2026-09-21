@@ -22,7 +22,7 @@ const subscribe = (listener: () => void) => {
 };
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const theme = useSyncExternalStore(subscribe, readTheme, () => "system" as const);
+  const theme = useSyncExternalStore(subscribe, readTheme, () => "dark" as const);
 
   useEffect(() => {
     const apply = () => {

@@ -102,6 +102,15 @@ test.describe("TC-009 theme (FR-24)", () => {
     await context.close();
   });
 
+  test("TC-009 dark is the default even when the OS prefers light", async ({ browser }) => {
+    const context = await browser.newContext({ colorScheme: "light" });
+    await signIn(context);
+    const page = await context.newPage();
+    await page.goto("/");
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+    await context.close();
+  });
+
   test("TC-009 the Appearance menu switches light and dark, and the choice survives a reload", async ({
     page,
     context,

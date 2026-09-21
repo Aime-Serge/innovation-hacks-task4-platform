@@ -22,7 +22,7 @@ function seed(): Account[] {
         name: "Aime Serge UKOBIZABA",
         email: "aime.serge@example.com",
         role: "developer",
-        preferences: { theme: "system" },
+        preferences: { theme: "dark" },
       },
       password: "password123",
       resetToken: null,

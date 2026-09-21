@@ -24,28 +24,28 @@ const USERS: User[] = [
     name: "Aime Serge UKOBIZABA",
     email: "aime.serge@example.com",
     role: "developer",
-    preferences: { theme: "system" },
+    preferences: { theme: "dark" },
   },
   {
     id: "user-2",
     name: "Amara Diallo",
     email: "amara.diallo@example.com",
     role: "lead",
-    preferences: { theme: "system" },
+    preferences: { theme: "dark" },
   },
   {
     id: "user-3",
     name: "Kwame Mensah",
     email: "kwame.mensah@example.com",
     role: "developer",
-    preferences: { theme: "system" },
+    preferences: { theme: "dark" },
   },
   {
     id: "user-4",
     name: "Sofia Alvarez",
     email: "sofia.alvarez@example.com",
     role: "developer",
-    preferences: { theme: "system" },
+    preferences: { theme: "dark" },
   },
 ];
 

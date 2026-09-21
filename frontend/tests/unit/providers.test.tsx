@@ -49,12 +49,12 @@ beforeEach(() => {
 });
 
 describe("TC-009 theme (FR-24)", () => {
-  it("TC-009 reads the stored choice, falling back to system", () => {
-    expect(readTheme()).toBe("system");
-    window.localStorage.setItem(THEME_KEY, "dark");
+  it("TC-009 reads the stored choice, falling back to dark", () => {
     expect(readTheme()).toBe("dark");
+    window.localStorage.setItem(THEME_KEY, "light");
+    expect(readTheme()).toBe("light");
     window.localStorage.setItem(THEME_KEY, "purple");
-    expect(readTheme()).toBe("system");
+    expect(readTheme()).toBe("dark");
   });
 
   it("TC-009 resolves system to the OS preference", () => {
@@ -73,16 +73,19 @@ describe("TC-009 theme (FR-24)", () => {
     runThemeScript();
     expect(document.documentElement.dataset["theme"]).toBe("light");
     window.localStorage.removeItem(THEME_KEY);
-    matchMedia(true);
+    matchMedia(false);
     runThemeScript();
     expect(document.documentElement.dataset["theme"]).toBe("dark");
+    window.localStorage.setItem(THEME_KEY, "system");
+    runThemeScript();
+    expect(document.documentElement.dataset["theme"]).toBe("light");
   });
 
   it("TC-009 changing the theme updates data-theme and persists it", async () => {
     const Probe = () => {
       const { theme, setTheme } = useTheme();
       return (
-        <button type="button" onClick={() => setTheme("dark")}>
+        <button type="button" onClick={() => setTheme("light")}>
           {theme}
         </button>
       );
@@ -92,15 +95,16 @@ describe("TC-009 theme (FR-24)", () => {
         <Probe />
       </ThemeProvider>,
     );
-    await waitFor(() => expect(document.documentElement.dataset["theme"]).toBe("light"));
-    await userEvent.click(screen.getByRole("button", { name: "system" }));
-    expect(await screen.findByRole("button", { name: "dark" })).toBeInTheDocument();
-    expect(document.documentElement.dataset["theme"]).toBe("dark");
-    expect(window.localStorage.getItem(THEME_KEY)).toBe("dark");
+    await waitFor(() => expect(document.documentElement.dataset["theme"]).toBe("dark"));
+    await userEvent.click(screen.getByRole("button", { name: "dark" }));
+    expect(await screen.findByRole("button", { name: "light" })).toBeInTheDocument();
+    expect(document.documentElement.dataset["theme"]).toBe("light");
+    expect(window.localStorage.getItem(THEME_KEY)).toBe("light");
   });
 
   it("TC-009 the system theme follows OS changes live", async () => {
     const listeners = matchMedia(false);
+    window.localStorage.setItem(THEME_KEY, "system");
     render(
       <ThemeProvider>
         <p>x</p>
