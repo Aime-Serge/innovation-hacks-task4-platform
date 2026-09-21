@@ -1,0 +1,123 @@
+[project]
+name = "devdash-api"
+version = "1.0.0"
+description = "Users, Projects and Tasks API (Task 2), the backend for the DevDash dashboard."
+requires-python = ">=3.12,<3.13"
+dependencies = [
+  "fastapi",
+  "uvicorn[standard]",
+  "pydantic[email]",
+  "pydantic-settings",
+  "pyjwt",
+  "argon2-cffi",
+  "sqlalchemy[asyncio]>=2.0",
+  "asyncpg>=0.31.0",
+  "alembic>=1.20.0",
+]
+
+[dependency-groups]
+dev = [
+  "pytest",
+  "pytest-asyncio",
+  "pytest-cov",
+  "httpx",
+  "mypy",
+  "ruff",
+  "import-linter",
+  "schemathesis",
+  "locust",
+  "bandit",
+  "pip-audit",
+  "pre-commit",
+  "openapi-spec-validator>=0.9.0",
+  "testcontainers[postgres]>=4.15.0",
+  "pytest-xdist>=3.8.0",
+  "psycopg2-binary>=2.9.13",
+  "types-pyyaml>=6.0.12.20260906",
+]
+
+[tool.uv]
+package = false
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+extend-exclude = ["docs"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "C90", "S", "ASYNC", "RUF", "SIM", "PT"]
+ignore = ["B008"]
+
+[tool.ruff.lint.mccabe]
+max-complexity = 10
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S101", "S105", "S106", "S311"]
+"scripts/**" = ["S101", "S603", "S607"]
+
+[tool.mypy]
+strict = true
+python_version = "3.12"
+plugins = ["pydantic.mypy"]
+files = ["app", "tests", "scripts"]
+
+[tool.pydantic-mypy]
+init_forbid_extra = true
+init_typed = true
+warn_required_dynamic_aliases = false  # request models are built from JSON aliases by FastAPI, never in Python (ADR-220)
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+testpaths = ["tests"]
+addopts = "-ra --strict-markers"
+markers = ["contract: runs against a live server"]
+
+[tool.coverage.run]
+source = ["app"]
+branch = true
+omit = ["app/seed/__main__.py"]
+
+[tool.coverage.report]
+fail_under = 90
+show_missing = true
+skip_covered = true
+
+[tool.bandit]
+exclude_dirs = ["tests", ".venv"]
+
+[tool.importlinter]
+root_package = "app"
+include_external_packages = true
+
+[[tool.importlinter.contracts]]
+name = "Layers point downward"
+type = "layers"
+layers = [
+  "api",
+  "services",
+  "repositories",
+  "domain",
+]
+containers = ["app"]
+exhaustive = false
+
+[[tool.importlinter.contracts]]
+name = "Services never import FastAPI or Starlette"
+type = "forbidden"
+source_modules = ["app.services", "app.repositories", "app.domain"]
+forbidden_modules = ["fastapi", "starlette"]
+
+[[tool.importlinter.contracts]]
+name = "Routers hold no business logic: no repositories"
+type = "forbidden"
+source_modules = ["app.api.v1"]
+forbidden_modules = ["app.repositories"]
+allow_indirect_imports = true
+
+[[tool.importlinter.contracts]]
+name = "Only repositories.sql imports SQLAlchemy, asyncpg or Alembic"
+type = "forbidden"
+source_modules = ["app"]
+forbidden_modules = ["sqlalchemy", "asyncpg", "alembic"]
+ignore_imports = ["app.repositories.sql.** -> sqlalchemy"]

@@ -1,0 +1,50 @@
+erDiagram
+  USERS ||--o{ ACTIVITY : actor_id
+  PROJECTS ||--o{ ACTIVITY : project_id
+  TASKS |o--o{ ACTIVITY : task_id
+  USERS ||--o{ PROJECTS : owner_id
+  USERS |o--o{ TASKS : assignee_id
+  PROJECTS ||--o{ TASKS : project_id
+  USERS {
+    uuid id PK
+    text name
+    text email UK
+    text password_hash
+    text role
+    text avatar_url
+    text theme
+    timestamptz created_at
+    timestamptz updated_at
+  }
+  PROJECTS {
+    uuid id PK
+    text name
+    text description
+    text status
+    date due_date
+    uuid owner_id FK
+    timestamptz created_at
+    timestamptz updated_at
+  }
+  TASKS {
+    uuid id PK
+    uuid project_id FK
+    text title
+    text description
+    text status
+    text priority
+    smallint priority_rank
+    date due_date
+    uuid assignee_id FK
+    timestamptz completed_at
+    timestamptz created_at
+    timestamptz updated_at
+  }
+  ACTIVITY {
+    uuid id PK
+    uuid actor_id FK
+    uuid project_id FK
+    uuid task_id FK
+    text type
+    timestamptz at
+  }

@@ -1,0 +1,6 @@
+Migrations are written by hand from app/repositories/sql/models.py (BR-310): autogenerate, then read
+and correct the result. Every revision has a working downgrade. Constraint and index names follow the
+convention in models.py and are wrapped in op.f() so Alembic never renames them.
+
+    MIGRATION_DATABASE_URL=... alembic upgrade head     # apply (make db-migrate)
+    MIGRATION_DATABASE_URL=... alembic check            # models and migrations agree (make db-check)

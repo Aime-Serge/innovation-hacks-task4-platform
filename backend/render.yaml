@@ -1,0 +1,35 @@
+services:
+  - type: web
+    name: ih-task2-api
+    runtime: docker
+    plan: free
+    healthCheckPath: /healthz
+    envVars:
+      # Demo deployment (ADR-221): the pack refuses seeding when APP_ENV=production, and a new
+      # database has no lead. The seed runs once, on an empty database, and never again. For real
+      # use set APP_ENV=production (which needs ?ssl=require) and drop SEED_PROFILE.
+      - key: APP_ENV
+        value: development
+      - key: LOG_LEVEL
+        value: info
+      - key: DOCS_ENABLED
+        value: "true"
+      - key: SEED_PROFILE
+        value: default
+      # PostgreSQL (Task 3). The application role's URL, ending in ?ssl=require. Set it in the
+      # Render dashboard; it is a secret and is never committed. Run the migrations once from your
+      # machine first (make db-migrate with MIGRATION_DATABASE_URL); the API never migrates itself.
+      - key: STORAGE_BACKEND
+        value: sql
+      - key: DATABASE_URL
+        sync: false
+      # The rate limiter is per process, so the service still runs one worker.
+      - key: WEB_CONCURRENCY
+        value: "1"
+      - key: SECRET_KEY
+        generateValue: true
+      - key: SEED_PASSWORD
+        sync: false
+      # Comma-separated browser origins (no wildcard). Set in the Render dashboard.
+      - key: CORS_ORIGINS
+        sync: false

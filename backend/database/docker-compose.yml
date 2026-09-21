@@ -1,0 +1,23 @@
+# Local PostgreSQL (FR-325). Every password comes from the environment; a missing one stops compose.
+services:
+  db:
+    image: postgres:16.4
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-ih_platform}
+      POSTGRES_USER: ${POSTGRES_USER:-ih_admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+      APP_DB_PASSWORD: ${APP_DB_PASSWORD:?Set APP_DB_PASSWORD in .env}
+      MIGRATOR_DB_PASSWORD: ${MIGRATOR_DB_PASSWORD:?Set MIGRATOR_DB_PASSWORD in .env}
+      READONLY_DB_PASSWORD: ${READONLY_DB_PASSWORD:?Set READONLY_DB_PASSWORD in .env}
+    ports:
+      - "127.0.0.1:5432:5432" # local only, never exposed on all interfaces
+    volumes:
+      - db-data:/var/lib/postgresql/data
+      - ./init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+volumes:
+  db-data: {}

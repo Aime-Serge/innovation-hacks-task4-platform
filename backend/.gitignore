@@ -1,0 +1,15 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+coverage.xml
+.env
+*.egg-info/
+.DS_Store
+node_modules/
+newman-report/
+.locust/
