@@ -14,7 +14,7 @@ the code, the tests or the OpenAPI document drift apart.
 - **Previous live API (Task 2):** https://ih-task2-api.onrender.com ([docs](https://ih-task2-api.onrender.com/docs)). The free tier sleeps, so the first request can take about a minute. It is seeded demo data that resets on restart (see [Deploying](#deploying))
 - **Interactive docs:** `/docs` (Swagger UI), on in development, off in production
 - **Demo video:** _add the link after recording, see [DEMO_SCRIPT.md](DEMO_SCRIPT.md)_
-- **Standards:** [docs/standards/](docs/standards/) · **Decisions:** [docs/adr/](docs/adr/) ·
+- **Standards:** [docs/standards/](../docs/standards/) · **Decisions:** [docs/adr/](docs/adr/) ·
   **Task 1 compatibility:** [docs/compatibility-task1.md](docs/compatibility-task1.md)
 
 ## Tour
@@ -58,11 +58,11 @@ setting is missing from it.
 | `HOST` | `127.0.0.1` | Bind address. The Docker image binds `0.0.0.0`. |
 | `PORT` | `8000` | Port. |
 | `LOG_LEVEL` | `info` | `debug`, `info`, `warning` or `error`. |
-| `SECRET_KEY` | required | JWT signing key, at least 32 bytes. |
+| `SECRET_KEY` | required | JWT signing key, at least 32 bytes. Task 4 name: `JWT_SECRET` (wins when both are set). |
 | `JWT_ISSUER` | `devdash-api` | `iss` claim, checked on every request. |
 | `JWT_AUDIENCE` | `devdash-clients` | `aud` claim, checked on every request. |
-| `ACCESS_TOKEN_TTL_SECONDS` | `900` | Token lifetime (60 to 86400). |
-| `CORS_ORIGINS` | empty | Comma-separated allowed origins. A wildcard is refused. |
+| `ACCESS_TOKEN_TTL_SECONDS` | `900` | Token lifetime (60 to 86400). Task 4 name: `ACCESS_TOKEN_TTL_S`. |
+| `CORS_ORIGINS` | empty | Comma-separated allowed origins. A wildcard is refused. Task 4 name: `CORS_ALLOWED_ORIGINS`. |
 | `DOCS_ENABLED` | empty | Empty means on in development, off in production. |
 | `MAX_BODY_BYTES` | `1048576` | Request body limit (413 above it). |
 | `REQUEST_TIMEOUT_SECONDS` | `30` | Per-request timeout. |
@@ -71,6 +71,17 @@ setting is missing from it.
 | `ARGON2_TIME_COST` | `3` | argon2id time cost. Lower only in tests. |
 | `ARGON2_MEMORY_KIB` | `65536` | argon2id memory cost. Lower only in tests. |
 | `SEED_PROFILE` | `none` | `none`, `default`, `empty` or `large`. Refused when `APP_ENV=production`. |
+| `REFRESH_TOKEN_TTL_SECONDS` | `604800` | Refresh-token lifetime, 7 days (BR-404). Task 4 name: `REFRESH_TOKEN_TTL_S`. |
+| `REGISTRATION_ENABLED` | `true` | When false, registration returns 403 `REGISTRATION_DISABLED` (BR-414). |
+| `AI_ENABLED` | `true` | AI kill switch; false makes every AI endpoint return 503 `AI_DISABLED` (BR-412). |
+| `LLM_PROVIDER` | `fake` | `fake` or `anthropic`. `fake` is refused when `APP_ENV=production` (FR-427). |
+| `LLM_API_KEY` | none | Provider key. Required for `anthropic`. Secret; set only in the platform dashboard. |
+| `LLM_MODEL` | none | Model name. Required for `anthropic`; never hard-coded. |
+| `LLM_TIMEOUT_S` | `20` | Provider call timeout in seconds (at most 25, the AI time budget). |
+| `LLM_MAX_OUTPUT_TOKENS` | `1024` | Output token limit per call (NFR-419). |
+| `AI_DAILY_LIMIT_PER_USER` | `20` | AI calls per user per UTC day (BR-409). |
+| `AI_PER_MINUTE_LIMIT` | `5` | AI calls per user per minute (BR-409). |
+| `AI_GLOBAL_DAILY_LIMIT` | `500` | AI calls for all users per UTC day (BR-409). |
 | `SEED_PASSWORD` | empty | Password for seeded accounts; empty prints a random one. |
 | `STORAGE_BACKEND` | `memory` | `sql` (PostgreSQL) or `memory`. Production refuses `memory`. |
 | `DATABASE_URL` | empty | Application role connection, `postgresql+asyncpg://ih_app:<set-me>@host:5432/db`. Production needs `?ssl=require`. |

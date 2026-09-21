@@ -158,6 +158,9 @@ async def test_fr321_the_seed_command_refuses_production_and_an_unconfirmed_rese
     monkeypatch.setenv("SECRET_KEY", "k" * 40)
     monkeypatch.setenv("APP_ENV", "production")
     monkeypatch.setenv("STORAGE_BACKEND", "sql")
+    monkeypatch.setenv("LLM_PROVIDER", "anthropic")  # production refuses the fake (FR-427)
+    monkeypatch.setenv("LLM_API_KEY", "<set-me>")
+    monkeypatch.setenv("LLM_MODEL", "<set-me>")
     monkeypatch.setenv("DATABASE_URL", "postgresql+asyncpg://ih_app:<set-me>@db:5432/x?ssl=require")
     assert await main("default", False, False) == 1
     assert "APP_ENV=production" in capsys.readouterr().err

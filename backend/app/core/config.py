@@ -3,24 +3,52 @@
 from typing import Annotated, Literal
 from urllib.parse import parse_qs, urlsplit
 
-from pydantic import Field, SecretStr, ValidationError, field_validator, model_validator
+from pydantic import (
+    AliasChoices,
+    Field,
+    SecretStr,
+    ValidationError,
+    field_validator,
+    model_validator,
+)
 from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_file=".env", extra="ignore", case_sensitive=False, env_ignore_empty=True
+        env_file=".env",
+        extra="ignore",
+        case_sensitive=False,
+        env_ignore_empty=True,
+        populate_by_name=True,
     )
 
     app_env: Literal["development", "test", "production"] = "development"
     host: str = "127.0.0.1"  # the container command binds 0.0.0.0 explicitly; see Dockerfile
     port: int = Field(default=8000, ge=1, le=65535)
     log_level: Literal["debug", "info", "warning", "error"] = "info"
-    secret_key: SecretStr
+    # Pack names (JWT_SECRET, CORS_ALLOWED_ORIGINS, ACCESS_TOKEN_TTL_S) win; the Task 3 names are
+    # accepted as deprecated aliases for one release (ADR-418).
+    secret_key: SecretStr = Field(validation_alias=AliasChoices("JWT_SECRET", "SECRET_KEY"))
     jwt_issuer: str = "devdash-api"
     jwt_audience: str = "devdash-clients"
-    access_token_ttl_seconds: int = Field(default=900, ge=60, le=86_400)
-    cors_origins: Annotated[list[str], NoDecode] = Field(default_factory=list)
+    access_token_ttl_seconds: int = Field(
+        default=900,
+        ge=60,
+        le=86_400,
+        validation_alias=AliasChoices("ACCESS_TOKEN_TTL_S", "ACCESS_TOKEN_TTL_SECONDS"),
+    )
+    refresh_token_ttl_seconds: int = Field(
+        default=604_800,
+        ge=3_600,
+        le=2_592_000,
+        validation_alias=AliasChoices("REFRESH_TOKEN_TTL_S", "REFRESH_TOKEN_TTL_SECONDS"),
+    )
+    cors_origins: Annotated[list[str], NoDecode] = Field(
+        default_factory=list,
+        validation_alias=AliasChoices("CORS_ALLOWED_ORIGINS", "CORS_ORIGINS"),
+    )
+    registration_enabled: bool = True  # BR-414
     docs_enabled: bool | None = None
     max_body_bytes: int = Field(default=1_048_576, ge=1_024)
     request_timeout_seconds: float = Field(default=30.0, gt=0)
@@ -43,6 +71,17 @@ class Settings(BaseSettings):
     db_lock_timeout_ms: int = Field(default=2000, ge=100)
     db_idle_tx_timeout_ms: int = Field(default=10000, ge=100)
     db_slow_query_ms: int = Field(default=200, ge=1)
+
+    # AI (Task 4, section 7). The model name comes only from LLM_MODEL (never hard-coded).
+    ai_enabled: bool = True  # BR-412 kill switch
+    llm_provider: Literal["anthropic", "fake"] = "fake"
+    llm_api_key: SecretStr | None = None
+    llm_model: str | None = None
+    llm_timeout_s: float = Field(default=20.0, gt=0, le=25)
+    llm_max_output_tokens: int = Field(default=1024, ge=64, le=8192)
+    ai_daily_limit_per_user: int = Field(default=20, ge=1)  # BR-409
+    ai_per_minute_limit: int = Field(default=5, ge=1)
+    ai_global_daily_limit: int = Field(default=500, ge=1)
 
     @field_validator("secret_key")
     @classmethod
@@ -84,6 +123,18 @@ class Settings(BaseSettings):
             query = parse_qs(urlsplit(self.database_url.get_secret_value()).query)
             if query.get("ssl", [""])[0] not in ("require", "verify-ca", "verify-full"):
                 raise ValueError("DATABASE_URL: TLS is required in production (add ?ssl=require)")
+        return self
+
+    @model_validator(mode="after")
+    def _ai_rules(self) -> "Settings":
+        """FR-427: production refuses the fake provider; a live provider needs its key and model."""
+        if self.is_production and self.llm_provider == "fake":
+            raise ValueError("LLM_PROVIDER: fake is not allowed when APP_ENV=production")
+        if self.llm_provider == "anthropic":
+            if self.llm_api_key is None:
+                raise ValueError("LLM_API_KEY: required when LLM_PROVIDER=anthropic")
+            if not self.llm_model:
+                raise ValueError("LLM_MODEL: required when LLM_PROVIDER=anthropic")
         return self
 
     @property

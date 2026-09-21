@@ -281,8 +281,9 @@ def test_tc322_missing_secret_stops_startup_and_names_the_variable(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.delenv("SECRET_KEY", raising=False)
+    monkeypatch.delenv("JWT_SECRET", raising=False)
     monkeypatch.chdir("/")  # so no .env file is picked up
-    with pytest.raises(SystemExit, match="SECRET_KEY"):
+    with pytest.raises(SystemExit, match="JWT_SECRET"):
         load_settings()
 
 

@@ -102,6 +102,11 @@ def make_settings(**overrides: Any) -> Settings:
         "docs_enabled": True,
     }
     values.update(overrides)
+    if values["app_env"] == "production":
+        # Production refuses the fake provider (FR-427); these apps never call a model.
+        values.setdefault("llm_provider", "anthropic")
+        values.setdefault("llm_api_key", SecretStr("<set-me>"))
+        values.setdefault("llm_model", "<set-me>")
     if values["app_env"] == "production" and "storage_backend" not in values:
         # Production requires SQL with TLS (FR-318). These apps never query, so a placeholder URL
         # that names no real server is enough to build them.
