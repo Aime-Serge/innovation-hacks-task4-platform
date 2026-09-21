@@ -80,6 +80,7 @@
     var(--color-brand-violet)
   );
   --sidebar-width: 256px;
+  --header-height: 4rem;
   --content-max: 1280px;
   color-scheme: light;
 }

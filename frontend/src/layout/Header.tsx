@@ -3,19 +3,20 @@ import { Suspense } from "react";
 import { t } from "@/i18n";
 import { Icon } from "@/ui/Icon";
 import { CreateMenu } from "./CreateMenu";
-import { HeaderLinks } from "./HeaderLinks";
+import { MobileSearchLink } from "./HeaderLinks";
 import { HeaderSearch } from "./HeaderSearch";
 import { MobileNav } from "./MobileNav";
 import { ScenarioSwitcher } from "./ScenarioSwitcher";
+import { ThemeToggle } from "./ThemeToggle";
 import { UserMenu } from "./UserMenu";
 
 /**
- * Left: menu, logo, name. Right: search, create, shortcuts, account.
- * Same arrangement as the GitHub header.
+ * Full-width top bar. Left: menu, logo, name. Right: search, create, theme, account.
+ * Page navigation lives only in the sidebar (drawer on small screens).
  */
 export function Header() {
   return (
-    <header className="sticky top-0 z-30 flex items-center gap-2 border-b border-line bg-surface px-4 py-2">
+    <header className="sticky top-0 z-30 flex h-(--header-height) w-full items-center gap-2 border-b border-line bg-surface px-4">
       <MobileNav />
       <Link href="/" className="touch-target flex items-center gap-2 rounded-md pr-1 font-semibold">
         <span
@@ -32,7 +33,8 @@ export function Header() {
       </Suspense>
       <HeaderSearch />
       <CreateMenu />
-      <HeaderLinks />
+      <MobileSearchLink />
+      <ThemeToggle />
       <UserMenu />
     </header>
   );

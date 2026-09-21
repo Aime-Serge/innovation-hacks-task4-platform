@@ -44,7 +44,7 @@ export const en = {
   "layout.scenario": "Scenario",
   "layout.userMenu": "Account menu for {name}",
   "layout.appearance": "Appearance",
-  "layout.create": "Create new…",
+  "layout.create": "Create",
   "layout.search": "Quick search",
   "layout.searchPlaceholder": "Type / to search",
   "nav.dashboard": "Dashboard",
@@ -54,6 +54,8 @@ export const en = {
   "theme.light": "Light",
   "theme.dark": "Dark",
   "theme.system": "System",
+  "theme.switchToLight": "Switch to light theme",
+  "theme.switchToDark": "Switch to dark theme",
 
   "taskStatus.todo": "To do",
   "taskStatus.in_progress": "In progress",

@@ -97,7 +97,8 @@ test.describe("TC-050 search, filter and sort (FR-15..19)", () => {
     await settled(page);
     const select = page.getByRole("article").first().getByRole("combobox");
     const before = await select.inputValue();
-    const next = before === "in_review" ? "done" : "in_review";
+    const next = (await select.locator("option").nth(1).getAttribute("value")) as string; // the first workflow-legal move (FR-417)
+    expect(next).not.toBe(before);
     await select.selectOption(next);
     await expect(select).toHaveValue(next);
     await expect(page.getByText("Could not update the task")).toHaveCount(0);

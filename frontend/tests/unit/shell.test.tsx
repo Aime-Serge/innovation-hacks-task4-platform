@@ -13,6 +13,7 @@ import { ScenarioSwitcher } from "@/layout/ScenarioSwitcher";
 import { SkipLink } from "@/layout/SkipLink";
 import { CreateMenu } from "@/layout/CreateMenu";
 import { HeaderSearch } from "@/layout/HeaderSearch";
+import { ThemeToggle } from "@/layout/ThemeToggle";
 import { UserMenu } from "@/layout/UserMenu";
 import { t, tCount } from "@/i18n";
 import { reportError, setErrorReporter } from "@/lib/report-error";
@@ -127,21 +128,18 @@ describe("TC-010 navigation (FR-05..08)", () => {
     expect(container).toBeEmptyDOMElement();
   });
 
-  it("TC-009 Appearance lists system, light and dark, marks the current one and applies a choice", async () => {
+  it("TC-009 the account menu no longer carries an Appearance entry (the header toggle owns it)", async () => {
     render(<UserMenu />);
     await userEvent.click(
       screen.getByRole("button", { name: "Account menu for Aime Serge UKOBIZABA" }),
     );
-    await userEvent.click(await screen.findByRole("menuitem", { name: "Appearance" }));
-    expect(await screen.findAllByRole("menuitemradio")).toHaveLength(3);
-    expect(screen.getByRole("menuitemradio", { name: "System" })).toBeChecked();
-    await userEvent.click(screen.getByRole("menuitemradio", { name: "Dark" }));
-    expect(themeState.setTheme).toHaveBeenLastCalledWith("dark");
+    expect(await screen.findByRole("menuitem", { name: "Log out" })).toBeInTheDocument();
+    expect(screen.queryByRole("menuitem", { name: "Appearance" })).not.toBeInTheDocument();
   });
 
   it("the create menu offers a new project and a new task", async () => {
     render(<CreateMenu />);
-    await userEvent.click(screen.getByRole("button", { name: "Create new…" }));
+    await userEvent.click(screen.getByRole("button", { name: "Create" }));
     expect(await screen.findByRole("menuitem", { name: "New project" })).toHaveAttribute(
       "href",
       "/projects?new=1",
@@ -392,5 +390,19 @@ describe("TC-023 i18n and error reporting (NFR-20, NFR-21)", () => {
     const failure = new Error("secret internals");
     reportError(failure, "unit");
     expect(reporter).toHaveBeenCalledWith({ error: failure, context: "unit" });
+  });
+});
+
+describe("header theme toggle", () => {
+  it("switches a dark theme to light and back", async () => {
+    themeState.theme = "dark";
+    const { unmount } = render(<ThemeToggle />);
+    await userEvent.click(screen.getByRole("button", { name: t("theme.switchToLight") }));
+    expect(themeState.setTheme).toHaveBeenCalledWith("light");
+    unmount();
+    themeState.theme = "light";
+    render(<ThemeToggle />);
+    await userEvent.click(screen.getByRole("button", { name: t("theme.switchToDark") }));
+    expect(themeState.setTheme).toHaveBeenLastCalledWith("dark");
   });
 });
