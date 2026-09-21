@@ -45,21 +45,29 @@ async def test_tc212_project_list_filters_sorts_and_pages(env: Env) -> None:
         await make_project(env, DEV, name=name)
     await make_project(env, OTHER, name="Delta", status="active")
     url = "/api/v1/projects?sort=name&pageSize=2&page=2"
-    body = (await env.client.get(url, headers=env.auth(DEV))).json()
+    body = (await env.client.get(url, headers=env.auth(LEAD))).json()
     assert [p["name"] for p in body["items"]] == ["Delta", "Gamma"]
     assert (body["page"], body["pageSize"], body["total"]) == (2, 2, 4)
-    active = (await env.client.get("/api/v1/projects?status=active", headers=env.auth(DEV))).json()
+    active = (await env.client.get("/api/v1/projects?status=active", headers=env.auth(LEAD))).json()
     assert [p["name"] for p in active["items"]] == ["Delta"]
-    found = (await env.client.get("/api/v1/projects?q=alph", headers=env.auth(DEV))).json()
+    found = (await env.client.get("/api/v1/projects?q=alph", headers=env.auth(LEAD))).json()
     assert found["total"] == 1
 
 
 async def test_tc213_only_owner_or_lead_edits_and_deletes_project(env: Env) -> None:
     project = await make_project(env, DEV)
     url = f"/api/v1/projects/{project['id']}"
+    # S1 (BR-402): a stranger cannot see the project at all, so it is 404, not 403.
     denied = await env.client.patch(url, json={"name": "Hi"}, headers=env.auth(OTHER))
-    assert denied.status_code == 403
+    assert denied.status_code == 404
+    assert (await env.client.delete(url, headers=env.auth(OTHER))).status_code == 404
+    # A reader who is not the owner still may not change it: 403 (BR-202 on top of BR-401).
+    other = (await env.client.get("/api/v1/auth/me", headers=env.auth(OTHER))).json()
+    held = await make_task(env, project["id"], assigneeId=other["id"])
+    reader = await env.client.patch(url, json={"name": "Hi"}, headers=env.auth(OTHER))
+    assert reader.status_code == 403
     assert (await env.client.delete(url, headers=env.auth(OTHER))).status_code == 403
+    await env.client.delete(f"/api/v1/tasks/{held['id']}", headers=env.auth(LEAD))
     by_lead = await env.client.patch(url, json={"name": "Renamed"}, headers=env.auth(LEAD))
     assert by_lead.status_code == 200
     assert by_lead.json()["name"] == "Renamed"
@@ -124,12 +132,18 @@ async def test_tc222_completed_project_accepts_no_new_tasks(env: Env) -> None:
 
 async def test_tc223_task_create_and_delete_need_owner_or_lead(env: Env) -> None:
     project = await make_project(env, DEV)
-    denied = await env.client.post(
-        "/api/v1/tasks", json={"projectId": project["id"], "title": "X"}, headers=env.auth(OTHER)
-    )
-    assert denied.status_code == 403
+    payload = {"projectId": project["id"], "title": "X"}
+    # S1: a stranger cannot name a project they cannot read; it is 422 on the field (BR-402).
+    hidden = await env.client.post("/api/v1/tasks", json=payload, headers=env.auth(OTHER))
+    assert hidden.status_code == 422
     task = await make_task(env, project["id"], DEV)
     url = f"/api/v1/tasks/{task['id']}"
+    assert (await env.client.delete(url, headers=env.auth(OTHER))).status_code == 404
+    # A reader (assignee of a task in the project) may not create or delete tasks: 403 (BR-203).
+    other = (await env.client.get("/api/v1/auth/me", headers=env.auth(OTHER))).json()
+    await make_task(env, project["id"], DEV, title="Mine", assigneeId=other["id"])
+    denied = await env.client.post("/api/v1/tasks", json=payload, headers=env.auth(OTHER))
+    assert denied.status_code == 403
     assert (await env.client.delete(url, headers=env.auth(OTHER))).status_code == 403
     assert (await env.client.delete(url, headers=env.auth(LEAD))).status_code == 204
 
@@ -173,7 +187,7 @@ async def test_tc225_assignee_edits_task_but_stranger_cannot(env: Env) -> None:
     r = await env.client.patch(
         url, json={"title": "Nope"}, headers={"Authorization": f"Bearer {token}"}
     )
-    assert r.status_code == 403
+    assert r.status_code == 404  # S1: a stranger cannot see the task, so it is 404 (BR-402)
 
 
 async def test_tc226_unknown_assignee_is_422(env: Env) -> None:
@@ -220,6 +234,10 @@ async def test_tc232_same_status_is_a_noop_without_activity(env: Env) -> None:
 async def test_tc233_status_change_permissions_and_unknown_value(env: Env) -> None:
     project = await make_project(env, DEV)
     task = await make_task(env, project["id"])
+    assert (await status_to(env, task["id"], "in_progress", OTHER)).status_code == 404  # S1
+    other = (await env.client.get("/api/v1/auth/me", headers=env.auth(OTHER))).json()
+    await make_task(env, project["id"], title="Theirs", assigneeId=other["id"])
+    # OTHER now reads the project but is not this task's assignee: still 403 (BR-203).
     assert (await status_to(env, task["id"], "in_progress", OTHER)).status_code == 403
     assert (await status_to(env, task["id"], "in_progress", LEAD)).status_code == 200
     assert (await status_to(env, task["id"], "archived")).status_code == 422

@@ -22,20 +22,20 @@ MATRIX: dict[tuple[str, str], str] = {
     ("get", "/api/v1/users/{userId}"): "any",
     ("patch", "/api/v1/users/{userId}"): "self or lead; role change lead only",
     ("delete", "/api/v1/users/{userId}"): "lead",
-    ("get", "/api/v1/projects"): "any",
+    ("get", "/api/v1/projects"): "any, scoped to readable projects",
     ("post", "/api/v1/projects"): "any",
-    ("get", "/api/v1/projects/{projectId}"): "any",
+    ("get", "/api/v1/projects/{projectId}"): "owner, assignee or lead; else 404",
     ("patch", "/api/v1/projects/{projectId}"): "owner or lead",
     ("delete", "/api/v1/projects/{projectId}"): "owner or lead",
-    ("get", "/api/v1/projects/{projectId}/tasks"): "any",
-    ("get", "/api/v1/tasks"): "any",
+    ("get", "/api/v1/projects/{projectId}/tasks"): "owner, assignee or lead; else 404",
+    ("get", "/api/v1/tasks"): "any, scoped to readable projects",
     ("post", "/api/v1/tasks"): "project owner or lead",
-    ("get", "/api/v1/tasks/{taskId}"): "any",
+    ("get", "/api/v1/tasks/{taskId}"): "owner, assignee or lead; else 404",
     ("patch", "/api/v1/tasks/{taskId}"): "owner, assignee or lead",
     ("delete", "/api/v1/tasks/{taskId}"): "owner or lead",
     ("patch", "/api/v1/tasks/{taskId}/status"): "owner, assignee or lead",
-    ("get", "/api/v1/activity"): "any",
-    ("get", "/api/v1/dashboard/summary"): "any",
+    ("get", "/api/v1/activity"): "any, scoped to readable projects",
+    ("get", "/api/v1/dashboard/summary"): "any, scoped to readable projects",
 }
 
 
@@ -59,7 +59,8 @@ async def test_tc300_protected_operations_reject_a_missing_token(
     assert error_code(response) == "UNAUTHENTICATED"
 
 
-async def test_tc300_reads_are_open_to_any_authenticated_user(env: Env) -> None:
+async def test_tc300_reads_follow_the_visibility_matrix(env: Env) -> None:
+    """S6: reads are open to any signed-in user only for lists and the directory (section 6)."""
     other = (await env.client.get("/api/v1/auth/me", headers=env.auth(OTHER))).json()
     project = await make_project(env, DEV)
     task = await make_task(env, project["id"])
@@ -67,16 +68,21 @@ async def test_tc300_reads_are_open_to_any_authenticated_user(env: Env) -> None:
         "/api/v1/users",
         f"/api/v1/users/{other['id']}",
         "/api/v1/projects",
-        f"/api/v1/projects/{project['id']}",
-        f"/api/v1/projects/{project['id']}/tasks",
         "/api/v1/tasks",
-        f"/api/v1/tasks/{task['id']}",
         "/api/v1/activity",
         "/api/v1/dashboard/summary",
     ):
         for who in (LEAD, DEV, OTHER):
             response = await env.client.get(path, headers=env.auth(who))
             assert response.status_code == 200, (path, who)
+    for path in (
+        f"/api/v1/projects/{project['id']}",
+        f"/api/v1/projects/{project['id']}/tasks",
+        f"/api/v1/tasks/{task['id']}",
+    ):
+        for who, expected in ((LEAD, 200), (DEV, 200), (OTHER, 404)):
+            response = await env.client.get(path, headers=env.auth(who))
+            assert response.status_code == expected, (path, who)
 
 
 async def test_tc300_unknown_ids_are_404_for_reads(env: Env) -> None:

@@ -24,7 +24,7 @@ def test_fr427_production_refuses_the_fake_provider() -> None:
         make(
             app_env="production",
             storage_backend="sql",
-            database_url=SecretStr("postgresql+asyncpg://u:p@h/db?ssl=require"),
+            database_url=SecretStr("postgresql+asyncpg://u:<set-me>@h/db?ssl=require"),
         )
 
 

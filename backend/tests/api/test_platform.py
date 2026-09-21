@@ -257,7 +257,8 @@ async def test_tc318_activity_feed_records_and_limits(env: Env) -> None:
 
 
 async def test_tc319_dashboard_summary_counts(seeded: Env) -> None:
-    body = (await seeded.client.get("/api/v1/dashboard/summary", headers=seeded.auth(DEV))).json()
+    # S1: the figures cover the projects the caller may read, so a lead reads the whole seed.
+    body = (await seeded.client.get("/api/v1/dashboard/summary", headers=seeded.auth(LEAD))).json()
     assert body["activeProjects"] == 5
     assert body["openTasks"] == 41
     assert body["completionRate"] == 32

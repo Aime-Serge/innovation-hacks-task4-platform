@@ -8,7 +8,7 @@ import random
 from collections.abc import AsyncIterator
 from dataclasses import dataclass, replace
 from datetime import date, timedelta
-from uuid import UUID
+from uuid import UUID, uuid4
 
 import pytest
 from pydantic import SecretStr
@@ -17,6 +17,7 @@ from app.container import Container, build_container
 from app.domain.enums import Priority, ProjectStatus, Role, TaskStatus
 from app.domain.queries import ProjectQuery, TaskQuery, UserQuery
 from app.seed import seed
+from app.services.authz import Actor
 from tests import sql_support
 from tests.conftest import NOW, PASSWORD, FakeClock, make_settings
 from tests.sql_support import Postgres
@@ -206,5 +207,5 @@ async def test_tc343_overdue_and_upcoming_follow_the_injected_date(pair: Pair) -
     async with pair.sql.uow() as uow:
         after = (await uow.tasks.totals(clock.today())).overdue
     assert after >= before  # a month later, nothing that was overdue can have stopped being so
-    summary = await pair.sql.dashboard.summary()
+    summary = await pair.sql.dashboard.summary(Actor(uuid4(), Role.LEAD))  # a lead sees all
     assert summary.overdue_tasks == after
