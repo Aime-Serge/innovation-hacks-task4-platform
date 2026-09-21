@@ -180,3 +180,12 @@ class SqlTaskRepository:
             "update",
         )
         return int(result.rowcount)
+
+    async def assigned_counts(self, user_id: UUID) -> tuple[int, int]:
+        """(done, open) among the tasks assigned to one person (MB-08)."""
+        done = func.count().filter(TaskRow.status == "done")
+        statement = select(done, func.count().filter(TaskRow.status != "done")).where(
+            TaskRow.assignee_id == user_id
+        )
+        row = (await common.run(self._session, statement, "read")).one()
+        return int(row[0]), int(row[1])

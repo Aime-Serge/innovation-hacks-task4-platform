@@ -4,7 +4,17 @@ from dataclasses import dataclass, field
 from datetime import date, datetime
 from uuid import UUID
 
-from app.domain.enums import ActivityType, Priority, ProjectStatus, Role, TaskStatus, Theme
+from app.domain.enums import (
+    ActivityType,
+    Discipline,
+    EmploymentStatus,
+    Priority,
+    ProjectStatus,
+    Role,
+    Seniority,
+    TaskStatus,
+    Theme,
+)
 
 
 @dataclass(frozen=True, slots=True)
@@ -19,6 +29,44 @@ class User:
     theme: Theme
     created_at: datetime
     updated_at: datetime
+    given_name: str | None = None  # null for people who registered before the minimal profile
+    family_name: str | None = None
+
+
+@dataclass(frozen=True, slots=True)
+class Profile:
+    """One person's professional profile (MF-06). `skills` keep their order, at most 10."""
+
+    user_id: UUID
+    discipline: Discipline
+    seniority: Seniority
+    employment_status: EmploymentStatus
+    company_name: str | None
+    job_title: str | None
+    country_code: str
+    city: str | None
+    time_zone: str
+    headline: str | None
+    about: str
+    github_url: str | None
+    linkedin_url: str | None
+    website_url: str | None
+    show_professional_details: bool
+    terms_version: str
+    terms_accepted_at: datetime
+    age_confirmed_at: datetime | None
+    created_at: datetime
+    updated_at: datetime
+    skills: tuple[str, ...] = ()
+
+
+@dataclass(frozen=True, slots=True)
+class ProfileStats:
+    """Own-page figures from data that already exists (MB-08)."""
+
+    projects_owned: int
+    tasks_done: int
+    tasks_open: int
 
 
 @dataclass(frozen=True, slots=True)

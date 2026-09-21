@@ -17,6 +17,8 @@ PUBLIC = (
     UserRow.role,
     UserRow.avatar_url,
     UserRow.theme,
+    UserRow.given_name,
+    UserRow.family_name,
     UserRow.created_at,
     UserRow.updated_at,
 )

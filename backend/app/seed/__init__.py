@@ -15,13 +15,16 @@ from uuid import UUID
 
 from app.domain.enums import (
     ActivityType,
+    Discipline,
+    EmploymentStatus,
     Priority,
     ProjectStatus,
     Role,
+    Seniority,
     TaskStatus,
     Theme,
 )
-from app.domain.models import Activity, Project, Task, User
+from app.domain.models import Activity, Profile, Project, Task, User
 
 if TYPE_CHECKING:
     from app.container import Container
@@ -99,6 +102,7 @@ async def seed(container: "Container", profile: str, password: str) -> SeedResul
     activity = _activity(container, users, tasks, shape.activity, rng)
     async with container.uow() as uow:
         await uow.users.add_many(users)
+        await uow.profiles.add_many(_profiles(container, users, now))
         await uow.projects.add_many(projects)
         await uow.tasks.add_many(tasks)
         await uow.activity.add_many(activity)
@@ -112,8 +116,50 @@ def _users(container: "Container", hashed: str, extra: int, now: datetime) -> li
         for n in range(1, extra + 1)
     ]
     return [
-        User(container.ids.new_id(), name, email, hashed, role, None, Theme.SYSTEM, now, now)
+        User(
+            container.ids.new_id(),
+            name,
+            email,
+            hashed,
+            role,
+            None,
+            Theme.SYSTEM,
+            now,
+            now,
+            given_name=name.rsplit(" ", 1)[0],
+            family_name=name.rsplit(" ", 1)[-1],
+        )
         for name, email, role in people
+    ]
+
+
+def _profiles(container: "Container", users: list[User], now: datetime) -> list[Profile]:
+    """Every seeded person is employed with a complete professional block, varied by position."""
+    disciplines, seniorities = list(Discipline), list(Seniority)
+    return [
+        Profile(
+            user_id=user.id,
+            discipline=disciplines[index % len(disciplines)],
+            seniority=seniorities[index % len(seniorities)],
+            employment_status=EmploymentStatus.EMPLOYED,
+            company_name="Acme Labs",
+            job_title="Software engineer",
+            country_code="RW" if index % 2 == 0 else "US",
+            city=None,
+            time_zone="UTC",
+            headline=None,
+            about="",
+            github_url=None,
+            linkedin_url=None,
+            website_url=None,
+            show_professional_details=True,
+            terms_version=container.settings.terms_version,
+            terms_accepted_at=now,
+            age_confirmed_at=now,
+            created_at=now,
+            updated_at=now,
+        )
+        for index, user in enumerate(users)
     ]
 
 

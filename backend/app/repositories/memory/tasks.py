@@ -97,6 +97,11 @@ class MemoryTaskRepository:
                 self._items[task.id] = replace(task, assignee_id=None)
             return len(affected)
 
+    async def assigned_counts(self, user_id: UUID) -> tuple[int, int]:
+        mine = [t for t in self._items.values() if t.assignee_id == user_id]
+        done = sum(1 for t in mine if t.status is TaskStatus.DONE)
+        return done, len(mine) - done
+
 
 def _matches(task: Task, query: TaskQuery) -> bool:
     """BR-05 and BR-06: AND across filters, OR within one filter."""

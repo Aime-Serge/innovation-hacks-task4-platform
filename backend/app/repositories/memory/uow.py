@@ -9,6 +9,7 @@ from typing import Self
 
 from app.repositories.memory.activity import MemoryActivityRepository
 from app.repositories.memory.ai_requests import MemoryAiRequestRepository
+from app.repositories.memory.profiles import MemoryProfileRepository
 from app.repositories.memory.projects import MemoryProjectRepository
 from app.repositories.memory.refresh_tokens import MemoryRefreshTokenRepository
 from app.repositories.memory.tasks import MemoryTaskRepository
@@ -24,6 +25,7 @@ class MemoryUnitOfWork:
         activity: MemoryActivityRepository,
         refresh_tokens: MemoryRefreshTokenRepository,
         ai_requests: MemoryAiRequestRepository,
+        profiles: MemoryProfileRepository,
     ) -> None:
         self.users = users
         self.projects = projects
@@ -31,6 +33,7 @@ class MemoryUnitOfWork:
         self.activity = activity
         self.refresh_tokens = refresh_tokens
         self.ai_requests = ai_requests
+        self.profiles = profiles
 
     async def __aenter__(self) -> Self:
         return self

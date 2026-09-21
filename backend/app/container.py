@@ -14,6 +14,7 @@ from app.core.security import PasswordHasher, TokenCodec
 from app.repositories.memory import (
     MemoryActivityRepository,
     MemoryAiRequestRepository,
+    MemoryProfileRepository,
     MemoryProjectRepository,
     MemoryRefreshTokenRepository,
     MemoryTaskRepository,
@@ -92,6 +93,7 @@ def build_container(
             MemoryActivityRepository(),
             MemoryRefreshTokenRepository(),
             MemoryAiRequestRepository(),
+            MemoryProfileRepository(),
         )
 
         def uow(read_only: bool = False) -> MemoryUnitOfWork:

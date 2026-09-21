@@ -33,6 +33,19 @@ class MemoryRefreshTokenRepository:
                     self._items[token.id] = replace(token, revoked_at=at)
             return len(family)
 
+    async def revoke_user_except(
+        self, user_id: UUID, keep_family: UUID | None, at: datetime
+    ) -> int:
+        async with self._store.lock:
+            mine = [
+                t
+                for t in self._items.values()
+                if t.user_id == user_id and t.family_id != keep_family and t.revoked_at is None
+            ]
+            for token in mine:
+                self._items[token.id] = replace(token, revoked_at=at)
+            return len(mine)
+
     async def delete_expired(self, before: datetime) -> int:
         async with self._store.lock:
             old = [t.id for t in self._items.values() if t.expires_at < before]
