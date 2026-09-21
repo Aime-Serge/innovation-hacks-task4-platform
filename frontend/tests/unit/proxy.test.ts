@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { NextRequest } from "next/server";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { config, proxy } from "@/proxy";
 
 const request = (path: string, session = false) =>
@@ -44,5 +44,29 @@ describe("TC-004 route guard (proxy)", () => {
       expect(new RegExp(`^${source}$`).test(`/${path}`), path).toBe(false);
     }
     expect(new RegExp(`^${source}$`).test("/tasks")).toBe(true);
+  });
+});
+
+describe("TC-404 route guard on the real adapter", () => {
+  afterEach(() => vi.unstubAllEnvs());
+  const withCookie = (path: string, cookie: string) =>
+    new NextRequest(`http://localhost:3000${path}`, { headers: { cookie } });
+
+  it("TC-450 never redirects the server layer's own calls", () => {
+    for (const path of ["/api/bff/auth/login", "/api/bff/users", "/api/bff/ai/status"]) {
+      const response = proxy(request(path));
+      expect(response.status, path).toBe(200);
+      expect(response.headers.get("location")).toBeNull();
+    }
+  });
+
+  it("TC-404 lets a visitor with the session marker through, and sends the rest to login", () => {
+    vi.stubEnv("NEXT_PUBLIC_DATA_SOURCE", "http");
+    expect(proxy(request("/projects")).headers.get("location")).toContain("/login?next=");
+    expect(proxy(withCookie("/projects", "__Host-ih_s=1")).status).toBe(200);
+    // Without the development setting the plain-HTTP marker name means nothing.
+    expect(proxy(withCookie("/projects", "ih_s=1")).status).toBe(307);
+    vi.stubEnv("ALLOW_INSECURE_COOKIES", "true");
+    expect(proxy(withCookie("/projects", "ih_s=1")).status).toBe(200);
   });
 });

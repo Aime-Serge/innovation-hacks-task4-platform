@@ -25,6 +25,9 @@ export function contentSecurityPolicy(nonce: string, dev: boolean): string {
 // before the client-side redirect; it is not an authorization control (ADR-010).
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  // The server layer answers its own calls: it needs no session to log in or register, and the
+  // API authenticates every other call itself, so a redirect to a page would only break them.
+  if (pathname.startsWith("/api/bff/")) return NextResponse.next();
   const isAuthEntry = AUTH_ENTRY_PATHS.includes(pathname);
   const isPublic = isAuthEntry || ALWAYS_PUBLIC_PATHS.includes(pathname);
   // The marker holds no token: it only says a session exists (ADR-425). The API still checks it.
