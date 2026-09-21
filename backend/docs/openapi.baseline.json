@@ -1,0 +1,5025 @@
+{
+  "components": {
+    "schemas": {
+      "ActivityOut": {
+        "additionalProperties": false,
+        "properties": {
+          "actorId": {
+            "format": "uuid",
+            "title": "Actorid",
+            "type": "string"
+          },
+          "at": {
+            "format": "date-time",
+            "title": "At",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "projectId": {
+            "format": "uuid",
+            "title": "Projectid",
+            "type": "string"
+          },
+          "taskId": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Taskid"
+          },
+          "type": {
+            "$ref": "#/components/schemas/ActivityType"
+          }
+        },
+        "required": [
+          "id",
+          "actorId",
+          "projectId",
+          "taskId",
+          "type",
+          "at"
+        ],
+        "title": "ActivityOut",
+        "type": "object"
+      },
+      "ActivityType": {
+        "enum": [
+          "created",
+          "status_changed",
+          "completed"
+        ],
+        "title": "ActivityType",
+        "type": "string"
+      },
+      "ErrorBody": {
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "examples": [
+              "VALIDATION_ERROR"
+            ],
+            "title": "Code",
+            "type": "string"
+          },
+          "details": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/ErrorDetailOut"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Details"
+          },
+          "message": {
+            "examples": [
+              "One or more fields are invalid."
+            ],
+            "title": "Message",
+            "type": "string"
+          },
+          "requestId": {
+            "examples": [
+              "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+            ],
+            "title": "Requestid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "message",
+          "requestId"
+        ],
+        "title": "ErrorBody",
+        "type": "object"
+      },
+      "ErrorDetailOut": {
+        "additionalProperties": false,
+        "properties": {
+          "field": {
+            "title": "Field",
+            "type": "string"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "field",
+          "message"
+        ],
+        "title": "ErrorDetailOut",
+        "type": "object"
+      },
+      "ErrorResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "error": {
+            "$ref": "#/components/schemas/ErrorBody"
+          }
+        },
+        "required": [
+          "error"
+        ],
+        "title": "ErrorResponse",
+        "type": "object"
+      },
+      "HealthOut": {
+        "properties": {
+          "status": {
+            "const": "ok",
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status"
+        ],
+        "title": "HealthOut",
+        "type": "object"
+      },
+      "LoginRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "email": {
+            "examples": [
+              "ada@example.com"
+            ],
+            "maxLength": 254,
+            "minLength": 1,
+            "title": "Email",
+            "type": "string"
+          },
+          "password": {
+            "format": "password",
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Password",
+            "type": "string"
+          }
+        },
+        "required": [
+          "email",
+          "password"
+        ],
+        "title": "LoginRequest",
+        "type": "object"
+      },
+      "PageOut_ActivityOut_": {
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ActivityOut"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "page": {
+            "examples": [
+              1
+            ],
+            "minimum": 1.0,
+            "title": "Page",
+            "type": "integer"
+          },
+          "pageSize": {
+            "examples": [
+              20
+            ],
+            "maximum": 100.0,
+            "minimum": 1.0,
+            "title": "Pagesize",
+            "type": "integer"
+          },
+          "total": {
+            "examples": [
+              134
+            ],
+            "minimum": 0.0,
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "page",
+          "pageSize",
+          "total"
+        ],
+        "title": "PageOut[ActivityOut]",
+        "type": "object"
+      },
+      "PageOut_ProjectOut_": {
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ProjectOut"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "page": {
+            "examples": [
+              1
+            ],
+            "minimum": 1.0,
+            "title": "Page",
+            "type": "integer"
+          },
+          "pageSize": {
+            "examples": [
+              20
+            ],
+            "maximum": 100.0,
+            "minimum": 1.0,
+            "title": "Pagesize",
+            "type": "integer"
+          },
+          "total": {
+            "examples": [
+              134
+            ],
+            "minimum": 0.0,
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "page",
+          "pageSize",
+          "total"
+        ],
+        "title": "PageOut[ProjectOut]",
+        "type": "object"
+      },
+      "PageOut_TaskOut_": {
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/TaskOut"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "page": {
+            "examples": [
+              1
+            ],
+            "minimum": 1.0,
+            "title": "Page",
+            "type": "integer"
+          },
+          "pageSize": {
+            "examples": [
+              20
+            ],
+            "maximum": 100.0,
+            "minimum": 1.0,
+            "title": "Pagesize",
+            "type": "integer"
+          },
+          "total": {
+            "examples": [
+              134
+            ],
+            "minimum": 0.0,
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "page",
+          "pageSize",
+          "total"
+        ],
+        "title": "PageOut[TaskOut]",
+        "type": "object"
+      },
+      "PageOut_UserOut_": {
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/UserOut"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "page": {
+            "examples": [
+              1
+            ],
+            "minimum": 1.0,
+            "title": "Page",
+            "type": "integer"
+          },
+          "pageSize": {
+            "examples": [
+              20
+            ],
+            "maximum": 100.0,
+            "minimum": 1.0,
+            "title": "Pagesize",
+            "type": "integer"
+          },
+          "total": {
+            "examples": [
+              134
+            ],
+            "minimum": 0.0,
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "page",
+          "pageSize",
+          "total"
+        ],
+        "title": "PageOut[UserOut]",
+        "type": "object"
+      },
+      "Preferences": {
+        "additionalProperties": false,
+        "properties": {
+          "theme": {
+            "$ref": "#/components/schemas/Theme",
+            "default": "system"
+          }
+        },
+        "title": "Preferences",
+        "type": "object"
+      },
+      "Priority": {
+        "enum": [
+          "low",
+          "medium",
+          "high",
+          "urgent"
+        ],
+        "title": "Priority",
+        "type": "string"
+      },
+      "ProgressOut": {
+        "additionalProperties": false,
+        "properties": {
+          "doneTasks": {
+            "minimum": 0.0,
+            "title": "Donetasks",
+            "type": "integer"
+          },
+          "percent": {
+            "description": "Done over total, whole percent (BR-03).",
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Percent",
+            "type": "integer"
+          },
+          "totalTasks": {
+            "minimum": 0.0,
+            "title": "Totaltasks",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "totalTasks",
+          "doneTasks",
+          "percent"
+        ],
+        "title": "ProgressOut",
+        "type": "object"
+      },
+      "ProjectCreate": {
+        "additionalProperties": false,
+        "properties": {
+          "description": {
+            "default": "",
+            "maxLength": 2000,
+            "title": "Description",
+            "type": "string"
+          },
+          "dueDate": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "examples": [
+              "2026-12-01"
+            ],
+            "title": "Duedate"
+          },
+          "name": {
+            "examples": [
+              "Atlas API Gateway"
+            ],
+            "maxLength": 80,
+            "minLength": 1,
+            "pattern": "[^\\s\\x1c-\\x1f\\x85]",
+            "title": "Name",
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ProjectStatus",
+            "default": "planned"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "title": "ProjectCreate",
+        "type": "object"
+      },
+      "ProjectOut": {
+        "additionalProperties": false,
+        "properties": {
+          "createdAt": {
+            "description": "UTC, ISO 8601, ends in Z.",
+            "format": "date-time",
+            "title": "Createdat",
+            "type": "string"
+          },
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "dueDate": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Duedate"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "ownerId": {
+            "format": "uuid",
+            "title": "Ownerid",
+            "type": "string"
+          },
+          "progress": {
+            "$ref": "#/components/schemas/ProgressOut"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ProjectStatus"
+          },
+          "updatedAt": {
+            "description": "UTC, ISO 8601, ends in Z.",
+            "format": "date-time",
+            "title": "Updatedat",
+            "type": "string"
+          }
+        },
+        "required": [
+          "createdAt",
+          "updatedAt",
+          "id",
+          "name",
+          "description",
+          "status",
+          "dueDate",
+          "ownerId",
+          "progress"
+        ],
+        "title": "ProjectOut",
+        "type": "object"
+      },
+      "ProjectStatus": {
+        "enum": [
+          "planned",
+          "active",
+          "on_hold",
+          "completed"
+        ],
+        "title": "ProjectStatus",
+        "type": "string"
+      },
+      "ProjectUpdate": {
+        "additionalProperties": false,
+        "minProperties": 1,
+        "properties": {
+          "description": {
+            "maxLength": 2000,
+            "title": "Description",
+            "type": "string"
+          },
+          "dueDate": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Duedate"
+          },
+          "name": {
+            "maxLength": 80,
+            "minLength": 1,
+            "pattern": "[^\\s\\x1c-\\x1f\\x85]",
+            "title": "Name",
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ProjectStatus"
+          }
+        },
+        "title": "ProjectUpdate",
+        "type": "object"
+      },
+      "Role": {
+        "enum": [
+          "developer",
+          "lead"
+        ],
+        "title": "Role",
+        "type": "string"
+      },
+      "StatusChange": {
+        "additionalProperties": false,
+        "properties": {
+          "status": {
+            "$ref": "#/components/schemas/TaskStatus",
+            "examples": [
+              "in_progress"
+            ]
+          }
+        },
+        "required": [
+          "status"
+        ],
+        "title": "StatusChange",
+        "type": "object"
+      },
+      "SummaryOut": {
+        "additionalProperties": false,
+        "properties": {
+          "activeProjects": {
+            "minimum": 0.0,
+            "title": "Activeprojects",
+            "type": "integer"
+          },
+          "completionRate": {
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Completionrate",
+            "type": "integer"
+          },
+          "openTasks": {
+            "minimum": 0.0,
+            "title": "Opentasks",
+            "type": "integer"
+          },
+          "overdueTasks": {
+            "minimum": 0.0,
+            "title": "Overduetasks",
+            "type": "integer"
+          },
+          "upcomingDeadlines": {
+            "items": {
+              "$ref": "#/components/schemas/TaskOut"
+            },
+            "title": "Upcomingdeadlines",
+            "type": "array"
+          }
+        },
+        "required": [
+          "activeProjects",
+          "openTasks",
+          "overdueTasks",
+          "completionRate",
+          "upcomingDeadlines"
+        ],
+        "title": "SummaryOut",
+        "type": "object"
+      },
+      "TaskCreate": {
+        "additionalProperties": false,
+        "properties": {
+          "assigneeId": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Assigneeid"
+          },
+          "description": {
+            "default": "",
+            "maxLength": 4000,
+            "title": "Description",
+            "type": "string"
+          },
+          "dueDate": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "examples": [
+              "2026-11-15"
+            ],
+            "title": "Duedate"
+          },
+          "priority": {
+            "$ref": "#/components/schemas/Priority",
+            "default": "medium"
+          },
+          "projectId": {
+            "format": "uuid",
+            "title": "Projectid",
+            "type": "string"
+          },
+          "title": {
+            "examples": [
+              "Write the migration plan"
+            ],
+            "maxLength": 120,
+            "minLength": 1,
+            "pattern": "[^\\s\\x1c-\\x1f\\x85]",
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "projectId",
+          "title"
+        ],
+        "title": "TaskCreate",
+        "type": "object"
+      },
+      "TaskOut": {
+        "additionalProperties": false,
+        "properties": {
+          "assigneeId": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Assigneeid"
+          },
+          "completedAt": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Completedat"
+          },
+          "createdAt": {
+            "description": "UTC, ISO 8601, ends in Z.",
+            "format": "date-time",
+            "title": "Createdat",
+            "type": "string"
+          },
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "dueDate": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Duedate"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "priority": {
+            "$ref": "#/components/schemas/Priority"
+          },
+          "projectId": {
+            "format": "uuid",
+            "title": "Projectid",
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/TaskStatus"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "updatedAt": {
+            "description": "UTC, ISO 8601, ends in Z.",
+            "format": "date-time",
+            "title": "Updatedat",
+            "type": "string"
+          }
+        },
+        "required": [
+          "createdAt",
+          "updatedAt",
+          "id",
+          "projectId",
+          "title",
+          "description",
+          "status",
+          "priority",
+          "dueDate",
+          "assigneeId",
+          "completedAt"
+        ],
+        "title": "TaskOut",
+        "type": "object"
+      },
+      "TaskStatus": {
+        "enum": [
+          "todo",
+          "in_progress",
+          "in_review",
+          "done"
+        ],
+        "title": "TaskStatus",
+        "type": "string"
+      },
+      "TaskUpdate": {
+        "additionalProperties": false,
+        "minProperties": 1,
+        "properties": {
+          "assigneeId": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Assigneeid"
+          },
+          "description": {
+            "maxLength": 4000,
+            "title": "Description",
+            "type": "string"
+          },
+          "dueDate": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Duedate"
+          },
+          "priority": {
+            "$ref": "#/components/schemas/Priority"
+          },
+          "title": {
+            "maxLength": 120,
+            "minLength": 1,
+            "pattern": "[^\\s\\x1c-\\x1f\\x85]",
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "title": "TaskUpdate",
+        "type": "object"
+      },
+      "Theme": {
+        "enum": [
+          "light",
+          "dark",
+          "system"
+        ],
+        "title": "Theme",
+        "type": "string"
+      },
+      "TokenOut": {
+        "additionalProperties": false,
+        "properties": {
+          "accessToken": {
+            "title": "Accesstoken",
+            "type": "string"
+          },
+          "expiresIn": {
+            "description": "Seconds until the token expires.",
+            "examples": [
+              900
+            ],
+            "title": "Expiresin",
+            "type": "integer"
+          },
+          "tokenType": {
+            "const": "bearer",
+            "default": "bearer",
+            "title": "Tokentype",
+            "type": "string"
+          }
+        },
+        "required": [
+          "accessToken",
+          "expiresIn"
+        ],
+        "title": "TokenOut",
+        "type": "object"
+      },
+      "UserCreate": {
+        "additionalProperties": false,
+        "properties": {
+          "avatarUrl": {
+            "anyOf": [
+              {
+                "maxLength": 2048,
+                "pattern": "^https://[A-Za-z0-9]([A-Za-z0-9.-]*[A-Za-z0-9])?(:[0-9]{1,5})?([/?#][^ \\t\\r\\n]*)?$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Avatarurl"
+          },
+          "email": {
+            "examples": [
+              "ada@example.com"
+            ],
+            "maxLength": 254,
+            "pattern": "^[^@ \\t\\r\\n]+@[^@ \\t\\r\\n]+\\.[^@ \\t\\r\\n]+$",
+            "title": "Email",
+            "type": "string"
+          },
+          "name": {
+            "examples": [
+              "Ada Lovelace"
+            ],
+            "maxLength": 80,
+            "minLength": 1,
+            "pattern": "[^\\s\\x1c-\\x1f\\x85]",
+            "title": "Name",
+            "type": "string"
+          },
+          "password": {
+            "description": "12 to 128 characters, not equal to the email.",
+            "maxLength": 128,
+            "minLength": 12,
+            "title": "Password",
+            "type": "string"
+          },
+          "preferences": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Preferences"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "name",
+          "email",
+          "password"
+        ],
+        "title": "UserCreate",
+        "type": "object"
+      },
+      "UserOut": {
+        "additionalProperties": false,
+        "properties": {
+          "avatarUrl": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Avatarurl"
+          },
+          "createdAt": {
+            "description": "UTC, ISO 8601, ends in Z.",
+            "format": "date-time",
+            "title": "Createdat",
+            "type": "string"
+          },
+          "email": {
+            "title": "Email",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "preferences": {
+            "$ref": "#/components/schemas/Preferences"
+          },
+          "role": {
+            "$ref": "#/components/schemas/Role"
+          },
+          "updatedAt": {
+            "description": "UTC, ISO 8601, ends in Z.",
+            "format": "date-time",
+            "title": "Updatedat",
+            "type": "string"
+          }
+        },
+        "required": [
+          "createdAt",
+          "updatedAt",
+          "id",
+          "name",
+          "email",
+          "role",
+          "avatarUrl",
+          "preferences"
+        ],
+        "title": "UserOut",
+        "type": "object"
+      },
+      "UserUpdate": {
+        "additionalProperties": false,
+        "minProperties": 1,
+        "properties": {
+          "avatarUrl": {
+            "anyOf": [
+              {
+                "maxLength": 2048,
+                "pattern": "^https://[A-Za-z0-9]([A-Za-z0-9.-]*[A-Za-z0-9])?(:[0-9]{1,5})?([/?#][^ \\t\\r\\n]*)?$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Avatarurl"
+          },
+          "name": {
+            "maxLength": 80,
+            "minLength": 1,
+            "pattern": "[^\\s\\x1c-\\x1f\\x85]",
+            "title": "Name",
+            "type": "string"
+          },
+          "preferences": {
+            "$ref": "#/components/schemas/Preferences"
+          },
+          "role": {
+            "$ref": "#/components/schemas/Role",
+            "description": "Only a lead may change a role."
+          }
+        },
+        "title": "UserUpdate",
+        "type": "object"
+      }
+    },
+    "securitySchemes": {
+      "HTTPBearer": {
+        "description": "A token from `POST /api/v1/auth/login`.",
+        "scheme": "bearer",
+        "type": "http"
+      }
+    }
+  },
+  "info": {
+    "description": "\nThe backend for the DevDash dashboard: users, projects, tasks, activity and a dashboard summary.\n\n**Try it in five steps**\n\n1. `POST /api/v1/users` to register (or use a seeded account in development).\n2. `POST /api/v1/auth/login` to get a token.\n3. Click **Authorize** above and paste the `accessToken`.\n4. `POST /api/v1/projects`, then `POST /api/v1/tasks`.\n5. `PATCH /api/v1/tasks/{taskId}/status` to move a task through its workflow.\n\nEvery error has the same shape: `{\"error\": {\"code\", \"message\", \"details\"?, \"requestId\"}}`.\nState is kept in memory and resets on restart (Task 3 adds the database).\n",
+    "title": "DevDash API",
+    "version": "1.0.0"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/": {
+      "get": {
+        "description": "A short HTML page that says what this service is and links to the docs and the health checks. No token needed.",
+        "operationId": "welcome",
+        "responses": {
+          "200": {
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "The welcome page."
+          }
+        },
+        "summary": "Welcome page",
+        "tags": [
+          "Health"
+        ]
+      }
+    },
+    "/api/v1/activity": {
+      "get": {
+        "description": "Newest first. Records project created, task created, status changed and task completed. `limit` (default 10, maximum 50) is the page size of page 1.",
+        "operationId": "recent_activity",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 10,
+              "maximum": 50,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PageOut_ActivityOut_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "UNAUTHENTICATED": {
+                    "summary": "UNAUTHENTICATED",
+                    "value": {
+                      "error": {
+                        "code": "UNAUTHENTICATED",
+                        "message": "The access token is missing, invalid or expired.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "VALIDATION_ERROR": {
+                    "summary": "VALIDATION_ERROR",
+                    "value": {
+                      "error": {
+                        "code": "VALIDATION_ERROR",
+                        "details": [
+                          {
+                            "field": "title",
+                            "message": "Must be between 1 and 120 characters."
+                          }
+                        ],
+                        "message": "One or more fields are invalid.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Validation error"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "INTERNAL_ERROR": {
+                    "summary": "INTERNAL_ERROR",
+                    "value": {
+                      "error": {
+                        "code": "INTERNAL_ERROR",
+                        "message": "Something went wrong on our side.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unexpected error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Recent activity",
+        "tags": [
+          "Dashboard"
+        ]
+      }
+    },
+    "/api/v1/auth/login": {
+      "post": {
+        "description": "Exchange an email and password for a short-lived Bearer token (15 minutes). An unknown email and a wrong password give the same `401 INVALID_CREDENTIALS`. Limited to 5 attempts per minute per client and email.",
+        "operationId": "login",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "accessToken": "eyJhbGciOi...",
+                  "expiresIn": 900,
+                  "tokenType": "bearer"
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/TokenOut"
+                }
+              }
+            },
+            "description": "The token."
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "MALFORMED_REQUEST": {
+                    "summary": "MALFORMED_REQUEST",
+                    "value": {
+                      "error": {
+                        "code": "MALFORMED_REQUEST",
+                        "message": "The request body is not valid JSON.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Malformed request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "INVALID_CREDENTIALS": {
+                    "summary": "INVALID_CREDENTIALS",
+                    "value": {
+                      "error": {
+                        "code": "INVALID_CREDENTIALS",
+                        "message": "The email or password is incorrect.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "PAYLOAD_TOO_LARGE": {
+                    "summary": "PAYLOAD_TOO_LARGE",
+                    "value": {
+                      "error": {
+                        "code": "PAYLOAD_TOO_LARGE",
+                        "message": "The request body is too large.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Payload too large"
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "UNSUPPORTED_MEDIA_TYPE": {
+                    "summary": "UNSUPPORTED_MEDIA_TYPE",
+                    "value": {
+                      "error": {
+                        "code": "UNSUPPORTED_MEDIA_TYPE",
+                        "message": "The content type must be application/json.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unsupported media type"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "VALIDATION_ERROR": {
+                    "summary": "VALIDATION_ERROR",
+                    "value": {
+                      "error": {
+                        "code": "VALIDATION_ERROR",
+                        "details": [
+                          {
+                            "field": "title",
+                            "message": "Must be between 1 and 120 characters."
+                          }
+                        ],
+                        "message": "One or more fields are invalid.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Validation error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "RATE_LIMITED": {
+                    "summary": "RATE_LIMITED",
+                    "value": {
+                      "error": {
+                        "code": "RATE_LIMITED",
+                        "message": "Too many attempts. Try again later.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Rate limited"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "INTERNAL_ERROR": {
+                    "summary": "INTERNAL_ERROR",
+                    "value": {
+                      "error": {
+                        "code": "INTERNAL_ERROR",
+                        "message": "Something went wrong on our side.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unexpected error"
+          }
+        },
+        "summary": "Log in",
+        "tags": [
+          "Authentication"
+        ]
+      }
+    },
+    "/api/v1/auth/me": {
+      "get": {
+        "description": "Return the user the token belongs to. Useful to check a token is still valid.",
+        "operationId": "me",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "UNAUTHENTICATED": {
+                    "summary": "UNAUTHENTICATED",
+                    "value": {
+                      "error": {
+                        "code": "UNAUTHENTICATED",
+                        "message": "The access token is missing, invalid or expired.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "INTERNAL_ERROR": {
+                    "summary": "INTERNAL_ERROR",
+                    "value": {
+                      "error": {
+                        "code": "INTERNAL_ERROR",
+                        "message": "Something went wrong on our side.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unexpected error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Current user",
+        "tags": [
+          "Authentication"
+        ]
+      }
+    },
+    "/api/v1/dashboard/summary": {
+      "get": {
+        "description": "Active projects, open tasks, overdue tasks, completion rate, and the open tasks due in the next 7 days, soonest first.",
+        "operationId": "summary",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SummaryOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "UNAUTHENTICATED": {
+                    "summary": "UNAUTHENTICATED",
+                    "value": {
+                      "error": {
+                        "code": "UNAUTHENTICATED",
+                        "message": "The access token is missing, invalid or expired.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "INTERNAL_ERROR": {
+                    "summary": "INTERNAL_ERROR",
+                    "value": {
+                      "error": {
+                        "code": "INTERNAL_ERROR",
+                        "message": "Something went wrong on our side.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unexpected error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Dashboard summary",
+        "tags": [
+          "Dashboard"
+        ]
+      }
+    },
+    "/api/v1/projects": {
+      "get": {
+        "description": "Paginated, sorted by `dueDate`, `name` or `createdAt`. `status` may repeat (OR); different filters combine with AND. Every item carries its `progress`.",
+        "operationId": "list_projects",
+        "parameters": [
+          {
+            "description": "Page number, from 1.",
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": {
+              "default": 1,
+              "description": "Page number, from 1.",
+              "maximum": 1000000,
+              "minimum": 1,
+              "title": "Page",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Items per page, at most 100.",
+            "in": "query",
+            "name": "pageSize",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "description": "Items per page, at most 100.",
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Pagesize",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "`field` ascending or `-field` descending. One of: dueDate, name, createdAt.",
+            "in": "query",
+            "name": "sort",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "pattern": "^-?(dueDate|name|createdAt)$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "`field` ascending or `-field` descending. One of: dueDate, name, createdAt.",
+              "title": "Sort"
+            }
+          },
+          {
+            "in": "query",
+            "name": "q",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 100,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Q"
+            }
+          },
+          {
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "items": {
+                "$ref": "#/components/schemas/ProjectStatus"
+              },
+              "title": "Status",
+              "type": "array"
+            }
+          },
+          {
+            "in": "query",
+            "name": "ownerId",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Ownerid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PageOut_ProjectOut_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "UNAUTHENTICATED": {
+                    "summary": "UNAUTHENTICATED",
+                    "value": {
+                      "error": {
+                        "code": "UNAUTHENTICATED",
+                        "message": "The access token is missing, invalid or expired.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "VALIDATION_ERROR": {
+                    "summary": "VALIDATION_ERROR",
+                    "value": {
+                      "error": {
+                        "code": "VALIDATION_ERROR",
+                        "details": [
+                          {
+                            "field": "title",
+                            "message": "Must be between 1 and 120 characters."
+                          }
+                        ],
+                        "message": "One or more fields are invalid.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Validation error"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "INTERNAL_ERROR": {
+                    "summary": "INTERNAL_ERROR",
+                    "value": {
+                      "error": {
+                        "code": "INTERNAL_ERROR",
+                        "message": "Something went wrong on our side.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unexpected error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "List projects",
+        "tags": [
+          "Projects"
+        ]
+      },
+      "post": {
+        "description": "The caller becomes the owner. Status defaults to `planned`. Returns `201` with a `Location` header.",
+        "operationId": "create_project",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProjectCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "MALFORMED_REQUEST": {
+                    "summary": "MALFORMED_REQUEST",
+                    "value": {
+                      "error": {
+                        "code": "MALFORMED_REQUEST",
+                        "message": "The request body is not valid JSON.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Malformed request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "UNAUTHENTICATED": {
+                    "summary": "UNAUTHENTICATED",
+                    "value": {
+                      "error": {
+                        "code": "UNAUTHENTICATED",
+                        "message": "The access token is missing, invalid or expired.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "PAYLOAD_TOO_LARGE": {
+                    "summary": "PAYLOAD_TOO_LARGE",
+                    "value": {
+                      "error": {
+                        "code": "PAYLOAD_TOO_LARGE",
+                        "message": "The request body is too large.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Payload too large"
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "UNSUPPORTED_MEDIA_TYPE": {
+                    "summary": "UNSUPPORTED_MEDIA_TYPE",
+                    "value": {
+                      "error": {
+                        "code": "UNSUPPORTED_MEDIA_TYPE",
+                        "message": "The content type must be application/json.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unsupported media type"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "VALIDATION_ERROR": {
+                    "summary": "VALIDATION_ERROR",
+                    "value": {
+                      "error": {
+                        "code": "VALIDATION_ERROR",
+                        "details": [
+                          {
+                            "field": "title",
+                            "message": "Must be between 1 and 120 characters."
+                          }
+                        ],
+                        "message": "One or more fields are invalid.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Validation error"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "INTERNAL_ERROR": {
+                    "summary": "INTERNAL_ERROR",
+                    "value": {
+                      "error": {
+                        "code": "INTERNAL_ERROR",
+                        "message": "Something went wrong on our side.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unexpected error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Create a project",
+        "tags": [
+          "Projects"
+        ]
+      }
+    },
+    "/api/v1/projects/{projectId}": {
+      "delete": {
+        "description": "By the owner or a lead. A project that still has tasks cannot be deleted.",
+        "operationId": "delete_project",
+        "parameters": [
+          {
+            "description": "The project's id.",
+            "in": "path",
+            "name": "projectId",
+            "required": true,
+            "schema": {
+              "description": "The project's id.",
+              "format": "uuid",
+              "title": "Projectid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "UNAUTHENTICATED": {
+                    "summary": "UNAUTHENTICATED",
+                    "value": {
+                      "error": {
+                        "code": "UNAUTHENTICATED",
+                        "message": "The access token is missing, invalid or expired.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "FORBIDDEN": {
+                    "summary": "FORBIDDEN",
+                    "value": {
+                      "error": {
+                        "code": "FORBIDDEN",
+                        "message": "Only the project owner or a lead may do this.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "NOT_FOUND": {
+                    "summary": "NOT_FOUND",
+                    "value": {
+                      "error": {
+                        "code": "NOT_FOUND",
+                        "message": "The resource was not found.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "PROJECT_NOT_EMPTY": {
+                    "summary": "PROJECT_NOT_EMPTY",
+                    "value": {
+                      "error": {
+                        "code": "PROJECT_NOT_EMPTY",
+                        "message": "The project still has tasks and cannot be deleted.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict with the current state"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "VALIDATION_ERROR": {
+                    "summary": "VALIDATION_ERROR",
+                    "value": {
+                      "error": {
+                        "code": "VALIDATION_ERROR",
+                        "details": [
+                          {
+                            "field": "title",
+                            "message": "Must be between 1 and 120 characters."
+                          }
+                        ],
+                        "message": "One or more fields are invalid.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Validation error"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "INTERNAL_ERROR": {
+                    "summary": "INTERNAL_ERROR",
+                    "value": {
+                      "error": {
+                        "code": "INTERNAL_ERROR",
+                        "message": "Something went wrong on our side.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unexpected error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Delete a project",
+        "tags": [
+          "Projects"
+        ]
+      },
+      "get": {
+        "description": "Return one project with its calculated progress (done tasks over total, BR-03).",
+        "operationId": "get_project",
+        "parameters": [
+          {
+            "description": "The project's id.",
+            "in": "path",
+            "name": "projectId",
+            "required": true,
+            "schema": {
+              "description": "The project's id.",
+              "format": "uuid",
+              "title": "Projectid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "UNAUTHENTICATED": {
+                    "summary": "UNAUTHENTICATED",
+                    "value": {
+                      "error": {
+                        "code": "UNAUTHENTICATED",
+                        "message": "The access token is missing, invalid or expired.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "NOT_FOUND": {
+                    "summary": "NOT_FOUND",
+                    "value": {
+                      "error": {
+                        "code": "NOT_FOUND",
+                        "message": "The resource was not found.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "VALIDATION_ERROR": {
+                    "summary": "VALIDATION_ERROR",
+                    "value": {
+                      "error": {
+                        "code": "VALIDATION_ERROR",
+                        "details": [
+                          {
+                            "field": "title",
+                            "message": "Must be between 1 and 120 characters."
+                          }
+                        ],
+                        "message": "One or more fields are invalid.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Validation error"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "INTERNAL_ERROR": {
+                    "summary": "INTERNAL_ERROR",
+                    "value": {
+                      "error": {
+                        "code": "INTERNAL_ERROR",
+                        "message": "Something went wrong on our side.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unexpected error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get a project",
+        "tags": [
+          "Projects"
+        ]
+      },
+      "patch": {
+        "description": "Partial update by the owner or a lead.",
+        "operationId": "update_project",
+        "parameters": [
+          {
+            "description": "The project's id.",
+            "in": "path",
+            "name": "projectId",
+            "required": true,
+            "schema": {
+              "description": "The project's id.",
+              "format": "uuid",
+              "title": "Projectid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProjectUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "MALFORMED_REQUEST": {
+                    "summary": "MALFORMED_REQUEST",
+                    "value": {
+                      "error": {
+                        "code": "MALFORMED_REQUEST",
+                        "message": "The request body is not valid JSON.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Malformed request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "UNAUTHENTICATED": {
+                    "summary": "UNAUTHENTICATED",
+                    "value": {
+                      "error": {
+                        "code": "UNAUTHENTICATED",
+                        "message": "The access token is missing, invalid or expired.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "FORBIDDEN": {
+                    "summary": "FORBIDDEN",
+                    "value": {
+                      "error": {
+                        "code": "FORBIDDEN",
+                        "message": "Only the project owner or a lead may do this.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "NOT_FOUND": {
+                    "summary": "NOT_FOUND",
+                    "value": {
+                      "error": {
+                        "code": "NOT_FOUND",
+                        "message": "The resource was not found.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "PAYLOAD_TOO_LARGE": {
+                    "summary": "PAYLOAD_TOO_LARGE",
+                    "value": {
+                      "error": {
+                        "code": "PAYLOAD_TOO_LARGE",
+                        "message": "The request body is too large.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Payload too large"
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "UNSUPPORTED_MEDIA_TYPE": {
+                    "summary": "UNSUPPORTED_MEDIA_TYPE",
+                    "value": {
+                      "error": {
+                        "code": "UNSUPPORTED_MEDIA_TYPE",
+                        "message": "The content type must be application/json.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unsupported media type"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "VALIDATION_ERROR": {
+                    "summary": "VALIDATION_ERROR",
+                    "value": {
+                      "error": {
+                        "code": "VALIDATION_ERROR",
+                        "details": [
+                          {
+                            "field": "title",
+                            "message": "Must be between 1 and 120 characters."
+                          }
+                        ],
+                        "message": "One or more fields are invalid.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Validation error"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "INTERNAL_ERROR": {
+                    "summary": "INTERNAL_ERROR",
+                    "value": {
+                      "error": {
+                        "code": "INTERNAL_ERROR",
+                        "message": "Something went wrong on our side.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unexpected error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Update a project",
+        "tags": [
+          "Projects"
+        ]
+      }
+    },
+    "/api/v1/projects/{projectId}/tasks": {
+      "get": {
+        "description": "The same filters as `GET /tasks`; the project is fixed by the path.",
+        "operationId": "list_project_tasks",
+        "parameters": [
+          {
+            "description": "The project's id.",
+            "in": "path",
+            "name": "projectId",
+            "required": true,
+            "schema": {
+              "description": "The project's id.",
+              "format": "uuid",
+              "title": "Projectid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page number, from 1.",
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": {
+              "default": 1,
+              "description": "Page number, from 1.",
+              "maximum": 1000000,
+              "minimum": 1,
+              "title": "Page",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Items per page, at most 100.",
+            "in": "query",
+            "name": "pageSize",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "description": "Items per page, at most 100.",
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Pagesize",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "`field` ascending or `-field` descending. One of: dueDate, priority, title, createdAt.",
+            "in": "query",
+            "name": "sort",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "pattern": "^-?(dueDate|priority|title|createdAt)$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "`field` ascending or `-field` descending. One of: dueDate, priority, title, createdAt.",
+              "title": "Sort"
+            }
+          },
+          {
+            "in": "query",
+            "name": "q",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 100,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Q"
+            }
+          },
+          {
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "items": {
+                "$ref": "#/components/schemas/TaskStatus"
+              },
+              "title": "Status",
+              "type": "array"
+            }
+          },
+          {
+            "in": "query",
+            "name": "priority",
+            "required": false,
+            "schema": {
+              "items": {
+                "$ref": "#/components/schemas/Priority"
+              },
+              "title": "Priority",
+              "type": "array"
+            }
+          },
+          {
+            "in": "query",
+            "name": "projectId",
+            "required": false,
+            "schema": {
+              "items": {
+                "format": "uuid",
+                "type": "string"
+              },
+              "title": "Projectid",
+              "type": "array"
+            }
+          },
+          {
+            "in": "query",
+            "name": "assigneeId",
+            "required": false,
+            "schema": {
+              "items": {
+                "format": "uuid",
+                "type": "string"
+              },
+              "title": "Assigneeid",
+              "type": "array"
+            }
+          },
+          {
+            "description": "BR-04: due before today, not done.",
+            "in": "query",
+            "name": "overdue",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "BR-04: due before today, not done.",
+              "title": "Overdue"
+            }
+          },
+          {
+            "in": "query",
+            "name": "dueBefore",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Duebefore"
+            }
+          },
+          {
+            "in": "query",
+            "name": "dueAfter",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Dueafter"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PageOut_TaskOut_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "UNAUTHENTICATED": {
+                    "summary": "UNAUTHENTICATED",
+                    "value": {
+                      "error": {
+                        "code": "UNAUTHENTICATED",
+                        "message": "The access token is missing, invalid or expired.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "NOT_FOUND": {
+                    "summary": "NOT_FOUND",
+                    "value": {
+                      "error": {
+                        "code": "NOT_FOUND",
+                        "message": "The resource was not found.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "VALIDATION_ERROR": {
+                    "summary": "VALIDATION_ERROR",
+                    "value": {
+                      "error": {
+                        "code": "VALIDATION_ERROR",
+                        "details": [
+                          {
+                            "field": "title",
+                            "message": "Must be between 1 and 120 characters."
+                          }
+                        ],
+                        "message": "One or more fields are invalid.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Validation error"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "INTERNAL_ERROR": {
+                    "summary": "INTERNAL_ERROR",
+                    "value": {
+                      "error": {
+                        "code": "INTERNAL_ERROR",
+                        "message": "Something went wrong on our side.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unexpected error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "List a project's tasks",
+        "tags": [
+          "Projects"
+        ]
+      }
+    },
+    "/api/v1/tasks": {
+      "get": {
+        "description": "Search `q` matches title and description. `status`, `priority`, `projectId` and `assigneeId` may repeat (OR inside one filter); different filters combine with AND. `overdue=true` means due before today and not done. Sort by `dueDate`, `priority`, `title` or `createdAt`.",
+        "operationId": "list_tasks",
+        "parameters": [
+          {
+            "description": "Page number, from 1.",
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": {
+              "default": 1,
+              "description": "Page number, from 1.",
+              "maximum": 1000000,
+              "minimum": 1,
+              "title": "Page",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Items per page, at most 100.",
+            "in": "query",
+            "name": "pageSize",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "description": "Items per page, at most 100.",
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Pagesize",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "`field` ascending or `-field` descending. One of: dueDate, priority, title, createdAt.",
+            "in": "query",
+            "name": "sort",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "pattern": "^-?(dueDate|priority|title|createdAt)$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "`field` ascending or `-field` descending. One of: dueDate, priority, title, createdAt.",
+              "title": "Sort"
+            }
+          },
+          {
+            "in": "query",
+            "name": "q",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 100,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Q"
+            }
+          },
+          {
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "items": {
+                "$ref": "#/components/schemas/TaskStatus"
+              },
+              "title": "Status",
+              "type": "array"
+            }
+          },
+          {
+            "in": "query",
+            "name": "priority",
+            "required": false,
+            "schema": {
+              "items": {
+                "$ref": "#/components/schemas/Priority"
+              },
+              "title": "Priority",
+              "type": "array"
+            }
+          },
+          {
+            "in": "query",
+            "name": "projectId",
+            "required": false,
+            "schema": {
+              "items": {
+                "format": "uuid",
+                "type": "string"
+              },
+              "title": "Projectid",
+              "type": "array"
+            }
+          },
+          {
+            "in": "query",
+            "name": "assigneeId",
+            "required": false,
+            "schema": {
+              "items": {
+                "format": "uuid",
+                "type": "string"
+              },
+              "title": "Assigneeid",
+              "type": "array"
+            }
+          },
+          {
+            "description": "BR-04: due before today, not done.",
+            "in": "query",
+            "name": "overdue",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "BR-04: due before today, not done.",
+              "title": "Overdue"
+            }
+          },
+          {
+            "in": "query",
+            "name": "dueBefore",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Duebefore"
+            }
+          },
+          {
+            "in": "query",
+            "name": "dueAfter",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Dueafter"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PageOut_TaskOut_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "UNAUTHENTICATED": {
+                    "summary": "UNAUTHENTICATED",
+                    "value": {
+                      "error": {
+                        "code": "UNAUTHENTICATED",
+                        "message": "The access token is missing, invalid or expired.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "VALIDATION_ERROR": {
+                    "summary": "VALIDATION_ERROR",
+                    "value": {
+                      "error": {
+                        "code": "VALIDATION_ERROR",
+                        "details": [
+                          {
+                            "field": "title",
+                            "message": "Must be between 1 and 120 characters."
+                          }
+                        ],
+                        "message": "One or more fields are invalid.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Validation error"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "INTERNAL_ERROR": {
+                    "summary": "INTERNAL_ERROR",
+                    "value": {
+                      "error": {
+                        "code": "INTERNAL_ERROR",
+                        "message": "Something went wrong on our side.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unexpected error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "List tasks",
+        "tags": [
+          "Tasks"
+        ]
+      },
+      "post": {
+        "description": "By the project owner or a lead. Status starts as `todo`. An unknown `projectId` is a `422` on that field; a completed project rejects new tasks with `409 PROJECT_CLOSED`. Returns `201` with a `Location` header.",
+        "operationId": "create_task",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TaskCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "MALFORMED_REQUEST": {
+                    "summary": "MALFORMED_REQUEST",
+                    "value": {
+                      "error": {
+                        "code": "MALFORMED_REQUEST",
+                        "message": "The request body is not valid JSON.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Malformed request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "UNAUTHENTICATED": {
+                    "summary": "UNAUTHENTICATED",
+                    "value": {
+                      "error": {
+                        "code": "UNAUTHENTICATED",
+                        "message": "The access token is missing, invalid or expired.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "FORBIDDEN": {
+                    "summary": "FORBIDDEN",
+                    "value": {
+                      "error": {
+                        "code": "FORBIDDEN",
+                        "message": "Only the project owner or a lead may do this.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "PROJECT_CLOSED": {
+                    "summary": "PROJECT_CLOSED",
+                    "value": {
+                      "error": {
+                        "code": "PROJECT_CLOSED",
+                        "message": "A completed project accepts no new tasks.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict with the current state"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "PAYLOAD_TOO_LARGE": {
+                    "summary": "PAYLOAD_TOO_LARGE",
+                    "value": {
+                      "error": {
+                        "code": "PAYLOAD_TOO_LARGE",
+                        "message": "The request body is too large.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Payload too large"
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "UNSUPPORTED_MEDIA_TYPE": {
+                    "summary": "UNSUPPORTED_MEDIA_TYPE",
+                    "value": {
+                      "error": {
+                        "code": "UNSUPPORTED_MEDIA_TYPE",
+                        "message": "The content type must be application/json.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unsupported media type"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "VALIDATION_ERROR": {
+                    "summary": "VALIDATION_ERROR",
+                    "value": {
+                      "error": {
+                        "code": "VALIDATION_ERROR",
+                        "details": [
+                          {
+                            "field": "title",
+                            "message": "Must be between 1 and 120 characters."
+                          }
+                        ],
+                        "message": "One or more fields are invalid.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Validation error"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "INTERNAL_ERROR": {
+                    "summary": "INTERNAL_ERROR",
+                    "value": {
+                      "error": {
+                        "code": "INTERNAL_ERROR",
+                        "message": "Something went wrong on our side.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unexpected error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Create a task",
+        "tags": [
+          "Tasks"
+        ]
+      }
+    },
+    "/api/v1/tasks/{taskId}": {
+      "delete": {
+        "description": "By the project owner or a lead. Deleting again gives `404`.",
+        "operationId": "delete_task",
+        "parameters": [
+          {
+            "description": "The task's id.",
+            "in": "path",
+            "name": "taskId",
+            "required": true,
+            "schema": {
+              "description": "The task's id.",
+              "format": "uuid",
+              "title": "Taskid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "UNAUTHENTICATED": {
+                    "summary": "UNAUTHENTICATED",
+                    "value": {
+                      "error": {
+                        "code": "UNAUTHENTICATED",
+                        "message": "The access token is missing, invalid or expired.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "FORBIDDEN": {
+                    "summary": "FORBIDDEN",
+                    "value": {
+                      "error": {
+                        "code": "FORBIDDEN",
+                        "message": "Only the project owner or a lead may do this.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "NOT_FOUND": {
+                    "summary": "NOT_FOUND",
+                    "value": {
+                      "error": {
+                        "code": "NOT_FOUND",
+                        "message": "The resource was not found.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "VALIDATION_ERROR": {
+                    "summary": "VALIDATION_ERROR",
+                    "value": {
+                      "error": {
+                        "code": "VALIDATION_ERROR",
+                        "details": [
+                          {
+                            "field": "title",
+                            "message": "Must be between 1 and 120 characters."
+                          }
+                        ],
+                        "message": "One or more fields are invalid.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Validation error"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "INTERNAL_ERROR": {
+                    "summary": "INTERNAL_ERROR",
+                    "value": {
+                      "error": {
+                        "code": "INTERNAL_ERROR",
+                        "message": "Something went wrong on our side.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unexpected error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Delete a task",
+        "tags": [
+          "Tasks"
+        ]
+      },
+      "get": {
+        "description": "Return one task, or `404 NOT_FOUND`.",
+        "operationId": "get_task",
+        "parameters": [
+          {
+            "description": "The task's id.",
+            "in": "path",
+            "name": "taskId",
+            "required": true,
+            "schema": {
+              "description": "The task's id.",
+              "format": "uuid",
+              "title": "Taskid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "UNAUTHENTICATED": {
+                    "summary": "UNAUTHENTICATED",
+                    "value": {
+                      "error": {
+                        "code": "UNAUTHENTICATED",
+                        "message": "The access token is missing, invalid or expired.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "NOT_FOUND": {
+                    "summary": "NOT_FOUND",
+                    "value": {
+                      "error": {
+                        "code": "NOT_FOUND",
+                        "message": "The resource was not found.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "VALIDATION_ERROR": {
+                    "summary": "VALIDATION_ERROR",
+                    "value": {
+                      "error": {
+                        "code": "VALIDATION_ERROR",
+                        "details": [
+                          {
+                            "field": "title",
+                            "message": "Must be between 1 and 120 characters."
+                          }
+                        ],
+                        "message": "One or more fields are invalid.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Validation error"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "INTERNAL_ERROR": {
+                    "summary": "INTERNAL_ERROR",
+                    "value": {
+                      "error": {
+                        "code": "INTERNAL_ERROR",
+                        "message": "Something went wrong on our side.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unexpected error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get a task",
+        "tags": [
+          "Tasks"
+        ]
+      },
+      "patch": {
+        "description": "Partial update of title, description, priority, due date and assignee, by the project owner, the assignee or a lead. `status` is not accepted here: use the status endpoint.",
+        "operationId": "update_task",
+        "parameters": [
+          {
+            "description": "The task's id.",
+            "in": "path",
+            "name": "taskId",
+            "required": true,
+            "schema": {
+              "description": "The task's id.",
+              "format": "uuid",
+              "title": "Taskid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TaskUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "MALFORMED_REQUEST": {
+                    "summary": "MALFORMED_REQUEST",
+                    "value": {
+                      "error": {
+                        "code": "MALFORMED_REQUEST",
+                        "message": "The request body is not valid JSON.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Malformed request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "UNAUTHENTICATED": {
+                    "summary": "UNAUTHENTICATED",
+                    "value": {
+                      "error": {
+                        "code": "UNAUTHENTICATED",
+                        "message": "The access token is missing, invalid or expired.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "FORBIDDEN": {
+                    "summary": "FORBIDDEN",
+                    "value": {
+                      "error": {
+                        "code": "FORBIDDEN",
+                        "message": "Only the project owner or a lead may do this.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "NOT_FOUND": {
+                    "summary": "NOT_FOUND",
+                    "value": {
+                      "error": {
+                        "code": "NOT_FOUND",
+                        "message": "The resource was not found.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "PAYLOAD_TOO_LARGE": {
+                    "summary": "PAYLOAD_TOO_LARGE",
+                    "value": {
+                      "error": {
+                        "code": "PAYLOAD_TOO_LARGE",
+                        "message": "The request body is too large.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Payload too large"
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "UNSUPPORTED_MEDIA_TYPE": {
+                    "summary": "UNSUPPORTED_MEDIA_TYPE",
+                    "value": {
+                      "error": {
+                        "code": "UNSUPPORTED_MEDIA_TYPE",
+                        "message": "The content type must be application/json.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unsupported media type"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "VALIDATION_ERROR": {
+                    "summary": "VALIDATION_ERROR",
+                    "value": {
+                      "error": {
+                        "code": "VALIDATION_ERROR",
+                        "details": [
+                          {
+                            "field": "title",
+                            "message": "Must be between 1 and 120 characters."
+                          }
+                        ],
+                        "message": "One or more fields are invalid.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Validation error"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "INTERNAL_ERROR": {
+                    "summary": "INTERNAL_ERROR",
+                    "value": {
+                      "error": {
+                        "code": "INTERNAL_ERROR",
+                        "message": "Something went wrong on our side.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unexpected error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Update a task",
+        "tags": [
+          "Tasks"
+        ]
+      }
+    },
+    "/api/v1/tasks/{taskId}/status": {
+      "patch": {
+        "description": "Follows the workflow: todo to in_progress; in_progress to in_review; in_review to in_progress or done; done to in_progress. Anything else is `409 INVALID_STATUS_TRANSITION` and lists the allowed statuses. Requesting the current status succeeds and changes nothing. `completedAt` is set on done and cleared on leaving it.",
+        "operationId": "change_status",
+        "parameters": [
+          {
+            "description": "The task's id.",
+            "in": "path",
+            "name": "taskId",
+            "required": true,
+            "schema": {
+              "description": "The task's id.",
+              "format": "uuid",
+              "title": "Taskid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StatusChange"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "MALFORMED_REQUEST": {
+                    "summary": "MALFORMED_REQUEST",
+                    "value": {
+                      "error": {
+                        "code": "MALFORMED_REQUEST",
+                        "message": "The request body is not valid JSON.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Malformed request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "UNAUTHENTICATED": {
+                    "summary": "UNAUTHENTICATED",
+                    "value": {
+                      "error": {
+                        "code": "UNAUTHENTICATED",
+                        "message": "The access token is missing, invalid or expired.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "FORBIDDEN": {
+                    "summary": "FORBIDDEN",
+                    "value": {
+                      "error": {
+                        "code": "FORBIDDEN",
+                        "message": "Only the project owner or a lead may do this.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "NOT_FOUND": {
+                    "summary": "NOT_FOUND",
+                    "value": {
+                      "error": {
+                        "code": "NOT_FOUND",
+                        "message": "The resource was not found.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "INVALID_STATUS_TRANSITION": {
+                    "summary": "INVALID_STATUS_TRANSITION",
+                    "value": {
+                      "error": {
+                        "code": "INVALID_STATUS_TRANSITION",
+                        "details": [
+                          {
+                            "field": "allowedStatuses",
+                            "message": "in_progress"
+                          }
+                        ],
+                        "message": "A task cannot move from todo to done.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict with the current state"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "PAYLOAD_TOO_LARGE": {
+                    "summary": "PAYLOAD_TOO_LARGE",
+                    "value": {
+                      "error": {
+                        "code": "PAYLOAD_TOO_LARGE",
+                        "message": "The request body is too large.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Payload too large"
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "UNSUPPORTED_MEDIA_TYPE": {
+                    "summary": "UNSUPPORTED_MEDIA_TYPE",
+                    "value": {
+                      "error": {
+                        "code": "UNSUPPORTED_MEDIA_TYPE",
+                        "message": "The content type must be application/json.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unsupported media type"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "VALIDATION_ERROR": {
+                    "summary": "VALIDATION_ERROR",
+                    "value": {
+                      "error": {
+                        "code": "VALIDATION_ERROR",
+                        "details": [
+                          {
+                            "field": "title",
+                            "message": "Must be between 1 and 120 characters."
+                          }
+                        ],
+                        "message": "One or more fields are invalid.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Validation error"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "INTERNAL_ERROR": {
+                    "summary": "INTERNAL_ERROR",
+                    "value": {
+                      "error": {
+                        "code": "INTERNAL_ERROR",
+                        "message": "Something went wrong on our side.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unexpected error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Change a task's status",
+        "tags": [
+          "Tasks"
+        ]
+      }
+    },
+    "/api/v1/users": {
+      "get": {
+        "description": "Paginated. Filter by `role`; search `q` matches name and email, case-insensitively.",
+        "operationId": "list_users",
+        "parameters": [
+          {
+            "description": "Page number, from 1.",
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": {
+              "default": 1,
+              "description": "Page number, from 1.",
+              "maximum": 1000000,
+              "minimum": 1,
+              "title": "Page",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Items per page, at most 100.",
+            "in": "query",
+            "name": "pageSize",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "description": "Items per page, at most 100.",
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Pagesize",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "`field` ascending or `-field` descending. One of: name, email, createdAt.",
+            "in": "query",
+            "name": "sort",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "pattern": "^-?(name|email|createdAt)$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "`field` ascending or `-field` descending. One of: name, email, createdAt.",
+              "title": "Sort"
+            }
+          },
+          {
+            "in": "query",
+            "name": "q",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 100,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Q"
+            }
+          },
+          {
+            "in": "query",
+            "name": "role",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/Role"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Role"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PageOut_UserOut_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "UNAUTHENTICATED": {
+                    "summary": "UNAUTHENTICATED",
+                    "value": {
+                      "error": {
+                        "code": "UNAUTHENTICATED",
+                        "message": "The access token is missing, invalid or expired.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "VALIDATION_ERROR": {
+                    "summary": "VALIDATION_ERROR",
+                    "value": {
+                      "error": {
+                        "code": "VALIDATION_ERROR",
+                        "details": [
+                          {
+                            "field": "title",
+                            "message": "Must be between 1 and 120 characters."
+                          }
+                        ],
+                        "message": "One or more fields are invalid.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Validation error"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "INTERNAL_ERROR": {
+                    "summary": "INTERNAL_ERROR",
+                    "value": {
+                      "error": {
+                        "code": "INTERNAL_ERROR",
+                        "message": "Something went wrong on our side.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unexpected error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "List users",
+        "tags": [
+          "Users"
+        ]
+      },
+      "post": {
+        "description": "Create an account. No token is needed. The role is always `developer`; only a lead can change it later. The password must be 12 to 128 characters and not equal to the email. Returns `201` with a `Location` header. Limited to 5 attempts per minute per client and email.",
+        "operationId": "register",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "MALFORMED_REQUEST": {
+                    "summary": "MALFORMED_REQUEST",
+                    "value": {
+                      "error": {
+                        "code": "MALFORMED_REQUEST",
+                        "message": "The request body is not valid JSON.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Malformed request"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "EMAIL_ALREADY_EXISTS": {
+                    "summary": "EMAIL_ALREADY_EXISTS",
+                    "value": {
+                      "error": {
+                        "code": "EMAIL_ALREADY_EXISTS",
+                        "message": "An account with this email already exists.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict with the current state"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "PAYLOAD_TOO_LARGE": {
+                    "summary": "PAYLOAD_TOO_LARGE",
+                    "value": {
+                      "error": {
+                        "code": "PAYLOAD_TOO_LARGE",
+                        "message": "The request body is too large.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Payload too large"
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "UNSUPPORTED_MEDIA_TYPE": {
+                    "summary": "UNSUPPORTED_MEDIA_TYPE",
+                    "value": {
+                      "error": {
+                        "code": "UNSUPPORTED_MEDIA_TYPE",
+                        "message": "The content type must be application/json.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unsupported media type"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "VALIDATION_ERROR": {
+                    "summary": "VALIDATION_ERROR",
+                    "value": {
+                      "error": {
+                        "code": "VALIDATION_ERROR",
+                        "details": [
+                          {
+                            "field": "title",
+                            "message": "Must be between 1 and 120 characters."
+                          }
+                        ],
+                        "message": "One or more fields are invalid.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Validation error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "RATE_LIMITED": {
+                    "summary": "RATE_LIMITED",
+                    "value": {
+                      "error": {
+                        "code": "RATE_LIMITED",
+                        "message": "Too many attempts. Try again later.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Rate limited"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "INTERNAL_ERROR": {
+                    "summary": "INTERNAL_ERROR",
+                    "value": {
+                      "error": {
+                        "code": "INTERNAL_ERROR",
+                        "message": "Something went wrong on our side.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unexpected error"
+          }
+        },
+        "summary": "Register a user",
+        "tags": [
+          "Users"
+        ]
+      }
+    },
+    "/api/v1/users/{userId}": {
+      "delete": {
+        "description": "Lead only. A user who owns projects, or the last lead, cannot be deleted. Their tasks become unassigned.",
+        "operationId": "delete_user",
+        "parameters": [
+          {
+            "description": "The user's id.",
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "description": "The user's id.",
+              "format": "uuid",
+              "title": "Userid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "UNAUTHENTICATED": {
+                    "summary": "UNAUTHENTICATED",
+                    "value": {
+                      "error": {
+                        "code": "UNAUTHENTICATED",
+                        "message": "The access token is missing, invalid or expired.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "FORBIDDEN": {
+                    "summary": "FORBIDDEN",
+                    "value": {
+                      "error": {
+                        "code": "FORBIDDEN",
+                        "message": "Only the project owner or a lead may do this.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "NOT_FOUND": {
+                    "summary": "NOT_FOUND",
+                    "value": {
+                      "error": {
+                        "code": "NOT_FOUND",
+                        "message": "The resource was not found.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "LAST_LEAD": {
+                    "summary": "LAST_LEAD",
+                    "value": {
+                      "error": {
+                        "code": "LAST_LEAD",
+                        "message": "The last remaining lead cannot be deleted.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  },
+                  "USER_OWNS_PROJECTS": {
+                    "summary": "USER_OWNS_PROJECTS",
+                    "value": {
+                      "error": {
+                        "code": "USER_OWNS_PROJECTS",
+                        "message": "This user owns projects and cannot be deleted.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict with the current state"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "VALIDATION_ERROR": {
+                    "summary": "VALIDATION_ERROR",
+                    "value": {
+                      "error": {
+                        "code": "VALIDATION_ERROR",
+                        "details": [
+                          {
+                            "field": "title",
+                            "message": "Must be between 1 and 120 characters."
+                          }
+                        ],
+                        "message": "One or more fields are invalid.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Validation error"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "INTERNAL_ERROR": {
+                    "summary": "INTERNAL_ERROR",
+                    "value": {
+                      "error": {
+                        "code": "INTERNAL_ERROR",
+                        "message": "Something went wrong on our side.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unexpected error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Delete a user",
+        "tags": [
+          "Users"
+        ]
+      },
+      "get": {
+        "description": "Return one user, or `404 NOT_FOUND`.",
+        "operationId": "get_user",
+        "parameters": [
+          {
+            "description": "The user's id.",
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "description": "The user's id.",
+              "format": "uuid",
+              "title": "Userid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "UNAUTHENTICATED": {
+                    "summary": "UNAUTHENTICATED",
+                    "value": {
+                      "error": {
+                        "code": "UNAUTHENTICATED",
+                        "message": "The access token is missing, invalid or expired.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "NOT_FOUND": {
+                    "summary": "NOT_FOUND",
+                    "value": {
+                      "error": {
+                        "code": "NOT_FOUND",
+                        "message": "The resource was not found.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "VALIDATION_ERROR": {
+                    "summary": "VALIDATION_ERROR",
+                    "value": {
+                      "error": {
+                        "code": "VALIDATION_ERROR",
+                        "details": [
+                          {
+                            "field": "title",
+                            "message": "Must be between 1 and 120 characters."
+                          }
+                        ],
+                        "message": "One or more fields are invalid.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Validation error"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "INTERNAL_ERROR": {
+                    "summary": "INTERNAL_ERROR",
+                    "value": {
+                      "error": {
+                        "code": "INTERNAL_ERROR",
+                        "message": "Something went wrong on our side.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unexpected error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get a user",
+        "tags": [
+          "Users"
+        ]
+      },
+      "patch": {
+        "description": "Partial update. You may change your own name, avatar and preferences. Only a lead may change another user or any role. The last lead cannot be demoted.",
+        "operationId": "update_user",
+        "parameters": [
+          {
+            "description": "The user's id.",
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "description": "The user's id.",
+              "format": "uuid",
+              "title": "Userid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "MALFORMED_REQUEST": {
+                    "summary": "MALFORMED_REQUEST",
+                    "value": {
+                      "error": {
+                        "code": "MALFORMED_REQUEST",
+                        "message": "The request body is not valid JSON.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Malformed request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "UNAUTHENTICATED": {
+                    "summary": "UNAUTHENTICATED",
+                    "value": {
+                      "error": {
+                        "code": "UNAUTHENTICATED",
+                        "message": "The access token is missing, invalid or expired.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "FORBIDDEN": {
+                    "summary": "FORBIDDEN",
+                    "value": {
+                      "error": {
+                        "code": "FORBIDDEN",
+                        "message": "Only the project owner or a lead may do this.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "NOT_FOUND": {
+                    "summary": "NOT_FOUND",
+                    "value": {
+                      "error": {
+                        "code": "NOT_FOUND",
+                        "message": "The resource was not found.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "LAST_LEAD": {
+                    "summary": "LAST_LEAD",
+                    "value": {
+                      "error": {
+                        "code": "LAST_LEAD",
+                        "message": "The last remaining lead cannot be deleted.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict with the current state"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "PAYLOAD_TOO_LARGE": {
+                    "summary": "PAYLOAD_TOO_LARGE",
+                    "value": {
+                      "error": {
+                        "code": "PAYLOAD_TOO_LARGE",
+                        "message": "The request body is too large.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Payload too large"
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "UNSUPPORTED_MEDIA_TYPE": {
+                    "summary": "UNSUPPORTED_MEDIA_TYPE",
+                    "value": {
+                      "error": {
+                        "code": "UNSUPPORTED_MEDIA_TYPE",
+                        "message": "The content type must be application/json.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unsupported media type"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "VALIDATION_ERROR": {
+                    "summary": "VALIDATION_ERROR",
+                    "value": {
+                      "error": {
+                        "code": "VALIDATION_ERROR",
+                        "details": [
+                          {
+                            "field": "title",
+                            "message": "Must be between 1 and 120 characters."
+                          }
+                        ],
+                        "message": "One or more fields are invalid.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Validation error"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "INTERNAL_ERROR": {
+                    "summary": "INTERNAL_ERROR",
+                    "value": {
+                      "error": {
+                        "code": "INTERNAL_ERROR",
+                        "message": "Something went wrong on our side.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unexpected error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Update a user",
+        "tags": [
+          "Users"
+        ]
+      }
+    },
+    "/healthz": {
+      "get": {
+        "description": "The process is up. Not versioned, no token needed.",
+        "operationId": "healthz",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Liveness",
+        "tags": [
+          "Health"
+        ]
+      }
+    },
+    "/readyz": {
+      "get": {
+        "description": "Every dependency answers. `503 SERVICE_UNAVAILABLE` when not ready.",
+        "operationId": "readyz",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "SERVICE_UNAVAILABLE": {
+                    "summary": "SERVICE_UNAVAILABLE",
+                    "value": {
+                      "error": {
+                        "code": "SERVICE_UNAVAILABLE",
+                        "message": "A dependency is not ready.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service unavailable"
+          }
+        },
+        "summary": "Readiness",
+        "tags": [
+          "Health"
+        ]
+      }
+    }
+  },
+  "tags": [
+    {
+      "description": "Log in and inspect the current token.",
+      "name": "Authentication"
+    },
+    {
+      "description": "Registration, profiles and role management.",
+      "name": "Users"
+    },
+    {
+      "description": "Projects with calculated progress.",
+      "name": "Projects"
+    },
+    {
+      "description": "Tasks, filters, and the status workflow.",
+      "name": "Tasks"
+    },
+    {
+      "description": "Activity feed and summary for the dashboard.",
+      "name": "Dashboard"
+    },
+    {
+      "description": "Liveness and readiness for an orchestrator.",
+      "name": "Health"
+    }
+  ]
+}

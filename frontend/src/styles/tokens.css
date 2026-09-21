@@ -1,0 +1,119 @@
+/*
+ * Design tokens — the only file that may contain raw colour, spacing, radius,
+ * shadow, or duration values (enforced by scripts/check-tokens.ts).
+ * Semantic tokens are Tailwind theme variables, so `bg-surface`, `text-muted`
+ * and friends resolve to these and switch with `data-theme`.
+ */
+@theme {
+  --breakpoint-wide: 90rem;
+  /* Neutral scale */
+  --color-neutral-50: #f8fafc;
+  --color-neutral-100: #f1f5f9;
+  --color-neutral-200: #e2e8f0;
+  --color-neutral-300: #cbd5e1;
+  --color-neutral-400: #94a3b8;
+  --color-neutral-500: #64748b;
+  --color-neutral-600: #475569;
+  --color-neutral-700: #334155;
+  --color-neutral-800: #1e293b;
+  --color-neutral-900: #0f172a;
+  --color-neutral-950: #020617;
+
+  /* Brand gradient: cyan to blue to violet (Innovation Hacks guide) */
+  --color-brand-cyan: #06b6d4;
+  --color-brand-blue: #2563eb;
+  --color-brand-violet: #7c3aed;
+
+  /* Semantic surfaces and text (light) */
+  --color-canvas: #f8fafc;
+  --color-surface: #ffffff;
+  --color-subtle: #f1f5f9;
+  --color-line: #e2e8f0;
+  --color-line-strong: #64748b;
+  --color-fg: #0f172a;
+  --color-muted: #475569;
+  --color-accent: #2563eb;
+  --color-on-accent: #ffffff;
+  --color-accent-subtle: #dbeafe;
+  --color-accent-fg: #1d4ed8;
+  --color-accent-hover: #1d4ed8;
+  --color-focus: #1d4ed8;
+  --color-track: #cbd5e1;
+  --color-overlay: rgb(15 23 42 / 0.55);
+
+  /* Semantic states (light): foreground text/icon on its own background */
+  --color-success: #166534;
+  --color-success-bg: #dcfce7;
+  --color-warning: #92400e;
+  --color-warning-bg: #fef3c7;
+  --color-danger: #991b1b;
+  --color-danger-hover: #7f1d1d;
+  --color-danger-bg: #fee2e2;
+  --color-info: #1e40af;
+  --color-info-bg: #dbeafe;
+
+  /* Typography: one sans family with a system fallback */
+  --font-sans:
+    var(--font-inter), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+
+  /* Radius: 6, 10, 16 */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+
+  /* Elevation: three levels */
+  --shadow-sm: 0 1px 2px rgb(15 23 42 / 0.08);
+  --shadow-md: 0 4px 12px rgb(15 23 42 / 0.1);
+  --shadow-lg: 0 12px 32px rgb(15 23 42 / 0.16);
+
+  /* Motion */
+  --duration-fast: 150ms;
+  --duration-base: 250ms;
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+}
+
+:root {
+  --brand-gradient: linear-gradient(
+    90deg,
+    var(--color-brand-cyan),
+    var(--color-brand-blue),
+    var(--color-brand-violet)
+  );
+  --sidebar-width: 256px;
+  --content-max: 1280px;
+  color-scheme: light;
+}
+
+/* Dark set: same semantic names, different values */
+[data-theme="dark"] {
+  color-scheme: dark;
+  --color-canvas: #0f172a;
+  --color-surface: #1e293b;
+  --color-subtle: #172033;
+  --color-line: #334155;
+  --color-line-strong: #94a3b8;
+  --color-fg: #f8fafc;
+  --color-muted: #cbd5e1;
+  --color-accent: #60a5fa;
+  --color-on-accent: #0f172a;
+  --color-accent-subtle: #1e3a8a;
+  --color-accent-fg: #93c5fd;
+  --color-accent-hover: #93c5fd;
+  --color-focus: #93c5fd;
+  --color-track: #334155;
+  --color-overlay: rgb(2 6 23 / 0.7);
+
+  --color-success: #86efac;
+  --color-success-bg: #052e16;
+  --color-warning: #fcd34d;
+  --color-warning-bg: #451a03;
+  --color-danger: #fca5a5;
+  --color-danger-hover: #fecaca;
+  --color-danger-bg: #450a0a;
+  --color-info: #93c5fd;
+  --color-info-bg: #172554;
+
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.4);
+  --shadow-md: 0 4px 12px rgb(0 0 0 / 0.45);
+  --shadow-lg: 0 12px 32px rgb(0 0 0 / 0.55);
+}

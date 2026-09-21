@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>DevDash API</title>
+<meta name="description" content="REST API for users, projects and tasks. Task 2 of the Innovation Hacks Full Stack Development Internship.">
+<style>__STYLE__</style></head>
+<body><main>
+<span class="tag">Innovation Hacks &middot; Full Stack Internship &middot; Task 2</span>
+<h1>DevDash API</h1>
+<p class="lead">A REST API for users, projects and tasks: JWT authentication, server-enforced business rules, one error format, and a test suite that fails the build when the docs drift from the code.</p>
+<div class="row">__DOCS__<a class="btn" href="/healthz">Health</a></div>
+<h2>Try it in three calls</h2>
+<div class="card"><pre>curl -X POST $BASE/api/v1/auth/login \\
+  -H 'Content-Type: application/json' \\
+  -d '{"email":"you@example.com","password":"..."}'
+
+curl $BASE/api/v1/projects \\
+  -H "Authorization: Bearer $TOKEN"</pre></div>
+<p class="lead">Register with <code>POST /api/v1/users</code>, log in, then send the token as a Bearer header. Tokens last 15 minutes.</p>
+<h2>What is in it</h2>
+<div class="card"><table>
+<tr><td>/api/v1/auth</td><td>Login, current user</td></tr>
+<tr><td>/api/v1/users</td><td>Registration, profiles, roles</td></tr>
+<tr><td>/api/v1/projects</td><td>Projects with calculated progress</td></tr>
+<tr><td>/api/v1/tasks</td><td>Tasks, filters, status workflow</td></tr>
+<tr><td>/api/v1/activity</td><td>Recent activity feed</td></tr>
+<tr><td>/api/v1/dashboard/summary</td><td>Counts and upcoming deadlines</td></tr>
+<tr><td>/healthz &middot; /readyz</td><td>Liveness and readiness</td></tr>
+</table></div>
+<h2>Good to know</h2>
+<ul>
+<li>Data is held in memory and resets when the service restarts.</li>
+<li>The free hosting tier sleeps, so the first request can take about a minute.</li>
+<li>Every error has the same JSON shape and a request id.</li>
+</ul>
+<footer>Source, architecture notes and the Postman collection are in the
+<a href="https://github.com/Aime-Serge/innovation-hacks-task2-api">GitHub repository</a>.</footer>
+</main></body></html>

@@ -1,47 +1,39 @@
+# Render blueprint (FR-437, section 8). Secrets have `sync: false`: they exist only in the Render
+# dashboard and never in this file. Region and plan values are UNVERIFIED against current Render
+# documentation (docs/deploy-runbook.md): check them before creating the blueprint.
 databases:
-  - name: ih-task4-db
-    plan: free
-    databaseName: ih_task4
-    user: ih_task4
+  - name: ih-db
+    databaseName: ih_platform
+    region: oregon
+    plan: basic-256mb
+    postgresMajorVersion: "16"
 
 services:
   - type: web
-    name: ih-task4-api
-    runtime: python
-    plan: free
-    rootDir: backend
-    buildCommand: "pip install -r requirements.txt && alembic upgrade head"
-    startCommand: "python -m uvicorn app.main:app --host 0.0.0.0 --port $PORT"
-    healthCheckPath: /health
+    name: ih-api
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    region: oregon
+    plan: starter
+    healthCheckPath: /healthz
+    autoDeploy: false # deploys follow the release order: migrate first, then this service
     envVars:
-      # Pinned so builds match local dev (Render's own default is also
-      # 3.14.x, this just keeps it from drifting).
-      - key: PYTHON_VERSION
-        value: 3.14.3
       - key: APP_ENV
         value: production
-      - key: LOG_LEVEL
-        value: info
-      # DB connection — provisioned and injected by Render itself from the
-      # database resource above, never typed in by hand.
+      - key: STORAGE_BACKEND
+        value: sql
+      - key: DOCS_ENABLED
+        value: "false"
+      - key: LLM_PROVIDER
+        value: gemini
       - key: DATABASE_URL
-        fromDatabase:
-          name: ih-task4-db
-          property: connectionString
-      # Everything below is a real secret: set once in the Render
-      # dashboard's environment tab (its own secret manager), never
-      # committed here. `sync: false` is what tells Render "this value
-      # lives in the dashboard, not in this file."
-      - key: SECRET_KEY
+        sync: false # composed by hand: async driver scheme, ih_app role, internal host, ?ssl=require (ADR-414)
+      - key: JWT_SECRET
         sync: false
-      - key: CORS_ORIGINS
+      - key: LLM_API_KEY
         sync: false
-      - key: GEMINI_API_KEY
+      - key: LLM_MODEL
         sync: false
-      - key: GEMINI_MODEL
-        sync: false
-      # Not secret, but must be set to the real Vercel URL in production
-      # — left at the code default (localhost), password-reset links
-      # would point at a dev server nobody but the developer can reach.
-      - key: FRONTEND_URL
-        sync: false
+      - key: CORS_ALLOWED_ORIGINS
+        sync: false # the Vercel site, no wildcard

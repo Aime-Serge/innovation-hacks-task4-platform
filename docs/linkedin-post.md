@@ -1,43 +1,17 @@
-# LinkedIn post draft — Task 4 (Capstone)
+# LinkedIn post: draft (you publish it)
 
-Post this once the demo video/clip is recorded and uploaded (and, if
-deployed, once the live link is confirmed working).
+Confirm the real Innovation Hacks page before tagging: search LinkedIn for the company page and use its exact name. Replace the placeholders. Do not paste any key or connection string.
 
-**Before posting**: confirm Innovation Hacks' real LinkedIn page yourself
-(search for it directly in LinkedIn) and tag it using LinkedIn's own
-`@`-mention autocomplete as you type — typing "@Innovation Hacks" as
-plain text does not create a real tag/link, you have to select their
-page from the dropdown. See
-[`docs/handoffs/10-marketing-strategist.md`](handoffs/10-marketing-strategist.md)
-for the full reasoning behind this post and a suggested short clip to
-attach.
+---
 
-## Post copy
+I finished Task 4 of the Full Stack Development Internship with @<Innovation Hacks page>: an AI-powered project and task management platform that joins the frontend, API and database from Tasks 1 to 3 into one application.
 
-**Hook:**
-Empty project → full task breakdown in one click.
+What it does: register and sign in, manage projects and tasks, and ask an AI to generate tasks, rank priorities or summarise a project. The AI only suggests; nothing changes until you confirm.
 
-**Body:**
-Just shipped the capstone of my Full Stack Development Internship with
-Innovation Hacks — an AI-powered project & task manager with real
-authentication (Argon2id password hashing, CSRF-hardened sessions) and a
-Postgres-backed API underneath. The AI feature takes a project's name and
-description and proposes a concrete task list you can edit before
-adding — and if the AI call ever fails, it falls back to a real checklist
-instead of breaking, so the feature never leaves you stuck. 108 backend
-tests, a full security review, and four connected build stages later,
-here's the result.
+What I am most careful about: the browser only talks to the site, the session lives in HttpOnly cookies, people only see the projects they own or work on, prompts never carry names, emails or identifiers, and the AI has quotas, a kill switch and tests against prompt injection.
 
-**Tag:** @Innovation Hacks (via the real mention dropdown — see above)
+Stack: Next.js and TypeScript on Vercel, FastAPI and PostgreSQL on Render, Gemini for the AI.
 
-**Hashtags:** #FullStackDevelopment #SoftwareEngineering #AI
-#BuildInnovateImpact #WebDevelopment
+Code: <GitHub link> · Demo: <video link> · Live: <site link, optional>
 
-**Call to action:**
-Repo, demo video, and the full build writeup (including the security
-review that found and fixed a real bug before this shipped) are linked
-below. Would love feedback from anyone who's built something similar.
-
-Repo: [link]
-Demo: [link]
-Live: https://task-management-ai-blush.vercel.app
+#InnovationHacks #FullStack #AI #NextJS #FastAPI #PostgreSQL

@@ -1,0 +1,20 @@
+# TH-05: automated update pull requests. Versions are pinned exactly, so every
+# bump is a reviewable change to package.json and the lockfile.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "build(frontend)"
+    groups:
+      minor-and-patch:
+        update-types: [minor, patch]
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: "build(frontend)"

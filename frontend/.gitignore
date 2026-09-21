@@ -30,8 +30,7 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files — .env.example is intentionally tracked (documents the keys,
-# never real values); anything else is a real local config and stays out.
+# env files (can opt-in for committing if needed)
 .env*
 !.env.example
 
@@ -41,3 +40,8 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# playwright
+/test-results/
+/playwright-report/
+*.tsbuildinfo

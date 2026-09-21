@@ -1,0 +1,80 @@
+# Local full stack (section 7 layout): PostgreSQL, the one-shot migration step, the API and the
+# site. Every secret comes from .env; a missing one stops compose.
+services:
+  db:
+    image: postgres:16.4
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-ih_platform}
+      POSTGRES_USER: ${POSTGRES_USER:-ih_admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+      APP_DB_PASSWORD: ${APP_DB_PASSWORD:?Set APP_DB_PASSWORD in .env}
+      MIGRATOR_DB_PASSWORD: ${MIGRATOR_DB_PASSWORD:?Set MIGRATOR_DB_PASSWORD in .env}
+      READONLY_DB_PASSWORD: ${READONLY_DB_PASSWORD:?Set READONLY_DB_PASSWORD in .env}
+    ports:
+      - "127.0.0.1:${DB_PORT:-5433}:5432" # local only; 5433 so it never clashes with the Task 3 stack
+    volumes:
+      - db-data:/var/lib/postgresql/data
+      - ./backend/database/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  # The explicit migration step (FR-439, ADR-413). Only this service holds the migration role.
+  migrate:
+    build: ./backend
+    image: ih-migrate:local
+    command: ["alembic", "upgrade", "head"]
+    working_dir: /srv
+    environment:
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in .env}
+      MIGRATION_DATABASE_URL: postgresql+asyncpg://ih_migrator:${MIGRATOR_DB_PASSWORD}@db:5432/${POSTGRES_DB:-ih_platform}
+    volumes:
+      - ./backend/alembic.ini:/srv/alembic.ini:ro
+      - ./backend/migrations:/srv/migrations:ro
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+
+  api:
+    build: ./backend
+    image: ih-api:local
+    environment:
+      APP_ENV: development
+      STORAGE_BACKEND: sql
+      DATABASE_URL: postgresql+asyncpg://ih_app:${APP_DB_PASSWORD}@db:5432/${POSTGRES_DB:-ih_platform}
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in .env}
+      CORS_ALLOWED_ORIGINS: http://localhost:3000
+      LLM_PROVIDER: fake
+      FAKE_LLM_SCENARIO: ${FAKE_LLM_SCENARIO:-ok} # fault injection for the browser tests
+      AI_ENABLED: ${AI_ENABLED:-true}
+      AI_DAILY_LIMIT_PER_USER: ${AI_DAILY_LIMIT_PER_USER:-20}
+      RATE_LIMIT_ATTEMPTS: ${RATE_LIMIT_ATTEMPTS:-5} # raised only for repeated browser runs
+      SEED_PROFILE: ${SEED_PROFILE:-none}
+      SEED_PASSWORD: ${SEED_PASSWORD:-}
+      DOCS_ENABLED: "true"
+    ports:
+      - "127.0.0.1:8000:8000"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
+  # The site: pages plus the server layer (/api/bff). The browser only ever talks to this service.
+  web:
+    build: ./frontend
+    image: ih-web:local
+    environment:
+      APP_ENV: development # the local stack is plain HTTP; production refuses the setting below
+      ALLOW_INSECURE_COOKIES: "true"
+      API_BASE_URL: http://api:8000
+      SITE_URL: http://localhost:3000
+    ports:
+      - "127.0.0.1:3000:3000"
+    depends_on:
+      api:
+        condition: service_started
+
+volumes:
+  db-data: {}

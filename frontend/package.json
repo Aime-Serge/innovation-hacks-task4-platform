@@ -1,36 +1,61 @@
 {
-  "name": "dashboard",
+  "name": "devdash",
   "version": "0.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint",
-    "test": "vitest run",
-    "test:qa": "node scripts/qa-checks.mjs"
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint . --max-warnings 0 && prettier --check . && jiti scripts/check-tokens.ts",
+    "format": "prettier --write .",
+    "check:no-js": "jiti scripts/check-no-js.ts",
+    "test": "vitest run --coverage --configLoader runner",
+    "test:e2e": "playwright test tests/e2e --grep-invert @perf && playwright test tests/e2e --grep @perf --project=perf --workers=1",
+    "test:a11y": "playwright test tests/a11y --project=chromium",
+    "lighthouse": "jiti scripts/lighthouse.ts",
+    "audit": "npm audit --audit-level=high && jiti scripts/secret-scan.ts",
+    "gate": "npm run check:api && npm run typecheck && npm run lint && npm run check:no-js && npm run test && npm run test:e2e && npm run test:a11y && npm run lighthouse && npm run audit && npm run build",
+    "generate:api": "openapi-typescript ../backend/docs/openapi.json -o src/generated/api-types.ts",
+    "check:api": "jiti scripts/check-api-types.ts",
+    "scan:bundle": "jiti scripts/bundle-scan.ts"
   },
   "dependencies": {
+    "@tanstack/react-query": "5.103.1",
     "next": "16.3.4",
+    "radix-ui": "1.6.7",
     "react": "19.2.8",
-    "react-dom": "19.2.8"
+    "react-dom": "19.2.8",
+    "zod": "4.6.5"
   },
   "devDependencies": {
-    "@axe-core/playwright": "^4.13.0",
-    "@playwright/test": "^1.63.0",
-    "@tailwindcss/postcss": "^4",
-    "@testing-library/jest-dom": "^7.0.1",
-    "@testing-library/react": "^16.3.3",
-    "@testing-library/user-event": "^14.6.7",
-    "@types/node": "^22",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "@vitejs/plugin-react": "^6.1.1",
-    "eslint": "^9",
+    "@axe-core/playwright": "4.13.0",
+    "@playwright/test": "1.63.0",
+    "@tailwindcss/postcss": "4.3.3",
+    "@testing-library/jest-dom": "7.0.1",
+    "@testing-library/react": "16.3.3",
+    "@testing-library/user-event": "14.6.7",
+    "@types/node": "22.20.1",
+    "@types/react": "19.2.18",
+    "@types/react-dom": "19.2.7",
+    "@vitejs/plugin-react": "6.1.1",
+    "@vitest/coverage-v8": "5.0.1",
+    "chrome-launcher": "1.2.1",
+    "eslint": "9.39.5",
     "eslint-config-next": "16.3.4",
-    "jsdom": "^30.0.1",
-    "tailwindcss": "^4",
-    "typescript": "^5",
-    "vitest": "^5.0.0"
-  }
+    "eslint-config-prettier": "10.1.8",
+    "eslint-plugin-react": "7.37.5",
+    "jiti": "2.7.0",
+    "jsdom": "30.0.1",
+    "lighthouse": "13.5.0",
+    "openapi-typescript": "7.13.0",
+    "prettier": "3.9.8",
+    "tailwindcss": "4.3.3",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.70.0",
+    "vitest": "5.0.1"
+  },
+  "sideEffects": [
+    "**/*.css"
+  ]
 }
