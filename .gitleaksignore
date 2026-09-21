@@ -1,0 +1,5 @@
+# Reviewed false positives (fingerprint = commit:file:rule:line). Neither is a credential.
+# gcp-api-key: a fake key-shaped string in a test that proves docs-check catches key-shaped text.
+# curl-auth-user: a loopback readiness probe in the imported Task 3 load script.
+689468391dddd006c6e495b84b0e38a4ebc91d0c:backend/tests/unit/test_docs_check.py:gcp-api-key:89
+93eb0047efec7dd4bd0fc7889496da48236e3004:backend/scripts/run_load_sql.sh:curl-auth-user:15

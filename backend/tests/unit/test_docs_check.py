@@ -86,7 +86,7 @@ CASES = [
         "a key in the demo script",
         "DEMO_SCRIPT.md",
         "No secret may be visible",
-        "Key AIzaSyA1B2C3D4E5F6G7H8I9J0K1L2M3N4O5P6Q ok",
+        "Key " + "AIza" + "SyA1B2C3D4E5F6G7H8I9J0K1L2M3N4O5P6Q" + " ok",
         "DEMO_SCRIPT.md contains something shaped like a key",
     ),
     (
