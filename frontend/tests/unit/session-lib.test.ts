@@ -47,6 +47,17 @@ describe("TC-450 settings", () => {
     expect(() => readSessionConfig({ ...dev, BFF_TIMEOUT_MS: "10" })).toThrow("BFF_TIMEOUT_MS");
     expect(() => readSessionConfig({ ...dev, BFF_TIMEOUT_MS: "abc" })).toThrow("BFF_TIMEOUT_MS");
   });
+  it("treats a missing APP_ENV as production under NODE_ENV=production, and honours APP_ENV", () => {
+    const bare = { API_BASE_URL: "http://api", SITE_URL: "http://site", NODE_ENV: "production" };
+    expect(() => readSessionConfig(bare)).toThrow("https");
+    expect(
+      readSessionConfig({ ...bare, APP_ENV: "development", ALLOW_INSECURE_COOKIES: "true" })
+        .insecureCookies,
+    ).toBe(true);
+    expect(() =>
+      readSessionConfig({ ...bare, APP_ENV: "production", ALLOW_INSECURE_COOKIES: "true" }),
+    ).toThrow("refused in production");
+  });
   it("production requires https and refuses insecure cookies", () => {
     expect(readSessionConfig(prod).insecureCookies).toBe(false);
     expect(() => readSessionConfig({ ...prod, API_BASE_URL: "http://api.example.com" })).toThrow(

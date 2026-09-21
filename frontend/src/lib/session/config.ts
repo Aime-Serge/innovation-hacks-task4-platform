@@ -26,7 +26,11 @@ function requireUrl(name: string, value: string | undefined, https: boolean): UR
 }
 
 export function readSessionConfig(env: Env): SessionConfig {
-  const production = env["NODE_ENV"] === "production";
+  // Production unless APP_ENV says otherwise, so forgetting it is the safe mistake. `next start`
+  // always sets NODE_ENV=production, which is why the local stack needs an explicit APP_ENV.
+  const appEnv =
+    env["APP_ENV"] ?? (env["NODE_ENV"] === "production" ? "production" : "development");
+  const production = appEnv === "production";
   const insecure = env["ALLOW_INSECURE_COOKIES"] === "true";
   if (production && insecure) {
     throw new Error("ALLOW_INSECURE_COOKIES is a development setting and is refused in production");

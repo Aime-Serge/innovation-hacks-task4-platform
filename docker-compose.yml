@@ -1,5 +1,5 @@
-# Local full stack (section 7 layout): PostgreSQL, the one-shot migration step and the API.
-# The web service joins in Phase 5. Every secret comes from .env; a missing one stops compose.
+# Local full stack (section 7 layout): PostgreSQL, the one-shot migration step, the API and the
+# site. Every secret comes from .env; a missing one stops compose.
 services:
   db:
     image: postgres:16.4
@@ -56,6 +56,21 @@ services:
     depends_on:
       migrate:
         condition: service_completed_successfully
+
+  # The site: pages plus the server layer (/api/bff). The browser only ever talks to this service.
+  web:
+    build: ./frontend
+    image: ih-web:local
+    environment:
+      APP_ENV: development # the local stack is plain HTTP; production refuses the setting below
+      ALLOW_INSECURE_COOKIES: "true"
+      API_BASE_URL: http://api:8000
+      SITE_URL: http://localhost:3000
+    ports:
+      - "127.0.0.1:3000:3000"
+    depends_on:
+      api:
+        condition: service_started
 
 volumes:
   db-data: {}
