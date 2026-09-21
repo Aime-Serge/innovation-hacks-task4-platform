@@ -4,6 +4,7 @@ import { readFileSync, readdirSync, statSync } from "node:fs";
 import path from "node:path";
 import nextConfig from "../../next.config";
 import { contentSecurityPolicy } from "@/proxy";
+import { findBundleLeaks } from "../../scripts/lib/bundle";
 import { findSecrets, findSensitivePublicVars } from "../../scripts/lib/secrets";
 
 describe("TC-016 response headers (NFR-16, TH-06)", () => {
@@ -106,5 +107,30 @@ describe("TC-080 architecture (NFR-12, TH-01)", () => {
     for (const file of sources("src/features")) {
       expect(readFileSync(file, "utf8"), file).not.toMatch(/from "@\/adapters/);
     }
+  });
+});
+
+describe("TC-462 bundle scan", () => {
+  it("passes ordinary application code", () => {
+    expect(findBundleLeaks("const a = fetch('/api/bff/tasks'); export {a}")).toEqual([]);
+  });
+  it.each([
+    ["const k = 'LLM_API_KEY'", "a server-only setting name"],
+    ["connect('postgresql+asyncpg://u:p@h/db')", "a connection string"],
+    ["role = 'ih_migrator'", "a database role"],
+    ["name: 'Amara Diallo'", "mock fixture data (the mock adapter must not ship)"],
+    ["const url = process.env.API_BASE_URL", "the API's server-layer settings"],
+  ])("catches %s", (text, leak) => {
+    expect(findBundleLeaks(text)).toContain(leak);
+  });
+  it("catches the API address only when it is given", () => {
+    const text = "fetch('https://ih-api.onrender.com/api/v1/tasks')";
+    expect(findBundleLeaks(text)).toEqual([]);
+    expect(findBundleLeaks(text, "https://ih-api.onrender.com")).toContain("the API address");
+    expect(findBundleLeaks(text, "x")).toEqual([]); // a too-short value is ignored, not matched
+  });
+  it("catches a key that slipped into a bundle", () => {
+    const key = "AIza" + "x".repeat(35); // built at runtime so this file holds no key-shaped text
+    expect(findBundleLeaks(`x="${key}"`)).toContain("Google API key");
   });
 });

@@ -14,6 +14,8 @@ export function contentSecurityPolicy(nonce: string, dev: boolean): string {
     `script-src 'self' 'nonce-${nonce}'${dev ? " 'unsafe-eval'" : ""}`,
     `style-src 'self' 'nonce-${nonce}'`,
     "img-src 'self' data:",
+    "connect-src 'self'", // the browser talks only to this origin (ADR-401, NFR-416)
+    "object-src 'none'",
     "frame-ancestors 'none'",
     "base-uri 'self'",
     "form-action 'self'",
