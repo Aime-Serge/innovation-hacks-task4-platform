@@ -26,6 +26,7 @@ export default defineConfig([
     "lib/**",
     "eslint.config.mjs",
     "scripts/*.mjs",
+    "src/generated/**",
   ]),
   ...nextVitals,
   ...tseslint.configs.strictTypeChecked,
