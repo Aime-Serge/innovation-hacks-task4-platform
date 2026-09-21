@@ -3,6 +3,7 @@ import { Footer } from "./Footer";
 import { Header } from "./Header";
 import { Sidebar } from "./Sidebar";
 import { SkipLink } from "./SkipLink";
+import { WakingBanner } from "./WakingBanner";
 
 /** Authenticated frame: skip link, sidebar, header, one <main> landmark, footer. */
 export function AppShell({ children }: { children: ReactNode }) {
@@ -12,6 +13,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       <Sidebar />
       <div className="flex min-w-0 flex-1 flex-col">
         <Header />
+        <WakingBanner />
         <main
           id="main-content"
           tabIndex={-1}

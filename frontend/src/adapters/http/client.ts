@@ -1,3 +1,4 @@
+import { AWAKE_EVENT, WAKING_EVENT } from "@/lib/events";
 import { ServiceError } from "@/services/types";
 
 // The browser's only door to the API (FR-435, ADR-401): same-origin calls to /api/bff, which holds
@@ -8,8 +9,7 @@ const WAKING_AFTER_MS = 5_000; // NFR-403: tell the person the service is waking
 const WAKING_BUDGET_MS = 60_000;
 const MAX_ATTEMPTS = 3;
 
-export const WAKING_EVENT = "bff:waking";
-export const AWAKE_EVENT = "bff:awake";
+export { AWAKE_EVENT, WAKING_EVENT };
 
 type Body = Record<string, unknown> | undefined;
 export type RequestOptions = {
