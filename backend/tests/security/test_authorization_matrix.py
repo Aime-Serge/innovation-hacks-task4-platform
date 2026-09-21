@@ -36,6 +36,10 @@ MATRIX: dict[tuple[str, str], str] = {
     ("patch", "/api/v1/tasks/{taskId}"): "owner, assignee or lead",
     ("delete", "/api/v1/tasks/{taskId}"): "owner or lead",
     ("patch", "/api/v1/tasks/{taskId}/status"): "owner, assignee or lead",
+    ("get", "/api/v1/ai/status"): "any",
+    ("post", "/api/v1/ai/projects/{projectId}/task-suggestions"): "owner or lead",
+    ("post", "/api/v1/ai/projects/{projectId}/prioritization"): "owner, assignee or lead; else 404",
+    ("post", "/api/v1/ai/projects/{projectId}/summary"): "owner, assignee or lead; else 404",
     ("get", "/api/v1/activity"): "any, scoped to readable projects",
     ("get", "/api/v1/dashboard/summary"): "any, scoped to readable projects",
 }

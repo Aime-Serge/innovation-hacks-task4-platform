@@ -29,6 +29,8 @@ ADMIN = "ih_admin"
 TEMPLATE = "ih_template"
 USERS = {"admin": ADMIN, "migrator": "ih_migrator", "app": "ih_app", "readonly": "ih_readonly"}
 CLEAR_STATEMENTS = (
+    "DELETE FROM ai_requests",
+    "DELETE FROM refresh_tokens",
     "DELETE FROM activity",
     "DELETE FROM tasks",
     "DELETE FROM projects",

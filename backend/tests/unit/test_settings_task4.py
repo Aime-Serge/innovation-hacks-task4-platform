@@ -30,10 +30,10 @@ def test_fr427_production_refuses_the_fake_provider() -> None:
 
 def test_fr427_a_live_provider_needs_its_key_and_model_by_name() -> None:
     with pytest.raises(ValidationError, match="LLM_API_KEY"):
-        make(llm_provider="anthropic", llm_model="m")
+        make(llm_provider="gemini", llm_model="m")
     with pytest.raises(ValidationError, match="LLM_MODEL"):
-        make(llm_provider="anthropic", llm_api_key=SecretStr("k"))
-    ok = make(llm_provider="anthropic", llm_api_key=SecretStr("k"), llm_model="m")
+        make(llm_provider="gemini", llm_api_key=SecretStr("k"))
+    ok = make(llm_provider="gemini", llm_api_key=SecretStr("k"), llm_model="m")
     assert ok.llm_model == "m"
 
 

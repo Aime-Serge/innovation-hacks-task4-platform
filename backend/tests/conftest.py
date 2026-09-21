@@ -10,6 +10,7 @@ import pytest
 from fastapi import FastAPI
 from pydantic import SecretStr
 
+from app.ai.client import LLMClient
 from app.container import Container
 from app.core.config import Settings
 from app.main import create_app
@@ -104,7 +105,7 @@ def make_settings(**overrides: Any) -> Settings:
     values.update(overrides)
     if values["app_env"] == "production":
         # Production refuses the fake provider (FR-427); these apps never call a model.
-        values.setdefault("llm_provider", "anthropic")
+        values.setdefault("llm_provider", "gemini")
         values.setdefault("llm_api_key", SecretStr("<set-me>"))
         values.setdefault("llm_model", "<set-me>")
     if values["app_env"] == "production" and "storage_backend" not in values:
@@ -134,7 +135,9 @@ class Env:
         )
 
 
-async def build_env(profile: str | None = "empty", **settings: Any) -> AsyncIterator[Env]:
+async def build_env(
+    profile: str | None = "empty", *, llm: LLMClient | None = None, **settings: Any
+) -> AsyncIterator[Env]:
     clock = FakeClock()
     if BACKEND == "sql" and settings.get("app_env") != "production":
         server: Postgres = SQL_STATE["postgres"]
@@ -145,7 +148,7 @@ async def build_env(profile: str | None = "empty", **settings: Any) -> AsyncIter
             "database_url": SecretStr(server.url("app", database)),
             **settings,
         }
-    app = create_app(make_settings(**settings), clock=clock)
+    app = create_app(make_settings(**settings), clock=clock, llm=llm)
     container: Container = app.state.container
     if profile is not None and settings.get("app_env") != "production":
         await seed(container, profile, PASSWORD)

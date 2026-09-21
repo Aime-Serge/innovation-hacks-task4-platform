@@ -37,6 +37,20 @@ CASES: list[tuple[str, str, dict[str, Any] | None, dict[str, int]]] = [
         {"O": 200, "S": 200, "L": 200, "X": 404},
     ),
     ("delete", "/api/v1/tasks/{t}", None, {"O": 204, "S": 403, "L": 204, "X": 404}),
+    # AI: suggesting tasks needs the right to create them; the other two need read access.
+    (
+        "post",
+        "/api/v1/ai/projects/{p}/task-suggestions",
+        None,
+        {"O": 200, "S": 403, "L": 200, "X": 404},
+    ),
+    (
+        "post",
+        "/api/v1/ai/projects/{p}/prioritization",
+        None,
+        {"O": 200, "S": 200, "L": 200, "X": 404},
+    ),
+    ("post", "/api/v1/ai/projects/{p}/summary", None, {"O": 200, "S": 200, "L": 200, "X": 404}),
 ]
 
 

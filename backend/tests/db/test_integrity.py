@@ -58,6 +58,35 @@ REFRESH_CASES = [
     ),
 ]
 
+AI_REQUEST = (
+    "INSERT INTO ai_requests (id, user_id, feature, status, provider, model, prompt_version, "
+    "input_tokens, output_tokens, latency_ms, error_code, created_at) VALUES "
+    "(gen_random_uuid(), :user, :feature, :status, :provider, :model, :version, :inp, :out, "
+    ":latency, :code, now())"
+)
+GOOD_AI: dict[str, Any] = {
+    "feature": "task_generation",
+    "status": "success",
+    "provider": "fake",
+    "model": "m",
+    "version": "v1",
+    "inp": 1,
+    "out": 1,
+    "latency": 1,
+    "code": None,
+}
+AI_CASES = [
+    ("unknown feature", {"feature": "chat"}, "ck_ai_requests_feature"),
+    ("unknown status", {"status": "done"}, "ck_ai_requests_status"),
+    ("provider 41 chars", {"provider": "p" * 41}, "ck_ai_requests_provider_length"),
+    ("model 101 chars", {"model": "m" * 101}, "ck_ai_requests_model_length"),
+    ("version 61 chars", {"version": "v" * 61}, "ck_ai_requests_prompt_version_length"),
+    ("negative input tokens", {"inp": -1}, "ck_ai_requests_input_tokens_min"),
+    ("negative output tokens", {"out": -1}, "ck_ai_requests_output_tokens_min"),
+    ("negative latency", {"latency": -1}, "ck_ai_requests_latency_ms_min"),
+    ("error code 61 chars", {"code": "e" * 61}, "ck_ai_requests_error_code_length"),
+]
+
 # (id, statement, overrides of a valid row, expected constraint) for every ck_ constraint.
 USER_CASES = [
     ("name empty", {"name": ""}, "ck_users_name_length"),
@@ -292,6 +321,26 @@ async def test_tc406_refresh_token_constraints_reject_direct_sql(
 
 
 @pytest.mark.sql
+@pytest.mark.parametrize(("label", "change", "name"), AI_CASES, ids=[c[0] for c in AI_CASES])
+async def test_tc440_ai_request_constraints_reject_direct_sql(
+    app_db: Db, label: str, change: dict[str, Any], name: str
+) -> None:
+    await _expect(app_db, AI_REQUEST, GOOD_AI | {"user": await app_db.user()} | change, name, CHECK)
+
+
+@pytest.mark.sql
+async def test_tc440_ai_history_outlives_its_user_and_the_user_must_exist(app_db: Db) -> None:
+    user = await app_db.user()
+    await app_db.run(AI_REQUEST, **(GOOD_AI | {"user": user}))
+    await _expect(
+        app_db, AI_REQUEST, GOOD_AI | {"user": UUID_1}, "fk_ai_requests_user_id_users", FK
+    )
+    await app_db.run("DELETE FROM users WHERE id = :id", id=user)
+    rows = await app_db.run("SELECT user_id FROM ai_requests")
+    assert [r.user_id for r in rows] == [None]  # set null: cost history is kept
+
+
+@pytest.mark.sql
 async def test_tc406_refresh_token_hash_is_unique_and_its_user_must_exist(app_db: Db) -> None:
     user = await app_db.user()
     good = {
@@ -344,11 +393,13 @@ async def test_nfr307_every_constraint_in_the_catalogue_has_a_bypass_test(admin_
         | {name for *_, name in PROJECT_CASES}
         | {name for *_, name in TASK_CASES}
         | {name for *_, name in REFRESH_CASES}
+        | {name for *_, name in AI_CASES}
         | {
             "uq_users_email",
             "ck_activity_type",
             "uq_refresh_tokens_token_hash",
             "fk_refresh_tokens_user_id_users",
+            "fk_ai_requests_user_id_users",
             "fk_projects_owner_id_users",
             "fk_tasks_project_id_projects",
             "fk_tasks_assignee_id_users",

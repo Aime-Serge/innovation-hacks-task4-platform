@@ -10,14 +10,27 @@ from tests.sql_support import Postgres
 
 PK = re.compile(r"^pk_[a-z_]+$")
 FK = re.compile(
-    r"^fk_(users|projects|tasks|activity|refresh_tokens)_[a-z_]+_(users|projects|tasks)$"
+    r"^fk_(users|projects|tasks|activity|refresh_tokens|ai_requests)_[a-z_]+_(users|projects|tasks)$"
 )
 UQ = re.compile(r"^uq_(users|refresh_tokens)_[a-z_]+$")
-CK = re.compile(r"^ck_(users|projects|tasks|activity|refresh_tokens)_[a-z_]+$")
-IX = re.compile(r"^ix_(users|projects|tasks|activity|refresh_tokens)_[a-z_]+$")
+CK = re.compile(r"^ck_(users|projects|tasks|activity|refresh_tokens|ai_requests)_[a-z_]+$")
+IX = re.compile(r"^ix_(users|projects|tasks|activity|refresh_tokens|ai_requests)_[a-z_]+$")
 
 # Section 6, column by column: (table, column) -> (type, nullable)
 COLUMNS = {
+    # Task 4, section 6: ai_requests
+    ("ai_requests", "id"): ("uuid", "NO"),
+    ("ai_requests", "user_id"): ("uuid", "YES"),
+    ("ai_requests", "feature"): ("text", "NO"),
+    ("ai_requests", "status"): ("text", "NO"),
+    ("ai_requests", "provider"): ("text", "NO"),
+    ("ai_requests", "model"): ("text", "YES"),
+    ("ai_requests", "prompt_version"): ("text", "NO"),
+    ("ai_requests", "input_tokens"): ("integer", "YES"),
+    ("ai_requests", "output_tokens"): ("integer", "YES"),
+    ("ai_requests", "latency_ms"): ("integer", "YES"),
+    ("ai_requests", "error_code"): ("text", "YES"),
+    ("ai_requests", "created_at"): ("timestamp with time zone", "NO"),
     # Task 4, section 6: refresh_tokens
     ("refresh_tokens", "id"): ("uuid", "NO"),
     ("refresh_tokens", "user_id"): ("uuid", "NO"),
