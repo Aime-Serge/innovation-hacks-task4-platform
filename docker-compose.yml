@@ -1,0 +1,61 @@
+# Local full stack (section 7 layout): PostgreSQL, the one-shot migration step and the API.
+# The web service joins in Phase 5. Every secret comes from .env; a missing one stops compose.
+services:
+  db:
+    image: postgres:16.4
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-ih_platform}
+      POSTGRES_USER: ${POSTGRES_USER:-ih_admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+      APP_DB_PASSWORD: ${APP_DB_PASSWORD:?Set APP_DB_PASSWORD in .env}
+      MIGRATOR_DB_PASSWORD: ${MIGRATOR_DB_PASSWORD:?Set MIGRATOR_DB_PASSWORD in .env}
+      READONLY_DB_PASSWORD: ${READONLY_DB_PASSWORD:?Set READONLY_DB_PASSWORD in .env}
+    ports:
+      - "127.0.0.1:${DB_PORT:-5433}:5432" # local only; 5433 so it never clashes with the Task 3 stack
+    volumes:
+      - db-data:/var/lib/postgresql/data
+      - ./backend/database/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  # The explicit migration step (FR-439, ADR-413). Only this service holds the migration role.
+  migrate:
+    build: ./backend
+    image: ih-migrate:local
+    command: ["alembic", "upgrade", "head"]
+    working_dir: /srv
+    environment:
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in .env}
+      MIGRATION_DATABASE_URL: postgresql+asyncpg://ih_migrator:${MIGRATOR_DB_PASSWORD}@db:5432/${POSTGRES_DB:-ih_platform}
+    volumes:
+      - ./backend/alembic.ini:/srv/alembic.ini:ro
+      - ./backend/migrations:/srv/migrations:ro
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+
+  api:
+    build: ./backend
+    image: ih-api:local
+    environment:
+      APP_ENV: development
+      STORAGE_BACKEND: sql
+      DATABASE_URL: postgresql+asyncpg://ih_app:${APP_DB_PASSWORD}@db:5432/${POSTGRES_DB:-ih_platform}
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in .env}
+      CORS_ALLOWED_ORIGINS: http://localhost:3000
+      LLM_PROVIDER: fake
+      SEED_PROFILE: ${SEED_PROFILE:-none}
+      SEED_PASSWORD: ${SEED_PASSWORD:-}
+      DOCS_ENABLED: "true"
+    ports:
+      - "127.0.0.1:8000:8000"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
+volumes:
+  db-data: {}
