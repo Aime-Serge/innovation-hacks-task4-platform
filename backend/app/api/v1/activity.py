@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from app.api.deps import ContainerDep, CurrentUser
+from app.api.deps import ContainerDep, CurrentActor
 from app.api.docs import errors
 from app.domain.queries import ActivityQuery
 from app.schemas.common import PageOut
@@ -20,9 +20,9 @@ router = APIRouter(prefix="/activity", tags=["Dashboard"])
     responses=errors("UNAUTHENTICATED", "VALIDATION_ERROR", "INTERNAL_ERROR"),
 )
 async def recent_activity(
-    query: ActivityParams, _: CurrentUser, container: ContainerDep
+    query: ActivityParams, actor: CurrentActor, container: ContainerDep
 ) -> PageOut[ActivityOut]:
-    page = await container.activity.list(ActivityQuery(page=1, page_size=query.limit))
+    page = await container.activity.list(actor, ActivityQuery(page=1, page_size=query.limit))
     return PageOut(
         items=[ActivityOut.of(item) for item in page.items],
         page=1,

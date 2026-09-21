@@ -6,7 +6,9 @@ from app.domain.enums import ProjectStatus, TaskStatus
 from app.domain.models import Task
 from app.repositories.base import TaskQuery, UnitOfWork
 from app.services import transaction
+from app.services.authz import Actor
 from app.services.transaction import UowFactory
+from app.services.visibility import read_scope
 
 OPEN_STATUSES = [TaskStatus.TODO, TaskStatus.IN_PROGRESS, TaskStatus.IN_REVIEW]
 UPCOMING_DAYS = 7
@@ -26,12 +28,13 @@ class DashboardService:
         self._uow = uow
         self._clock = clock
 
-    async def summary(self) -> DashboardSummary:
+    async def summary(self, actor: Actor) -> DashboardSummary:
         today = self._clock.today()  # BR-307: the date comes from the injected clock
 
         async def work(uow: UnitOfWork) -> DashboardSummary:
-            active = await uow.projects.count([ProjectStatus.ACTIVE])
-            totals = await uow.tasks.totals(today)  # one aggregate query (BR-304)
+            scope = await read_scope(uow, actor)
+            active = await uow.projects.count([ProjectStatus.ACTIVE], scope)
+            totals = await uow.tasks.totals(today, scope)  # one aggregate query (BR-304)
             upcoming = await uow.tasks.list(
                 TaskQuery(
                     statuses=OPEN_STATUSES,
@@ -39,6 +42,7 @@ class DashboardService:
                     due_before=today + timedelta(days=UPCOMING_DAYS),
                     sort="dueDate",
                     page_size=50,
+                    scope=scope,
                     with_total=False,  # only the items are shown
                 )
             )

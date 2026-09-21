@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from app.api.deps import ContainerDep, CurrentUser
+from app.api.deps import ContainerDep, CurrentActor
 from app.api.docs import errors
 from app.schemas.misc import SummaryOut
 from app.schemas.tasks import TaskOut
@@ -18,8 +18,8 @@ router = APIRouter(prefix="/dashboard", tags=["Dashboard"])
     ),
     responses=errors("UNAUTHENTICATED", "INTERNAL_ERROR"),
 )
-async def summary(_: CurrentUser, container: ContainerDep) -> SummaryOut:
-    data = await container.dashboard.summary()
+async def summary(actor: CurrentActor, container: ContainerDep) -> SummaryOut:
+    data = await container.dashboard.summary(actor)
     return SummaryOut(
         active_projects=data.active_projects,
         open_tasks=data.open_tasks,

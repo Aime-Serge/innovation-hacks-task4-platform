@@ -20,6 +20,7 @@ from app.services.activity import ActivityService
 from app.services.authz import Actor, require_project_manager, require_task_editor
 from app.services.projects import require_project, require_project_or_invalid
 from app.services.transaction import UowFactory
+from app.services.visibility import read_scope
 
 
 @dataclass(frozen=True)
@@ -67,7 +68,8 @@ class TaskService:
 
     async def create(self, actor: Actor, data: NewTask) -> Task:
         async def work(uow: UnitOfWork) -> Task:
-            project = await require_project_or_invalid(uow, data.project_id)
+            scope = await read_scope(uow, actor)
+            project = await require_project_or_invalid(uow, data.project_id, scope)
             require_project_manager(actor, project)  # BR-203
             if project.status is ProjectStatus.COMPLETED:
                 raise ProjectClosed("A completed project accepts no new tasks.")  # BR-205
@@ -95,23 +97,36 @@ class TaskService:
 
         return await transaction.write(self._uow, work)
 
-    async def get(self, task_id: UUID) -> Task:
-        return await transaction.read(self._uow, lambda uow: require_task(uow, task_id))
+    async def get(self, actor: Actor, task_id: UUID) -> Task:
+        async def work(uow: UnitOfWork) -> Task:
+            task = await require_task(uow, task_id)
+            await require_project(uow, task.project_id, scope=await read_scope(uow, actor))
+            return task
 
-    async def list(self, query: TaskQuery) -> Page[Task]:
-        return await transaction.read(self._uow, lambda uow: uow.tasks.list(query))
+        return await transaction.read(self._uow, work)
 
-    async def list_for_project(self, project_id: UUID, query: TaskQuery) -> Page[Task]:
+    async def list(self, actor: Actor, query: TaskQuery) -> Page[Task]:
         async def work(uow: UnitOfWork) -> Page[Task]:
-            await require_project(uow, project_id)  # 404 for an unknown project (FR-220)
-            return await uow.tasks.list(replace(query, project_ids=[project_id]))
+            return await uow.tasks.list(replace(query, scope=await read_scope(uow, actor)))
+
+        return await transaction.read(self._uow, work)
+
+    async def list_for_project(
+        self, actor: Actor, project_id: UUID, query: TaskQuery
+    ) -> Page[Task]:
+        async def work(uow: UnitOfWork) -> Page[Task]:
+            scope = await read_scope(uow, actor)
+            await require_project(uow, project_id, scope=scope)  # 404 unknown or unreadable
+            return await uow.tasks.list(replace(query, project_ids=[project_id], scope=scope))
 
         return await transaction.read(self._uow, work)
 
     async def update(self, actor: Actor, task_id: UUID, changes: TaskChanges) -> Task:
         async def work(uow: UnitOfWork) -> Task:
             task = await require_task(uow, task_id, for_update=True)
-            require_task_editor(actor, task, await require_project(uow, task.project_id))
+            scope = await read_scope(uow, actor)
+            project = await require_project(uow, task.project_id, scope=scope)
+            require_task_editor(actor, task, project)
             if not isinstance(changes.assignee_id, Unset):
                 await _check_assignee(uow, changes.assignee_id)
             updated = replace(
@@ -135,7 +150,9 @@ class TaskService:
         async def work(uow: UnitOfWork) -> Task:
             # The row lock makes "check the current status, then change it" one step (BR-306).
             task = await require_task(uow, task_id, for_update=True)
-            require_task_editor(actor, task, await require_project(uow, task.project_id))
+            scope = await read_scope(uow, actor)
+            project = await require_project(uow, task.project_id, scope=scope)
+            require_task_editor(actor, task, project)
             if requested is task.status:
                 return task  # BR-204: a no-op succeeds, changes nothing and logs nothing
             if not can_transition(task.status, requested):
@@ -168,7 +185,9 @@ class TaskService:
     async def delete(self, actor: Actor, task_id: UUID) -> None:
         async def work(uow: UnitOfWork) -> None:
             task = await require_task(uow, task_id, for_update=True)
-            require_project_manager(actor, await require_project(uow, task.project_id))  # BR-203
+            scope = await read_scope(uow, actor)
+            project = await require_project(uow, task.project_id, scope=scope)
+            require_project_manager(actor, project)  # BR-203
             await uow.tasks.delete(task_id)
 
         await transaction.write(self._uow, work)

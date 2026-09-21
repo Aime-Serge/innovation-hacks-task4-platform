@@ -1,3 +1,4 @@
+from dataclasses import replace
 from datetime import datetime
 from uuid import UUID
 
@@ -6,7 +7,9 @@ from app.domain.enums import ActivityType
 from app.domain.models import Activity
 from app.repositories.base import ActivityQuery, Page, UnitOfWork
 from app.services import transaction
+from app.services.authz import Actor
 from app.services.transaction import UowFactory
+from app.services.visibility import read_scope
 
 
 class ActivityService:
@@ -29,5 +32,8 @@ class ActivityService:
             Activity(self._ids.new_id(), actor_id, project_id, task_id, kind, now)
         )
 
-    async def list(self, query: ActivityQuery) -> Page[Activity]:
-        return await transaction.read(self._uow, lambda uow: uow.activity.list(query))
+    async def list(self, actor: Actor, query: ActivityQuery) -> Page[Activity]:
+        async def work(uow: UnitOfWork) -> Page[Activity]:
+            return await uow.activity.list(replace(query, scope=await read_scope(uow, actor)))
+
+        return await transaction.read(self._uow, work)

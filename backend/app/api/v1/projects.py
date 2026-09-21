@@ -2,7 +2,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Query, Response
 
-from app.api.deps import ContainerDep, CurrentActor, CurrentUser, ProjectId
+from app.api.deps import ContainerDep, CurrentActor, ProjectId
 from app.api.docs import errors
 from app.api.v1.tasks import to_task_query
 from app.domain.queries import ProjectQuery
@@ -48,9 +48,10 @@ async def create_project(
     responses=errors("UNAUTHENTICATED", "VALIDATION_ERROR", "INTERNAL_ERROR"),
 )
 async def list_projects(
-    query: Annotated[ProjectListQuery, Query()], _: CurrentUser, container: ContainerDep
+    query: Annotated[ProjectListQuery, Query()], actor: CurrentActor, container: ContainerDep
 ) -> PageOut[ProjectOut]:
     page = await container.projects.list(
+        actor,
         ProjectQuery(
             q=query.q,
             statuses=query.status,
@@ -59,7 +60,7 @@ async def list_projects(
             descending=query.descending,
             page=query.page,
             page_size=query.page_size,
-        )
+        ),
     )
     return PageOut(
         items=[ProjectOut.of(view.project, view.progress) for view in page.items],
@@ -76,8 +77,10 @@ async def list_projects(
     description="Return one project with its calculated progress (done tasks over total, BR-03).",
     responses=errors("UNAUTHENTICATED", "NOT_FOUND", "VALIDATION_ERROR", "INTERNAL_ERROR"),
 )
-async def get_project(project_id: ProjectId, _: CurrentUser, container: ContainerDep) -> ProjectOut:
-    view = await container.projects.get(project_id)
+async def get_project(
+    project_id: ProjectId, actor: CurrentActor, container: ContainerDep
+) -> ProjectOut:
+    view = await container.projects.get(actor, project_id)
     return ProjectOut.of(view.project, view.progress)
 
 
@@ -133,11 +136,11 @@ async def delete_project(
 async def list_project_tasks(
     project_id: ProjectId,
     query: Annotated[TaskListQuery, Query()],
-    _: CurrentUser,
+    actor: CurrentActor,
     container: ContainerDep,
 ) -> PageOut[TaskOut]:
     page = await container.tasks.list_for_project(
-        project_id, to_task_query(query, container.clock.today())
+        actor, project_id, to_task_query(query, container.clock.today())
     )
     return PageOut(
         items=[TaskOut.of(task) for task in page.items],

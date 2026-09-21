@@ -7,11 +7,13 @@ from app.core.errors import ErrorDetail, NotFound, ProjectNotEmpty, ValidationFa
 from app.domain.enums import ActivityType, ProjectStatus
 from app.domain.models import Progress, Project
 from app.domain.unset import UNSET, Unset
+from app.domain.visibility import ReadScope
 from app.repositories.base import Page, ProjectQuery, UnitOfWork
 from app.services import transaction
 from app.services.activity import ActivityService
 from app.services.authz import Actor, require_project_manager
 from app.services.transaction import UowFactory
+from app.services.visibility import read_scope
 
 
 @dataclass(frozen=True)
@@ -29,18 +31,25 @@ class ProjectChanges:
 
 
 async def require_project(
-    uow: UnitOfWork, project_id: UUID, *, for_update: bool = False
+    uow: UnitOfWork,
+    project_id: UUID,
+    *,
+    scope: ReadScope | None = None,
+    for_update: bool = False,
 ) -> Project:
+    """An unknown project and one the caller may not read are both 404 (BR-402)."""
     project = await uow.projects.get(project_id, for_update=for_update)
-    if project is None:
+    if project is None or (scope is not None and not scope.allows(project.id)):
         raise NotFound("The project was not found.")
     return project
 
 
-async def require_project_or_invalid(uow: UnitOfWork, project_id: UUID) -> Project:
-    """For a body field that names a project: unknown means 422 on that field (FR-214)."""
+async def require_project_or_invalid(
+    uow: UnitOfWork, project_id: UUID, scope: ReadScope | None = None
+) -> Project:
+    """For a body field that names a project: unknown or unreadable means 422 (FR-214, BR-402)."""
     project = await uow.projects.get(project_id)
-    if project is None:
+    if project is None or (scope is not None and not scope.allows(project.id)):
         raise ValidationFailed(
             "One or more fields are invalid.",
             [ErrorDetail("projectId", "The project does not exist.")],
@@ -76,16 +85,16 @@ class ProjectService:
 
         return await transaction.write(self._uow, work)
 
-    async def get(self, project_id: UUID) -> ProjectView:
+    async def get(self, actor: Actor, project_id: UUID) -> ProjectView:
         async def work(uow: UnitOfWork) -> ProjectView:
-            project = await require_project(uow, project_id)
+            project = await require_project(uow, project_id, scope=await read_scope(uow, actor))
             return ProjectView(project, await uow.tasks.progress_for(project.id))
 
         return await transaction.read(self._uow, work)
 
-    async def list(self, query: ProjectQuery) -> Page[ProjectView]:
+    async def list(self, actor: Actor, query: ProjectQuery) -> Page[ProjectView]:
         async def work(uow: UnitOfWork) -> Page[ProjectView]:
-            page = await uow.projects.list(query)
+            page = await uow.projects.list(replace(query, scope=await read_scope(uow, actor)))
             # One aggregate over the whole page, not one query per project (NFR-304).
             progress = await uow.tasks.progress_for_many([p.id for p in page.items])
             views = [ProjectView(p, progress[p.id]) for p in page.items]
@@ -95,7 +104,8 @@ class ProjectService:
 
     async def update(self, actor: Actor, project_id: UUID, changes: ProjectChanges) -> ProjectView:
         async def work(uow: UnitOfWork) -> ProjectView:
-            project = await require_project(uow, project_id, for_update=True)
+            scope = await read_scope(uow, actor)
+            project = await require_project(uow, project_id, scope=scope, for_update=True)
             require_project_manager(actor, project)
             updated = replace(
                 project,
@@ -117,7 +127,8 @@ class ProjectService:
     async def delete(self, actor: Actor, project_id: UUID) -> None:
         async def work(uow: UnitOfWork) -> None:
             # The lock serialises this against a task being created in the project (FR-314).
-            project = await require_project(uow, project_id, for_update=True)
+            scope = await read_scope(uow, actor)
+            project = await require_project(uow, project_id, scope=scope, for_update=True)
             require_project_manager(actor, project)
             if (await uow.tasks.progress_for(project_id)).total_tasks > 0:
                 raise ProjectNotEmpty("The project still has tasks and cannot be deleted.")

@@ -3,7 +3,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Query, Response
 
-from app.api.deps import ContainerDep, CurrentActor, CurrentUser, TaskId
+from app.api.deps import ContainerDep, CurrentActor, TaskId
 from app.api.docs import errors
 from app.domain.queries import TaskQuery
 from app.domain.unset import UNSET
@@ -76,9 +76,9 @@ async def create_task(
     responses=errors("UNAUTHENTICATED", "VALIDATION_ERROR", "INTERNAL_ERROR"),
 )
 async def list_tasks(
-    query: Annotated[TaskListQuery, Query()], _: CurrentUser, container: ContainerDep
+    query: Annotated[TaskListQuery, Query()], actor: CurrentActor, container: ContainerDep
 ) -> PageOut[TaskOut]:
-    page = await container.tasks.list(to_task_query(query, container.clock.today()))
+    page = await container.tasks.list(actor, to_task_query(query, container.clock.today()))
     return PageOut(
         items=[TaskOut.of(task) for task in page.items],
         page=page.page,
@@ -94,8 +94,8 @@ async def list_tasks(
     description="Return one task, or `404 NOT_FOUND`.",
     responses=errors("UNAUTHENTICATED", "NOT_FOUND", "VALIDATION_ERROR", "INTERNAL_ERROR"),
 )
-async def get_task(task_id: TaskId, _: CurrentUser, container: ContainerDep) -> TaskOut:
-    return TaskOut.of(await container.tasks.get(task_id))
+async def get_task(task_id: TaskId, actor: CurrentActor, container: ContainerDep) -> TaskOut:
+    return TaskOut.of(await container.tasks.get(actor, task_id))
 
 
 @router.patch(
