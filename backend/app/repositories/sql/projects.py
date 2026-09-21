@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.domain.enums import ProjectStatus
 from app.domain.models import Project
 from app.domain.queries import Page, ProjectQuery
+from app.domain.visibility import ReadScope
 from app.repositories.sql import common, mappers
 from app.repositories.sql.models import ProjectRow
 
@@ -40,6 +41,9 @@ class SqlProjectRepository:
             conditions.append(ProjectRow.status.in_([s.value for s in query.statuses]))
         if query.owner_id is not None:
             conditions.append(ProjectRow.owner_id == query.owner_id)
+        scoped = common.scope_condition(ProjectRow.id, query.scope)
+        if scoped is not None:
+            conditions.append(scoped)
         pattern = common.like_pattern(query.q)
         if pattern is not None:
             conditions.append(
@@ -105,8 +109,17 @@ class SqlProjectRepository:
         )
         return int((await common.run(self._session, statement, "read")).scalar_one())
 
-    async def count(self, statuses: Sequence[ProjectStatus] = ()) -> int:
+    async def count(
+        self, statuses: Sequence[ProjectStatus] = (), scope: ReadScope | None = None
+    ) -> int:
         statement = select(func.count()).select_from(ProjectRow)
         if statuses:
             statement = statement.where(ProjectRow.status.in_([s.value for s in statuses]))
+        scoped = common.scope_condition(ProjectRow.id, scope)
+        if scoped is not None:
+            statement = statement.where(scoped)
         return int((await common.run(self._session, statement, "read")).scalar_one())
+
+    async def owned_ids(self, owner_id: UUID) -> set[UUID]:
+        statement = select(ProjectRow.id).where(ProjectRow.owner_id == owner_id)
+        return set((await common.run(self._session, statement, "read")).scalars().all())

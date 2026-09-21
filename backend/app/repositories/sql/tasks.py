@@ -20,6 +20,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.domain.models import Progress, Task
 from app.domain.queries import Page, TaskQuery, TaskTotals
 from app.domain.rules import progress as make_progress
+from app.domain.visibility import ReadScope
 from app.repositories.sql import common, mappers
 from app.repositories.sql.models import TaskRow
 
@@ -62,6 +63,9 @@ def conditions(query: TaskQuery) -> list[ColumnElement[bool]]:
         found.append(TaskRow.project_id.in_(query.project_ids))
     if query.assignee_ids:
         found.append(TaskRow.assignee_id.in_(query.assignee_ids))
+    scoped = common.scope_condition(TaskRow.project_id, query.scope)
+    if scoped is not None:
+        found.append(scoped)
     if query.due_before is not None:
         found.append(TaskRow.due_date <= query.due_before)
     if query.due_after is not None:
@@ -153,14 +157,21 @@ class SqlTaskRepository:
             found[row.project_id] = make_progress(row.total, row.done)
         return found
 
-    async def totals(self, today: date) -> TaskTotals:
+    async def totals(self, today: date, scope: ReadScope | None = None) -> TaskTotals:
         statement = select(
             func.count().label("total"),
             func.count().filter(TaskRow.status == "done").label("done"),
             func.count().filter(overdue_condition(today)).label("overdue"),
         ).select_from(TaskRow)
+        scoped = common.scope_condition(TaskRow.project_id, scope)
+        if scoped is not None:
+            statement = statement.where(scoped)
         row = (await common.run(self._session, statement, "read")).one()
         return TaskTotals(row.total, row.done, row.total - row.done, row.overdue)
+
+    async def assigned_project_ids(self, user_id: UUID) -> set[UUID]:
+        statement = select(TaskRow.project_id).where(TaskRow.assignee_id == user_id).distinct()
+        return set((await common.run(self._session, statement, "read")).scalars().all())
 
     async def unassign_user(self, user_id: UUID) -> int:
         result = await common.run(

@@ -4,6 +4,7 @@ from uuid import UUID
 
 from app.domain.enums import ProjectStatus
 from app.domain.models import Project
+from app.domain.visibility import ReadScope
 from app.repositories.base import Page, ProjectQuery
 from app.repositories.memory.common import (
     Store,
@@ -26,7 +27,8 @@ class MemoryProjectRepository:
         projects = [
             project
             for project in self._items.values()
-            if (not query.statuses or project.status in query.statuses)
+            if (query.scope is None or query.scope.allows(project.id))
+            and (not query.statuses or project.status in query.statuses)
             and (query.owner_id is None or project.owner_id == query.owner_id)
             and matches_text([project.name, project.description], query.q)
         ]
@@ -73,5 +75,14 @@ class MemoryProjectRepository:
     async def count_by_owner(self, owner_id: UUID) -> int:
         return sum(1 for project in self._items.values() if project.owner_id == owner_id)
 
-    async def count(self, statuses: Sequence[ProjectStatus] = ()) -> int:
-        return sum(1 for p in self._items.values() if not statuses or p.status in statuses)
+    async def count(
+        self, statuses: Sequence[ProjectStatus] = (), scope: ReadScope | None = None
+    ) -> int:
+        return sum(
+            1
+            for p in self._items.values()
+            if (not statuses or p.status in statuses) and (scope is None or scope.allows(p.id))
+        )
+
+    async def owned_ids(self, owner_id: UUID) -> set[UUID]:
+        return {p.id for p in self._items.values() if p.owner_id == owner_id}

@@ -35,10 +35,12 @@ class SqlActivityRepository:
 
     async def list(self, query: ActivityQuery) -> Page[Activity]:
         """Newest first, ties broken by id descending, as the (at DESC, id DESC) index is."""
+        scoped = common.scope_condition(ActivityRow.project_id, query.scope)
+        where = [] if scoped is None else [scoped]
         return await common.page_of(
             self._session,
-            select(*COLUMNS).order_by(ActivityRow.at.desc(), ActivityRow.id.desc()),
-            select(ActivityRow.id),
+            select(*COLUMNS).where(*where).order_by(ActivityRow.at.desc(), ActivityRow.id.desc()),
+            select(ActivityRow.id).where(*where),
             query.page,
             query.page_size,
             mappers.activity_from,

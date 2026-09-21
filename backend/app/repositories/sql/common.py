@@ -5,12 +5,14 @@ from collections.abc import Callable, Sequence
 from typing import Any, cast
 
 from sqlalchemy import (
+    ColumnElement,
     CursorResult,
     Executable,
     Insert,
     Select,
     SQLColumnExpression,
     collate,
+    false,
     func,
     select,
     text,
@@ -20,6 +22,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.errors import ServiceUnavailable
 from app.domain.queries import Page
+from app.domain.visibility import ReadScope
 from app.repositories.sql.errors import Operation, translate
 
 TOTAL = "_total"
@@ -134,3 +137,14 @@ async def page_of[T](
 async def _count(session: AsyncSession, count_source: Select[Any]) -> int:
     counted = await run(session, select(func.count()).select_from(count_source.subquery()), "read")
     return int(counted.scalar_one())
+
+
+def scope_condition(
+    column: SQLColumnExpression[Any], scope: ReadScope | None
+) -> ColumnElement[bool] | None:
+    """BR-401 in SQL: the project column must be one the scope allows; a lead is not filtered."""
+    if scope is None or scope.is_lead:
+        return None
+    if not scope.project_ids:
+        return false()
+    return column.in_(sorted(scope.project_ids, key=str))

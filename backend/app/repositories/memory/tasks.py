@@ -7,6 +7,7 @@ from app.domain.enums import TaskStatus
 from app.domain.models import Progress, Task
 from app.domain.queries import TaskTotals
 from app.domain.rules import PRIORITY_RANK, is_overdue, progress
+from app.domain.visibility import ReadScope
 from app.repositories.base import Page, TaskQuery
 from app.repositories.memory.common import (
     Store,
@@ -80,11 +81,14 @@ class MemoryTaskRepository:
                 dones[task.project_id] += task.status is TaskStatus.DONE
         return {pid: progress(totals[pid], dones[pid]) for pid in project_ids}
 
-    async def totals(self, today: date) -> TaskTotals:
-        tasks = list(self._items.values())
+    async def totals(self, today: date, scope: ReadScope | None = None) -> TaskTotals:
+        tasks = [t for t in self._items.values() if scope is None or scope.allows(t.project_id)]
         done = sum(1 for task in tasks if task.status is TaskStatus.DONE)
         overdue = sum(1 for task in tasks if is_overdue(task, today))
         return TaskTotals(len(tasks), done, len(tasks) - done, overdue)
+
+    async def assigned_project_ids(self, user_id: UUID) -> set[UUID]:
+        return {t.project_id for t in self._items.values() if t.assignee_id == user_id}
 
     async def unassign_user(self, user_id: UUID) -> int:
         async with self._store.lock:
@@ -99,6 +103,7 @@ def _matches(task: Task, query: TaskQuery) -> bool:
     if not matches_text([task.title, task.description], query.q):
         return False
     checks = (
+        query.scope is None or query.scope.allows(task.project_id),
         not query.statuses or task.status in query.statuses,
         not query.priorities or task.priority in query.priorities,
         not query.project_ids or task.project_id in query.project_ids,

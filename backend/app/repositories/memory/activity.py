@@ -23,7 +23,11 @@ class MemoryActivityRepository:
 
     async def list(self, query: ActivityQuery) -> Page[Activity]:
         """Newest first."""
-        items = list(self._items.values())
+        items = [
+            item
+            for item in self._items.values()
+            if query.scope is None or query.scope.allows(item.project_id)
+        ]
         # Newest first; ties break by id descending, matching the (at DESC, id DESC) index.
         ordered = sorted(items, key=lambda item: (item.at, str(item.id)), reverse=True)
         return Page(

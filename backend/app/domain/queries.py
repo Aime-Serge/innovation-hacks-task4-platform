@@ -9,6 +9,7 @@ from datetime import date
 from uuid import UUID
 
 from app.domain.enums import Priority, ProjectStatus, Role, TaskStatus
+from app.domain.visibility import ReadScope
 
 
 @dataclass(frozen=True)
@@ -34,6 +35,7 @@ class ProjectQuery:
     q: str | None = None
     statuses: list[ProjectStatus] = field(default_factory=list)
     owner_id: UUID | None = None
+    scope: ReadScope | None = None  # BR-401: None means unscoped (seed, system)
     sort: str = "createdAt"
     descending: bool = False
     page: int = 1
@@ -51,6 +53,7 @@ class TaskQuery:
     today: date | None = None
     due_before: date | None = None
     due_after: date | None = None
+    scope: ReadScope | None = None  # BR-401
     sort: str = "createdAt"
     descending: bool = False
     page: int = 1
@@ -60,6 +63,7 @@ class TaskQuery:
 
 @dataclass(frozen=True)
 class ActivityQuery:
+    scope: ReadScope | None = None  # BR-401
     page: int = 1
     page_size: int = 10
 
