@@ -30,6 +30,16 @@ class InvalidCredentials(AppError):
     status_code = 401
 
 
+class RefreshTokenInvalid(AppError):
+    code = "REFRESH_TOKEN_INVALID"
+    status_code = 401
+
+
+class RegistrationDisabled(AppError):
+    code = "REGISTRATION_DISABLED"
+    status_code = 403
+
+
 class Forbidden(AppError):
     code = "FORBIDDEN"
     status_code = 403

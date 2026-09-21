@@ -12,13 +12,13 @@ Task 3 adds, and only adds (ADR-303, ADR-314):
 """
 
 from collections.abc import Sequence
-from datetime import date
+from datetime import date, datetime
 from types import TracebackType
 from typing import Protocol, Self
 from uuid import UUID
 
 from app.domain.enums import ProjectStatus
-from app.domain.models import Activity, Progress, Project, Task, User
+from app.domain.models import Activity, Progress, Project, RefreshToken, Task, User
 from app.domain.queries import (
     ActivityQuery,
     Page,
@@ -79,6 +79,16 @@ class ActivityRepository(Protocol):
     async def list(self, query: ActivityQuery) -> Page[Activity]: ...
 
 
+class RefreshTokenRepository(Protocol):
+    async def add(self, token: RefreshToken) -> RefreshToken: ...
+    async def get_by_hash(
+        self, token_hash: str, *, for_update: bool = False
+    ) -> RefreshToken | None: ...
+    async def mark_used(self, token_id: UUID, at: datetime) -> None: ...
+    async def revoke_family(self, family_id: UUID, at: datetime) -> int: ...
+    async def delete_expired(self, before: datetime) -> int: ...
+
+
 class UnitOfWork(Protocol):
     """One transaction: everything inside commits together or rolls back together (BR-305)."""
 
@@ -93,6 +103,9 @@ class UnitOfWork(Protocol):
 
     @property
     def activity(self) -> ActivityRepository: ...
+
+    @property
+    def refresh_tokens(self) -> RefreshTokenRepository: ...
 
     async def __aenter__(self) -> Self: ...
 
@@ -112,6 +125,7 @@ __all__ = [
     "Page",
     "ProjectQuery",
     "ProjectRepository",
+    "RefreshTokenRepository",
     "TaskQuery",
     "TaskRepository",
     "TaskTotals",

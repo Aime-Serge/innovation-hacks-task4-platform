@@ -178,3 +178,24 @@ class ActivityRow(Base):
         Index("ix_activity_project_id", "project_id"),
         Index("ix_activity_task_id", "task_id"),
     )
+
+
+class RefreshTokenRow(Base):
+    __tablename__ = "refresh_tokens"
+
+    id: Mapped[UUID] = mapped_column(Uuid, primary_key=True, server_default=UUID_DEFAULT)
+    user_id: Mapped[UUID] = mapped_column(Uuid, ForeignKey("users.id", ondelete="CASCADE"))
+    family_id: Mapped[UUID] = mapped_column(Uuid)
+    token_hash: Mapped[str] = mapped_column(Text, unique=True)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+    __table_args__ = (
+        CheckConstraint("char_length(token_hash) = 64", name="token_hash_length"),
+        CheckConstraint("expires_at > created_at", name="expiry_after_creation"),
+        Index("ix_refresh_tokens_user_id", "user_id"),
+        Index("ix_refresh_tokens_family_id", "family_id"),
+        Index("ix_refresh_tokens_expires_at", "expires_at"),
+    )

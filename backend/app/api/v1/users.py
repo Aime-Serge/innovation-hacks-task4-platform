@@ -5,6 +5,7 @@ from fastapi import APIRouter, Query, Request, Response
 
 from app.api.deps import ContainerDep, CurrentActor, UserId, enforce_rate_limit
 from app.api.docs import errors
+from app.core.errors import RegistrationDisabled
 from app.domain.enums import Theme
 from app.domain.queries import UserQuery
 from app.domain.unset import UNSET
@@ -34,11 +35,21 @@ _WRITE = ("PAYLOAD_TOO_LARGE", "UNSUPPORTED_MEDIA_TYPE", "MALFORMED_REQUEST", "I
         "Returns `201` with a `Location` header. "
         "Limited to 5 attempts per minute per client and email."
     ),
-    responses={**errors("EMAIL_ALREADY_EXISTS", "VALIDATION_ERROR", "RATE_LIMITED", *_WRITE)},
+    responses={
+        **errors(
+            "EMAIL_ALREADY_EXISTS",
+            "REGISTRATION_DISABLED",
+            "VALIDATION_ERROR",
+            "RATE_LIMITED",
+            *_WRITE,
+        )
+    },
 )
 async def register(
     payload: UserCreate, request: Request, response: Response, container: ContainerDep
 ) -> UserOut:
+    if not container.settings.registration_enabled:
+        raise RegistrationDisabled("Registration is switched off.")  # BR-414
     enforce_rate_limit(request, container, "register")
     user = await container.users.register(
         payload.name,

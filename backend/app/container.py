@@ -10,6 +10,7 @@ from app.core.security import PasswordHasher, TokenCodec
 from app.repositories.memory import (
     MemoryActivityRepository,
     MemoryProjectRepository,
+    MemoryRefreshTokenRepository,
     MemoryTaskRepository,
     MemoryUnitOfWork,
     MemoryUserRepository,
@@ -19,6 +20,7 @@ from app.services.activity import ActivityService
 from app.services.auth import AuthService
 from app.services.dashboard import DashboardService
 from app.services.projects import ProjectService
+from app.services.session_service import SessionService
 from app.services.tasks import TaskService
 from app.services.transaction import UowFactory
 from app.services.users import UserService
@@ -33,6 +35,7 @@ class Container:
     limiter: RateLimiter
     uow: UowFactory
     auth: AuthService
+    sessions: SessionService
     users: UserService
     projects: ProjectService
     tasks: TaskService
@@ -78,6 +81,7 @@ def build_container(
             MemoryProjectRepository(),
             MemoryTaskRepository(),
             MemoryActivityRepository(),
+            MemoryRefreshTokenRepository(),
         )
 
         def uow(read_only: bool = False) -> MemoryUnitOfWork:
@@ -89,6 +93,7 @@ def build_container(
 
         readiness = repositories_respond
     activity = ActivityService(uow, clock, ids)
+    auth = AuthService(uow, hasher, tokens, clock)
     return Container(
         settings=settings,
         clock=clock,
@@ -98,7 +103,8 @@ def build_container(
             clock, settings.rate_limit_attempts, settings.rate_limit_window_seconds
         ),
         uow=uow,
-        auth=AuthService(uow, hasher, tokens, clock),
+        auth=auth,
+        sessions=SessionService(uow, auth, tokens, clock, ids, settings.refresh_token_ttl_seconds),
         users=UserService(uow, hasher, clock, ids),
         projects=ProjectService(uow, activity, clock, ids),
         tasks=TaskService(uow, activity, clock, ids),

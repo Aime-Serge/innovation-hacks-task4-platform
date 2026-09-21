@@ -15,7 +15,7 @@ class AuthService:
         self._tokens = tokens
         self._clock = clock
 
-    async def login(self, email: str, password: str) -> IssuedToken:
+    async def verify_credentials(self, email: str, password: str) -> User:
         """Unknown email and wrong password are indistinguishable (FR-203, TH-203)."""
         # The only lookup that loads the password hash (NFR-318).
         user = await transaction.read(
@@ -26,6 +26,10 @@ class AuthService:
             raise InvalidCredentials("The email or password is incorrect.")
         if not await self._hasher.verify(user.password_hash, password):
             raise InvalidCredentials("The email or password is incorrect.")
+        return user
+
+    async def login(self, email: str, password: str) -> IssuedToken:
+        user = await self.verify_credentials(email, password)
         return self._tokens.issue(user.id, user.role.value, self._clock.now())
 
     async def authenticate(self, token: str) -> User:

@@ -63,3 +63,17 @@ class Progress:
     total_tasks: int
     done_tasks: int
     percent: int
+
+
+@dataclass(frozen=True, slots=True)
+class RefreshToken:
+    """One rotating refresh token; only its SHA-256 hash is stored (BR-404, FR-406)."""
+
+    id: UUID
+    user_id: UUID
+    family_id: UUID
+    token_hash: str = field(repr=False)
+    expires_at: datetime
+    used_at: datetime | None
+    revoked_at: datetime | None
+    created_at: datetime

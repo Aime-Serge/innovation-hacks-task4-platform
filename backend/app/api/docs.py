@@ -8,6 +8,11 @@ CATALOGUE: dict[str, tuple[int, str]] = {
     "MALFORMED_REQUEST": (400, "The request body is not valid JSON."),
     "UNAUTHENTICATED": (401, "The access token is missing, invalid or expired."),
     "INVALID_CREDENTIALS": (401, "The email or password is incorrect."),
+    "REFRESH_TOKEN_INVALID": (
+        401,
+        "The refresh token is expired, unknown, revoked or already used.",
+    ),
+    "REGISTRATION_DISABLED": (403, "Registration is switched off."),
     "FORBIDDEN": (403, "Only the project owner or a lead may do this."),
     "NOT_FOUND": (404, "The resource was not found."),
     "METHOD_NOT_ALLOWED": (405, "This method is not supported on this path."),

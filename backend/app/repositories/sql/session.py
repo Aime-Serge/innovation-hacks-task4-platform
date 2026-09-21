@@ -24,6 +24,7 @@ from app.core.logging import LOGGER_NAME
 from app.repositories.sql.activity import SqlActivityRepository
 from app.repositories.sql.errors import translate
 from app.repositories.sql.projects import SqlProjectRepository
+from app.repositories.sql.refresh_tokens import SqlRefreshTokenRepository
 from app.repositories.sql.tasks import SqlTaskRepository
 from app.repositories.sql.users import SqlUserRepository
 
@@ -45,6 +46,7 @@ class SqlUnitOfWork:
         self.projects = SqlProjectRepository(session)
         self.tasks = SqlTaskRepository(session)
         self.activity = SqlActivityRepository(session)
+        self.refresh_tokens = SqlRefreshTokenRepository(session)
         return self
 
     async def __aexit__(

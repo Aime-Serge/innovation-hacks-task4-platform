@@ -9,6 +9,7 @@ from typing import Self
 
 from app.repositories.memory.activity import MemoryActivityRepository
 from app.repositories.memory.projects import MemoryProjectRepository
+from app.repositories.memory.refresh_tokens import MemoryRefreshTokenRepository
 from app.repositories.memory.tasks import MemoryTaskRepository
 from app.repositories.memory.users import MemoryUserRepository
 
@@ -20,11 +21,13 @@ class MemoryUnitOfWork:
         projects: MemoryProjectRepository,
         tasks: MemoryTaskRepository,
         activity: MemoryActivityRepository,
+        refresh_tokens: MemoryRefreshTokenRepository,
     ) -> None:
         self.users = users
         self.projects = projects
         self.tasks = tasks
         self.activity = activity
+        self.refresh_tokens = refresh_tokens
 
     async def __aenter__(self) -> Self:
         return self

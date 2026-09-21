@@ -20,10 +20,18 @@ class LoginRequest(ApiModel):
     model_config = ApiModel.model_config | {"str_strip_whitespace": False}
 
 
+class RefreshRequest(ApiModel):
+    refresh_token: str = Field(min_length=20, max_length=200, pattern=CLEAN)
+
+
 class TokenOut(OutModel):
     access_token: str
     token_type: Literal["bearer"] = "bearer"  # noqa: S105 - the OAuth token type, not a secret
     expires_in: int = Field(description="Seconds until the token expires.", examples=[900])
+    refresh_token: str = Field(description="Single-use; exchange it at `POST /auth/refresh`.")
+    refresh_expires_in: int = Field(
+        description="Seconds until the refresh token expires.", examples=[604800]
+    )
 
 
 class ActivityOut(OutModel):
