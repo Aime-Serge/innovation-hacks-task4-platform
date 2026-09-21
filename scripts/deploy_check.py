@@ -25,7 +25,7 @@ HEADERS = ("X-Content-Type-Options", "X-Frame-Options", "Referrer-Policy", "Perm
 def known_env_names(root: Path) -> set[str]:
     """Every environment name the API's Settings reads, including its aliases."""
     sys.path.insert(0, str(root / "backend"))
-    from app.core.config import Settings  # noqa: PLC0415 - needs the path set above
+    from app.core.config import Settings
 
     names: set[str] = set()
     for field, info in Settings.model_fields.items():
@@ -55,7 +55,13 @@ def check_render(root: Path) -> list[str]:
         problems.append("render.yaml must define the PostgreSQL database")
     if str(spec["databases"][0].get("postgresMajorVersion", "")) != "16":
         problems.append("the database must be PostgreSQL 16")
-    env = {e["key"]: e for e in web.get("envVars", [])}
+    problems += check_render_env({e["key"]: e for e in web.get("envVars", [])}, text, root)
+    return problems
+
+
+def check_render_env(env: dict[str, Any], text: str, root: Path) -> list[str]:
+    """The API service's variables: fixed values, secrets without values, nothing unknown."""
+    problems: list[str] = []
     for key, want in REQUIRED_VALUES.items():
         if str(env.get(key, {}).get("value")) != want:
             problems.append(f"{key} must be {want!r} in render.yaml")
@@ -96,7 +102,7 @@ def check_frontend(root: Path) -> list[str]:
     if match is None or int(match.group(1)) < 26:
         problems.append("the BFF route needs maxDuration of at least 26 s (AI budget is 25 s)")
     config = (web / "next.config.ts").read_text()
-    for header in HEADERS + ("Strict-Transport-Security",):
+    for header in (*HEADERS, "Strict-Transport-Security"):
         if header not in config:
             problems.append(f"next.config.ts must set {header}")
     proxy = (web / "src/proxy.ts").read_text()
@@ -107,10 +113,16 @@ def check_frontend(root: Path) -> list[str]:
     for name in ("API_BASE_URL", "SITE_URL", "BFF_TIMEOUT_MS"):
         if name not in example:
             problems.append(f"frontend/.env.example must list {name}")
-    public = set(re.findall(r"NEXT_PUBLIC_[A-Z_]+", "".join(p.read_text() for p in (web / "src").rglob("*.ts*"))))
+    public = set(
+        re.findall(
+            r"NEXT_PUBLIC_[A-Z_]+", "".join(p.read_text() for p in (web / "src").rglob("*.ts*"))
+        )
+    )
     stray = sorted(public - {"NEXT_PUBLIC_DATA_SOURCE", "NEXT_PUBLIC_SCENARIO_SWITCHER"})
     if stray:
-        problems.append(f"unexpected NEXT_PUBLIC_ variables (never a secret or the API address): {stray}")
+        problems.append(
+            f"unexpected NEXT_PUBLIC_ variables (never a secret or the API address): {stray}"
+        )
     return problems
 
 
@@ -129,7 +141,9 @@ def check_migrations(root: Path) -> list[str]:
 
 
 def check(root: Path) -> list[str]:
-    return check_render(root) + check_dockerfile(root) + check_frontend(root) + check_migrations(root)
+    return (
+        check_render(root) + check_dockerfile(root) + check_frontend(root) + check_migrations(root)
+    )
 
 
 if __name__ == "__main__":
