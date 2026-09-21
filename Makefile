@@ -4,7 +4,8 @@ SHELL := /bin/bash
 UV    := cd backend && uv run --frozen
 WEB   := cd frontend &&
 .PHONY: env up down gate gate-api gate-web test-auth test-ai test-web e2e-local security-full \
-        deploy-check docs-check smoke e2e-live db-provision db-migrate-prod ai-eval demo-data
+        deploy-check docs-check smoke e2e-live db-provision db-migrate-prod ai-eval demo-data \
+        guide-check test-profile db-check e2e-profile screenshots
 
 env:  ## write a local .env with random secrets (never overwrites an existing one)
 	@test -f .env && echo ".env exists; left as is" || { python3 -c "import secrets,re;t=open('.env.example').read();print(re.sub(r'<set-me>',lambda m:secrets.token_urlsafe(24),t),end='')" > .env && chmod 600 .env && echo "wrote .env"; }
@@ -22,7 +23,9 @@ gate-web:  ## Task 1 frontend gate
 	cd frontend && npm run gate
 
 # Task 2 and Task 3 gates first (their recorded supersessions are in docs/supersession-log.md), then:
-gate: gate-api gate-web test-auth test-ai test-web e2e-local security-full deploy-check docs-check
+# Then the minimal profile work (pack section 7): its tests, the database gate, its browser specs, and
+# last the compliance matrix (it also runs gitleaks, so it goes after the security step).
+gate: gate-api gate-web test-auth test-ai test-web test-profile db-check e2e-local e2e-profile security-full deploy-check docs-check guide-check
 
 test-auth:  ## sessions, refresh rotation, reuse detection, the visibility matrix (memory and PostgreSQL)
 	$(UV) pytest -q --no-cov tests/auth tests/security/test_isolation.py tests/security/test_authorization_matrix.py
@@ -56,6 +59,26 @@ deploy-check:  ## render.yaml, Vercel settings and headers, env tables against S
 docs-check:  ## README sections, env tables, ADR index, the supersession log, the runbook
 	$(UV) pytest -q --no-cov tests/unit/test_documentation.py
 	$(UV) python ../scripts/docs_check.py
+
+# ---- minimal profile (branch feat/minimal-profile) ------------------------------------------------
+test-profile:  ## registration, profile, settings and people picker: API, database rules, screens
+	$(UV) pytest -q --no-cov tests -k "profile or register or registration or people or me_ or password or min_age"
+	$(UV) pytest -q --no-cov --backend sql tests -k "profile or register or registration or people or me_ or password or min_age"
+	$(WEB) npx vitest run --configLoader runner profile register people settings
+
+db-check:  ## migration 0008 on PostgreSQL: upgrade, drift check, round trip, integrity (wraps backend targets)
+	$(MAKE) -C backend db-up db-migrate db-check db-roundtrip test-integrity
+
+e2e-profile:  ## Playwright profile specs on the compose stack: register, edit, assign with the picker
+	RATE_LIMIT_ATTEMPTS=200 docker compose up -d --build
+	@for i in $$(seq 1 60); do curl -fs localhost:8000/readyz >/dev/null && curl -fs -o /dev/null localhost:3000/login && break; sleep 2; done
+	$(WEB) LIVE_URL=http://localhost:3000 npx playwright test tests/live/profile --project=live --workers=1
+
+guide-check:  ## every evidence path in docs/guide-compliance.md, README sections, .env.example vs Settings, gitleaks
+	$(UV) python ../scripts/guide_check.py
+
+screenshots:  ## Task 4 screenshots into docs/screenshots/task-4 from synthetic data (needs the compose stack)
+	$(WEB) npx jiti ../scripts/screenshots.ts
 
 # ---- after each deploy (need your live URLs) ---------------------------------------------------
 smoke:  ## the journey and timings against the live site: SITE_URL=https://...
