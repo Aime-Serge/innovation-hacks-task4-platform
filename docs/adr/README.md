@@ -1,6 +1,6 @@
 # Architecture decisions for Task 4
 
-Decisions 401 to 417 come from the pack. 418 onward record where the pack and the existing code disagreed, or where the owner chose differently. Earlier decisions are in `backend/docs/adr/` (Tasks 2 and 3) and `frontend/docs/` (Task 1).
+Decisions 401 to 417 come from the pack. 601 to 608 come from the Minimal Profile pack (section 9) and 609 to 616 record where that pack and the repository disagreed (`docs/pack-readback-final.md`). 418 onward record where the pack and the existing code disagreed, or where the owner chose differently. Earlier decisions are in `backend/docs/adr/` (Tasks 2 and 3) and `frontend/docs/` (Task 1).
 
 | ADR | Decision |
 |---|---|
@@ -27,3 +27,19 @@ Decisions 401 to 417 come from the pack. 418 onward record where the pack and th
 | [ADR-423](../../backend/docs/adr/ADR-423-visibility-is-a-read-scope-built-once.md) | visibility is a `ReadScope` built by one function and applied by every query |
 | [ADR-424](../../backend/docs/adr/ADR-424-gemini-is-the-live-provider.md) | Gemini is the live AI provider; Anthropic is not implemented |
 | [ADR-425](ADR-425-refresh-runs-through-the-server-layer-and-a-session-marker.md) | silent refresh is triggered by the page through the server layer, and a marker cookie feeds the route guard |
+| [ADR-601](ADR-601-scope-chosen-by-the-four-test-rule-of-section-1.md) | Scope chosen by the four-test rule of section 1 |
+| [ADR-602](ADR-602-company-is-free-text-not-a-shared-record.md) | Company is free text, not a shared record |
+| [ADR-603](ADR-603-one-privacy-switch-instead-of-per-section-visibility.md) | One privacy switch instead of per-section visibility |
+| [ADR-604](ADR-604-skills-in-a-small-table-with-the-limit-enforced-by-a-lock-and-a-co.md) | Skills in a small table, with the limit enforced by a lock and a constraint trigger |
+| [ADR-605](ADR-605-no-email-verification-in-this-release.md) | No email verification in this release |
+| [ADR-606](ADR-606-discipline-is-separate-from-the-platform-role.md) | Discipline is separate from the platform role |
+| [ADR-607](ADR-607-controlled-lists-live-in-one-configuration-file.md) | Controlled lists live in one configuration file |
+| [ADR-608](ADR-608-existing-users-are-backfilled-with-neutral-values-and-legacy-terms.md) | Existing users are backfilled with neutral values and `legacy` terms |
+| [ADR-609](ADR-609-the-migration-is-revision-0008-not-0006.md) | The migration is revision 0008, not 0006 |
+| [ADR-610](ADR-610-password-change-ends-other-sessions-through-an-optional-refresh-to.md) | Password change ends other sessions through an optional refresh token |
+| [ADR-611](ADR-611-get-me-is-added-and-get-auth-me-is-kept.md) | `GET /me` is added and `GET /auth/me` is kept |
+| [ADR-612](ADR-612-the-composed-display-name-must-fit-80-characters.md) | The composed display name must fit 80 characters |
+| [ADR-613](ADR-613-theme-is-saved-by-both-patch-users-id-and-put-me-preferences.md) | Theme is saved by both `PATCH /users/{id}` and `PUT /me/preferences` |
+| [ADR-614](ADR-614-self-service-account-deletion-is-added-beside-the-lead-only-delete.md) | Self-service account deletion is added beside the lead-only delete |
+| [ADR-615](ADR-615-follow-the-repository-layout-not-the-pack-s-paths.md) | Follow the repository layout, not the pack's paths |
+| [ADR-616](ADR-616-the-self-review-sheet-uses-the-guide-s-rubric-directly.md) | The self-review sheet uses the guide's rubric directly |

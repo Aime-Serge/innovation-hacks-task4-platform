@@ -24,3 +24,16 @@ Every earlier test or rule changed by Task 4, with the old assertion, the new on
 | 2026-09-21 | Task 3 catalogue tests `test_nfr307`, `test_tc373`, `test_tc399` and the README tests | List `refresh_tokens` only | Also list `ai_requests` (columns, constraint names, one bypass test per constraint, the set-null foreign key) and the four AI operations and error codes | Section 6 additions; catalogues that must grow with the schema, nothing weakened |
 | 2026-09-21 | Test harness `tests/sql_support.py` | Between tests the four Task 3 tables are emptied | `refresh_tokens` and `ai_requests` are emptied too | Rows from one test must not leak into the next; not an assertion change |
 | 2026-09-21 | Task 1 tests `TC-030 changing the status select...` and `TC-019` (update-fails, success) in `tests/unit/lists.test.tsx` | Picked `done` (or `todo`) straight from any status | Pick the first allowed next status from `allowedNext` (todo to in_progress in TC-030) | FR-417: the control offers only workflow-legal moves; intent of each test (report the change, roll back on failure, keep on success) unchanged. Outside S1 to S8, so logged here |
+
+## Minimal profile
+
+Changes to earlier tests and rules made by `feat/minimal-profile` (pack section 3 of `docs/pack-readback-final.md`). This section is a skeleton: the backend and frontend workers append the tests they actually changed, with the old and new assertion. A row stays "to be confirmed" until the change has been made and the affected tests have been run.
+
+| Date | Test or rule | Old assertion | New assertion | Reason |
+|---|---|---|---|---|
+| to be confirmed | S-A: every test and helper that registers through `POST /users` (`backend/tests/conftest.py`, `tests/api/test_auth_users.py`, `tests/auth`, `tests/security`, `tests/ai`, `tests/contract`; frontend `RegisterForm`, mock auth adapter, `tests/e2e/auth.spec.ts`, `tests/live/journey.spec.ts`; `scripts/smoke.sh`) | Registration needs a name, email and password | It also needs given and family name, the profile block, terms consent and age confirmation | MF-01 to MF-03 |
+| to be confirmed | S-B: contract tests, `tests/contract/test_openapi_unchanged.py`, `frontend/tests/contract/adapter.test.ts` | The user object and `GET /users` items have the Task 4 fields | The user object gains fields and `GET /users` items gain a professional summary (additions only) | MF-11, MF-20; baseline refreshed |
+| to be confirmed | S-C: `frontend/tests/unit/shell.test.tsx`, `tests/e2e/navigation.spec.ts` | The avatar menu shows the email | The avatar menu does not show the email | MF-18 |
+| to be confirmed | S-D: `frontend/src/adapters/mock/*` and the adapter parity test | The mock adapter matches the Task 4 API | The mock adapter carries the new fields | Keeps the mock and the HTTP adapter in step |
+| 2026-09-21 | Tooling: `scripts/smoke.sh` | The smoke journey registers with name, email and password | Adds register-with-profile, profile edit, assignment with the picker, password change and sign out (needs the new endpoints) | S-A, MF-01, MF-08, MF-11, MF-13 |
+
