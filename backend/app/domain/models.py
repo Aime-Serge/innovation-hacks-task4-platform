@@ -61,6 +61,14 @@ class Profile:
 
 
 @dataclass(frozen=True, slots=True)
+class Member:
+    """A user as another member may see them: the profile is None when it is hidden or missing."""
+
+    user: User
+    profile: Profile | None
+
+
+@dataclass(frozen=True, slots=True)
 class ProfileStats:
     """Own-page figures from data that already exists (MB-08)."""
 

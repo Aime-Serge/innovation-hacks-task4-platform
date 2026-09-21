@@ -103,7 +103,7 @@ setting is missing from it.
 BASE=http://127.0.0.1:8000
 # 1. Register (public). New accounts are always developers.
 curl -s -X POST $BASE/api/v1/users -H 'Content-Type: application/json' \
-  -d '{"name":"Ada Lovelace","email":"ada@example.com","password":"correct-horse-battery"}'
+  -d '{"givenName":"Ada","familyName":"Lovelace","email":"ada@example.com","password":"correct-horse-battery","profile":{"discipline":"backend","seniority":"mid","employmentStatus":"employed","companyName":"Acme","jobTitle":"Engineer","country":"RW","timeZone":"Africa/Kigali"},"termsAccepted":true,"ageConfirmed":true}'
 
 # 2. Log in and keep the token.
 TOKEN=$(curl -s -X POST $BASE/api/v1/auth/login -H 'Content-Type: application/json' \
@@ -132,11 +132,20 @@ and `sort` (`field`, or `-field` for descending).
 | POST | `/api/v1/ai/projects/{projectId}/prioritization` | reader | Rank the open tasks and suggest priorities |
 | POST | `/api/v1/ai/projects/{projectId}/summary` | reader | A short summary, risks and next steps |
 | GET | `/api/v1/auth/me` | any user | The current user |
-| POST | `/api/v1/users` | public | Register (201 + `Location`) |
+| POST | `/api/v1/users` | public | Register with the professional block, consent and age check (201 + `Location`) |
+| POST | `/api/v1/users/validate` | public | Check registration step 1 or 2; creates nothing (200, 422 per field) |
 | GET | `/api/v1/users` | any user | List, search `q`, filter `role` |
 | GET | `/api/v1/users/{userId}` | any user | One user |
 | PATCH | `/api/v1/users/{userId}` | self or lead | Name, avatar, preferences; role by a lead only |
 | DELETE | `/api/v1/users/{userId}` | lead | 204; 409 for the last lead or an owner of projects |
+| GET | `/api/v1/me` | any user | Own account, profile, statistics, completeness, privacy |
+| PATCH | `/api/v1/me/profile` | any user | Edit names, professional details, headline, about, links |
+| PUT | `/api/v1/me/skills` | any user | Replace the skills (at most 10, unique ignoring case) |
+| PUT | `/api/v1/me/preferences` | any user | Theme and time zone |
+| PUT | `/api/v1/me/privacy` | any user | Show or hide professional details from other members |
+| POST | `/api/v1/me/password` | any user | Change password; 403 `INVALID_CREDENTIALS` when the current one is wrong; 204 |
+| DELETE | `/api/v1/me/sessions` | any user | Sign out of all devices; 204 |
+| POST | `/api/v1/me/delete` | any user | Delete own account with the password; 409 `USER_OWNS_PROJECTS`; 204 |
 | GET | `/api/v1/projects` | any user | List, filter `status`, `ownerId`, search `q` |
 | POST | `/api/v1/projects` | any user | Create; you become the owner |
 | GET | `/api/v1/projects/{projectId}` | any user | One project with progress |

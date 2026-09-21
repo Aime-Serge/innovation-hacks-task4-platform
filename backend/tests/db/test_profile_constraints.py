@@ -144,13 +144,12 @@ async def test_mt03_names_on_users_are_limited_to_60_characters(app_db: Db) -> N
         ("family_name", "ck_users_family_name_length"),
     ):
         user = await app_db.user()
+        update = f"UPDATE users SET {column} = :v WHERE id = :id"  # noqa: S608  # test-owned names
         for bad in ("", "x" * 61, " Ada"):
-            state, got = await app_db.rejected(
-                f"UPDATE users SET {column} = :v WHERE id = :id", v=bad, id=user
-            )
+            state, got = await app_db.rejected(update, v=bad, id=user)
             assert (state, got) == (CHECK, name), (column, bad)
-        await app_db.run(f"UPDATE users SET {column} = :v WHERE id = :id", v="x" * 60, id=user)
-        await app_db.run(f"UPDATE users SET {column} = NULL WHERE id = :id", id=user)
+        await app_db.run(update, v="x" * 60, id=user)
+        await app_db.run(update, v=None, id=user)
 
 
 @pytest.mark.sql

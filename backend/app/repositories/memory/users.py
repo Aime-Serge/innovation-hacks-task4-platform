@@ -1,5 +1,6 @@
 from collections.abc import Sequence
 from dataclasses import replace
+from datetime import datetime
 from uuid import UUID
 
 from app.domain.enums import Role
@@ -61,3 +62,9 @@ class MemoryUserRepository:
 
     async def count_leads(self, *, for_update: bool = False) -> int:
         return sum(1 for user in self._items.values() if user.role is Role.LEAD)
+
+    async def set_password_hash(self, user_id: UUID, password_hash: str, at: datetime) -> None:
+        async with self._store.lock:
+            self._items[user_id] = replace(
+                self._items[user_id], password_hash=password_hash, updated_at=at
+            )

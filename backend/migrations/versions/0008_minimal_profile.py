@@ -182,11 +182,14 @@ def upgrade() -> None:
     )
 
     # Existing people keep everything and get neutral, honest values (ADR-608).
-    op.execute(
-        "INSERT INTO profiles (user_id, discipline, seniority, employment_status, country_code, "
-        "time_zone, terms_version, terms_accepted_at) "
-        "SELECT id, 'other', 'mid', 'between_roles', "
-        f"'{lists.UNKNOWN_COUNTRY}', 'UTC', 'legacy', created_at FROM users"
+    op.get_bind().execute(
+        sa.text(
+            "INSERT INTO profiles (user_id, discipline, seniority, employment_status, "
+            "country_code, time_zone, terms_version, terms_accepted_at) "
+            "SELECT id, 'other', 'mid', 'between_roles', :unknown, 'UTC', 'legacy', created_at "
+            "FROM users"
+        ),
+        {"unknown": lists.UNKNOWN_COUNTRY},
     )
 
 

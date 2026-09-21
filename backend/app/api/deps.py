@@ -50,7 +50,11 @@ TaskId = Annotated[UUID, Path(alias="taskId", description="The task's id.")]
 
 
 def enforce_rate_limit(
-    request: Request, container: Container, scope: str, email: str | None = None
+    request: Request,
+    container: Container,
+    scope: str,
+    email: str | None = None,
+    attempts: int | None = None,
 ) -> None:
     """NFR-216: per client, and per email for login. Counts every attempt, successful or not.
 
@@ -58,4 +62,4 @@ def enforce_rate_limit(
     """
     client = request.client.host if request.client else "unknown"
     suffix = f":{email.strip().lower()}" if email is not None else ""
-    container.limiter.check(f"{scope}:{client}{suffix}")
+    container.limiter.check(f"{scope}:{client}{suffix}", attempts)

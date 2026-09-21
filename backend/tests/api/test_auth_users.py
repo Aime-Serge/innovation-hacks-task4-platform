@@ -5,9 +5,20 @@ from datetime import timedelta
 import jwt
 import pytest
 
-from tests.conftest import DEV, LEAD, NOW, OTHER, PASSWORD, SECRET, Env, error_code, make_settings
+from tests.conftest import (
+    DEV,
+    LEAD,
+    NOW,
+    OTHER,
+    PASSWORD,
+    SECRET,
+    Env,
+    error_code,
+    make_settings,
+    signup,
+)
 
-NEW = {"name": "Ada Lovelace", "email": "ada@example.com", "password": "correct-horse-battery"}
+NEW = signup()  # S-A: names, profile block, consent and age replace the single `name`
 
 
 async def test_tc201_register_returns_201_location_and_no_secrets(env: Env) -> None:
@@ -36,9 +47,7 @@ async def test_tc203_client_cannot_set_role_id_or_timestamps(env: Env) -> None:
 
 
 async def test_tc204_weak_password_and_bad_email_are_422_with_field_details(env: Env) -> None:
-    response = await env.client.post(
-        "/api/v1/users", json={"name": "A", "email": "nope", "password": "short"}
-    )
+    response = await env.client.post("/api/v1/users", json=signup(email="nope", password="short"))
     assert response.status_code == 422
     fields = {d["field"] for d in response.json()["error"]["details"]}
     assert {"email", "password"} <= fields

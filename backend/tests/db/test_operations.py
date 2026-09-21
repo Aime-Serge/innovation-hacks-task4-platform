@@ -12,7 +12,7 @@ from app.domain.queries import ActivityQuery
 from app.seed import SHAPES, seed
 from scripts import generate_db_docs
 from tests import sql_support
-from tests.conftest import DEV, LEAD, NOW, PASSWORD, Env, FakeClock, make_settings
+from tests.conftest import DEV, LEAD, NOW, PASSWORD, Env, FakeClock, make_settings, signup
 from tests.db.conftest import Db
 from tests.db.test_integrity import orphan_count
 from tests.sql_support import Postgres
@@ -29,11 +29,7 @@ async def test_tc311_live_crud_for_each_entity_with_the_rows_inspected(
         # users
         created = await sql_env.client.post(
             "/api/v1/users",
-            json={
-                "name": "Ada Lovelace",
-                "email": "ADA@Example.com",
-                "password": "correct-horse-battery",
-            },
+            json=signup(email="ADA@Example.com"),
         )
         user_id = created.json()["id"]
         row = (

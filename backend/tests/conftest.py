@@ -196,6 +196,35 @@ async def make_task(env: Env, project_id: str, who: str = DEV, **body: Any) -> d
     return result
 
 
+def signup(
+    name: str = "Ada Lovelace",
+    email: str = "ada@example.com",
+    password: str = "correct-horse-battery",  # noqa: S107  # a test fixture
+    **overrides: Any,
+) -> dict[str, Any]:
+    """The one registration payload every test uses (S-A): a change to registration lands here."""
+    given, _, family = name.rpartition(" ")
+    body: dict[str, Any] = {
+        "givenName": given or name,
+        "familyName": family if given else "Tester",
+        "email": email,
+        "password": password,
+        "profile": {
+            "discipline": "backend",
+            "seniority": "mid",
+            "employmentStatus": "employed",
+            "companyName": "Acme",
+            "jobTitle": "Engineer",
+            "country": "RW",
+            "city": "Kigali",
+            "timeZone": "Africa/Kigali",
+        },
+        "termsAccepted": True,
+        "ageConfirmed": True,
+    }
+    return body | overrides
+
+
 def error_code(response: httpx.Response) -> str:
     code: str = response.json()["error"]["code"]
     return code
