@@ -5,7 +5,7 @@ import re
 from pathlib import Path
 from typing import Any
 
-from scripts.openapi_diff import compare
+from scripts.openapi_diff import compare, unsuperseded
 
 ROOT = Path(__file__).resolve().parents[2]
 ALLOWED = re.compile(r"/(pattern|anyOf|parameters)$")  # ADR-327: patterns, and the `q` parameter
@@ -29,14 +29,21 @@ def differences(old: Any, new: Any, path: str = "") -> list[str]:
 def test_tc394_the_contract_has_no_breaking_change_against_the_task_2_baseline() -> None:
     baseline = json.loads((ROOT / "docs/openapi.baseline.json").read_text())
     current = json.loads((ROOT / "docs/openapi.json").read_text())
-    assert compare(baseline, current) == []
+    assert unsuperseded(compare(baseline, current)) == []  # S-A is the one permitted break
 
 
 # S7 relaxes "unchanged" to "additive": additions are free, and only these two changes to an
 # existing schema are permitted: S4 (the login response gains fields) and S2 (email may be null).
+# The minimal-profile pack adds S-A (registration payload) and S-B (user object fields), logged in
+# docs/supersession-log.md.
 PERMITTED = {
     "~ /components/schemas/TokenOut/required",
     "- /components/schemas/UserOut/properties/email/type",
+    "~ /components/schemas/UserOut/required",  # S-B: the user object gains givenName, ... profile
+    "~ /paths//api/v1/users/post/description",  # S-A
+    "~ /components/schemas/UserCreate/required",  # S-A
+    "- /components/schemas/UserCreate/properties/name",  # S-A: replaced by given and family names
+    "~ /components/schemas/UserCreate/properties/password/description",  # S-A
 }
 
 

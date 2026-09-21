@@ -1,7 +1,7 @@
 from typing import Annotated, ClassVar, Literal
 from uuid import UUID
 
-from pydantic import Field, StringConstraints
+from pydantic import Field, StrictBool, StringConstraints
 
 from app.domain.enums import Role, Theme
 from app.domain.models import Member, Profile, ProfileStats, User
@@ -43,8 +43,10 @@ class UserCreate(ApiModel):
     email: Email = Field(examples=["ada@example.com"])
     password: Password = Field(description="12 to 128 characters, not the email or the name.")
     profile: ProfileBlock
-    terms_accepted: bool = Field(description="Must be true; the terms version and time are stored.")
-    age_confirmed: bool = Field(description="Must be true: the person meets the minimum age.")
+    terms_accepted: StrictBool = Field(
+        description="Must be true; the terms version and time are stored."
+    )
+    age_confirmed: StrictBool = Field(description="Must be true: the person meets the minimum age.")
     avatar_url: HttpsUrl | None = None
     preferences: Preferences | None = None
 
@@ -58,8 +60,8 @@ class RegistrationCheck(ApiModel):
     email: Email | None = None
     password: Password | None = None
     profile: ProfileBlockDraft | None = None
-    terms_accepted: bool | None = None
-    age_confirmed: bool | None = None
+    terms_accepted: StrictBool | None = None
+    age_confirmed: StrictBool | None = None
 
 
 class UserUpdate(PatchModel):

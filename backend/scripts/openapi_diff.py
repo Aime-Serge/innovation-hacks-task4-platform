@@ -13,6 +13,17 @@ import sys
 from typing import Any
 
 Spec = dict[str, Any]
+
+# The only permitted departure from the earlier contracts (pack section 6, S-A): registration now
+# requires the names, the profile block, consent and age confirmation. Logged in
+# docs/supersession-log.md; every other break still fails.
+SUPERSEDED = ("POST /api/v1/users request:",)
+
+
+def unsuperseded(problems: list[str]) -> list[str]:
+    return [p for p in problems if not p.startswith(SUPERSEDED)]
+
+
 JSON = "application/json"
 
 
@@ -109,7 +120,7 @@ def main() -> int:
         return 0
     with open("docs/openapi.json") as handle:
         new: Spec = json.load(handle)
-    problems = compare(base, new)
+    problems = unsuperseded(compare(base, new))
     if problems:
         print("Breaking changes to the API contract:", *problems, sep="\n  ", file=sys.stderr)
         return 1

@@ -9,7 +9,7 @@ from typing import Any
 import pytest
 from openapi_spec_validator import validate
 
-from app.api.docs import CATALOGUE
+from app.api.docs import CATALOGUE, VARIANTS
 from scripts.export_openapi import SPEC_PATH, generate, render
 from scripts.openapi_diff import compare
 
@@ -20,6 +20,7 @@ PUBLIC = {
     "/api/v1/auth/logout",
     "/api/v1/auth/refresh",
     "/api/v1/users",
+    "/api/v1/users/validate",
     "/healthz",
     "/readyz",
 }
@@ -72,7 +73,10 @@ def test_tc281_errors_in_the_catalogue_have_the_documented_status(spec: dict[str
             for item in response["content"]["application/json"]["examples"].values():
                 code = item["value"]["error"]["code"]
                 assert code in CATALOGUE, f"{path}: {code} missing from the catalogue"
-                assert CATALOGUE[code][0] == int(status), f"{path}: {code} under {status}"
+                allowed = {CATALOGUE[code][0]} | {
+                    v[0] for k, v in VARIANTS.items() if k.split(":")[0] == code
+                }  # a wrong current password is 403 under the same code (pack section 5)
+                assert int(status) in allowed, f"{path}: {code} under {status}"
 
 
 def test_tc281_request_and_success_bodies_carry_examples(spec: dict[str, Any]) -> None:

@@ -2,6 +2,7 @@ from typing import Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, Query, Request, Response
+from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.api.deps import ContainerDep, CurrentActor, UserId, enforce_rate_limit
 from app.api.docs import errors
@@ -78,6 +79,12 @@ async def validate_registration(
         ),
     )
     return ValidationOk(valid=True)
+
+
+@router.api_route("/validate", methods=["GET", "PUT", "PATCH", "DELETE"], include_in_schema=False)
+async def validate_wrong_method() -> None:
+    """`/users/{userId}` would otherwise swallow these and answer 422 instead of 405."""
+    raise StarletteHTTPException(405)
 
 
 @router.post(

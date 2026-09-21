@@ -5,12 +5,13 @@ Free text is plain text: markup is stored as typed and shown as text, never inte
 
 from typing import Annotated, ClassVar, Self
 
-from pydantic import AfterValidator, Field, StringConstraints, field_validator
+from pydantic import AfterValidator, Field, StrictBool, StringConstraints, field_validator
 
 from app.domain import profile_rules
 from app.domain.enums import Discipline, EmploymentStatus, Seniority, Theme
 from app.domain.models import Profile
 from app.schemas.base import (
+    BAD,
     CLEAN,
     NOT_BLANK,
     ApiModel,
@@ -69,8 +70,17 @@ TimeZone = Annotated[
     str, StringConstraints(min_length=1, max_length=64, pattern=CLEAN), AfterValidator(_time_zone)
 ]
 Skill = Annotated[str, StringConstraints(min_length=1, max_length=30, pattern=NOT_BLANK)]
-GithubUrl = Annotated[HttpsUrl, AfterValidator(_github)]
-LinkedinUrl = Annotated[HttpsUrl, AfterValidator(_linkedin)]
+_PATH = rf"([/?#][^ \t\r\n{BAD}]*)?$"
+GithubUrl = Annotated[
+    str,
+    StringConstraints(max_length=2048, pattern=rf"^https://([A-Za-z0-9-]+\.)?github\.com{_PATH}"),
+    AfterValidator(_github),
+]
+LinkedinUrl = Annotated[
+    str,
+    StringConstraints(max_length=2048, pattern=rf"^https://([A-Za-z0-9-]+\.)?linkedin\.com{_PATH}"),
+    AfterValidator(_linkedin),
+]
 
 
 class ProfileBlock(ApiModel):
@@ -151,7 +161,7 @@ class PreferencesReplace(ApiModel):
 
 
 class PrivacyReplace(ApiModel):
-    show_professional_details: bool = Field(
+    show_professional_details: StrictBool = Field(
         description="Show discipline, seniority, company, job title and location to other members."
     )
 
