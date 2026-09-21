@@ -4,7 +4,9 @@ RUN     := $(UV) run --frozen
 PORT    ?= 8123
 export PYTHONPATH := .
 
-COMPOSE  := docker compose -f database/docker-compose.yml --env-file .env
+# A project name of its own, so this stack never collides with another checkout's database.
+COMPOSE_PROJECT ?= ih-task4-db
+COMPOSE  := docker compose -p $(COMPOSE_PROJECT) -f database/docker-compose.yml --env-file .env
 # Run a command with .env loaded (the file holds secrets and is never committed).
 WITHENV  := set -a && . ./.env && set +a &&
 

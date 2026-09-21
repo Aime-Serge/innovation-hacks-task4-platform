@@ -10,7 +10,7 @@ services:
       MIGRATOR_DB_PASSWORD: ${MIGRATOR_DB_PASSWORD:?Set MIGRATOR_DB_PASSWORD in .env}
       READONLY_DB_PASSWORD: ${READONLY_DB_PASSWORD:?Set READONLY_DB_PASSWORD in .env}
     ports:
-      - "127.0.0.1:5432:5432" # local only, never exposed on all interfaces
+      - "127.0.0.1:${DB_PORT:-5432}:5432" # local only, never exposed on all interfaces
     volumes:
       - db-data:/var/lib/postgresql/data
       - ./init:/docker-entrypoint-initdb.d:ro
