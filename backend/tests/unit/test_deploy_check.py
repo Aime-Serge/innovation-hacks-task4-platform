@@ -98,7 +98,7 @@ CASES = [
         "a password in a connection string",
         "render.yaml",
         "    plan: starter",
-        "    plan: starter # postgresql://user:pass@host/db",
+        "    plan: starter # " + "postgresql://user:" + "pass" + "@host/db",
         "connection string with a password",
     ),
     ("no $PORT binding", "backend/Dockerfile", "${PORT}", "8000", "must bind to $PORT"),
