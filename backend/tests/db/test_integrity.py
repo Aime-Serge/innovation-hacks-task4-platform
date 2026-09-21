@@ -12,6 +12,7 @@ from uuid import uuid4
 import pytest
 
 from tests.db.conftest import Db
+from tests.db.test_profile_constraints import CASES as PROFILE_CASES
 
 
 def utc(day: str) -> datetime:
@@ -394,6 +395,14 @@ async def test_nfr307_every_constraint_in_the_catalogue_has_a_bypass_test(admin_
         | {name for *_, name in TASK_CASES}
         | {name for *_, name in REFRESH_CASES}
         | {name for *_, name in AI_CASES}
+        | {name for *_, name in PROFILE_CASES}
+        | {
+            "ck_users_given_name_length",
+            "ck_users_family_name_length",
+            "fk_profiles_user_id_users",
+            "ck_profile_skills_name_length",
+            "fk_profile_skills_user_id_users",
+        }
         | {
             "uq_users_email",
             "ck_activity_type",

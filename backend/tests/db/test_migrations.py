@@ -10,11 +10,16 @@ from tests.sql_support import Postgres
 
 PK = re.compile(r"^pk_[a-z_]+$")
 FK = re.compile(
-    r"^fk_(users|projects|tasks|activity|refresh_tokens|ai_requests)_[a-z_]+_(users|projects|tasks)$"
+    r"^fk_(users|projects|tasks|activity|refresh_tokens|ai_requests|profiles|profile_skills)_[a-z_]+_(users|projects|tasks)$"
 )
 UQ = re.compile(r"^uq_(users|refresh_tokens)_[a-z_]+$")
-CK = re.compile(r"^ck_(users|projects|tasks|activity|refresh_tokens|ai_requests)_[a-z_]+$")
-IX = re.compile(r"^ix_(users|projects|tasks|activity|refresh_tokens|ai_requests)_[a-z_]+$")
+CK = re.compile(
+    r"^ck_(users|projects|tasks|activity|refresh_tokens|ai_requests|profiles|profile_skills)_[a-z_0-9]+$"
+)
+TRG = re.compile(r"^trg_profile_skills_[a-z_]+$")  # the 10-skill constraint trigger (ADR-604)
+IX = re.compile(
+    r"^ix_(users|projects|tasks|activity|refresh_tokens|ai_requests|profile_skills)_[a-z_]+$"
+)
 
 # Section 6, column by column: (table, column) -> (type, nullable)
 COLUMNS = {
@@ -40,6 +45,33 @@ COLUMNS = {
     ("refresh_tokens", "used_at"): ("timestamp with time zone", "YES"),
     ("refresh_tokens", "revoked_at"): ("timestamp with time zone", "YES"),
     ("refresh_tokens", "created_at"): ("timestamp with time zone", "NO"),
+    # Minimal profile, pack section 5
+    ("users", "given_name"): ("text", "YES"),
+    ("users", "family_name"): ("text", "YES"),
+    ("profiles", "user_id"): ("uuid", "NO"),
+    ("profiles", "discipline"): ("text", "NO"),
+    ("profiles", "seniority"): ("text", "NO"),
+    ("profiles", "employment_status"): ("text", "NO"),
+    ("profiles", "company_name"): ("text", "YES"),
+    ("profiles", "job_title"): ("text", "YES"),
+    ("profiles", "country_code"): ("text", "NO"),
+    ("profiles", "city"): ("text", "YES"),
+    ("profiles", "time_zone"): ("text", "NO"),
+    ("profiles", "headline"): ("text", "YES"),
+    ("profiles", "about"): ("text", "NO"),
+    ("profiles", "github_url"): ("text", "YES"),
+    ("profiles", "linkedin_url"): ("text", "YES"),
+    ("profiles", "website_url"): ("text", "YES"),
+    ("profiles", "show_professional_details"): ("boolean", "NO"),
+    ("profiles", "terms_version"): ("text", "NO"),
+    ("profiles", "terms_accepted_at"): ("timestamp with time zone", "NO"),
+    ("profiles", "age_confirmed_at"): ("timestamp with time zone", "YES"),
+    ("profiles", "created_at"): ("timestamp with time zone", "NO"),
+    ("profiles", "updated_at"): ("timestamp with time zone", "NO"),
+    ("profile_skills", "id"): ("uuid", "NO"),
+    ("profile_skills", "user_id"): ("uuid", "NO"),
+    ("profile_skills", "name"): ("text", "NO"),
+    ("profile_skills", "sort_order"): ("smallint", "NO"),
     ("users", "id"): ("uuid", "NO"),
     ("users", "name"): ("text", "NO"),
     ("users", "email"): ("text", "NO"),
@@ -114,7 +146,7 @@ async def test_tc373_every_constraint_and_index_follows_the_naming_convention(
         "JOIN pg_namespace n ON n.oid = c.connamespace "
         "WHERE n.nspname = 'public' AND conname <> 'alembic_version_pkc'"
     )
-    rule = {"p": PK, "f": FK, "u": UQ, "c": CK}
+    rule = {"p": PK, "f": FK, "u": UQ, "c": CK, "t": TRG}
     bad = [r.conname for r in constraints if not rule[r.contype].match(r.conname)]
     assert bad == []
     indexes = await admin_db.run(
@@ -176,3 +208,50 @@ def test_tc372_alembic_check_finds_no_difference_between_models_and_migrations(
     postgres: Postgres, worker_db: str
 ) -> None:
     sql_support.check_drift(postgres, worker_db)  # raises on any drift
+
+
+@pytest.mark.sql
+async def test_mt17_migration_0008_backfills_existing_users_and_reverses_cleanly(
+    postgres: Postgres,
+) -> None:
+    """MF-19, MN-07: users that exist before 0008 keep every value and gain a neutral profile."""
+    name = "ih_rt_profile"
+    await sql_support.create_empty_database(postgres, name)
+    await sql_support.amigrate(postgres, name, "0007")
+    db = Db(postgres.engine("admin", name))
+    first, second = await db.user(name="Ada"), await db.user(name="Grace", theme="dark")
+    await db.task(await db.project(first), assignee=second)
+
+    await sql_support.amigrate(postgres, name, "0008")
+    rows = await db.run(
+        "SELECT user_id, discipline, seniority, employment_status, country_code, time_zone, "
+        "terms_version, age_confirmed_at, show_professional_details, about, company_name, "
+        "job_title, terms_accepted_at, created_at FROM profiles ORDER BY user_id"
+    )
+    assert {r.user_id for r in rows} == {first, second}
+    for r in rows:
+        assert (r.discipline, r.seniority, r.employment_status) == ("other", "mid", "between_roles")
+        assert (r.country_code, r.time_zone, r.terms_version) == ("ZZ", "UTC", "legacy")
+        assert r.age_confirmed_at is None
+        assert r.show_professional_details is True
+        assert (r.about, r.company_name, r.job_title) == ("", None, None)
+        assert r.terms_accepted_at is not None
+    users = await db.run("SELECT name, theme, given_name, family_name FROM users ORDER BY name")
+    assert [(u.name, u.theme, u.given_name, u.family_name) for u in users] == [
+        ("Ada", "system", None, None),
+        ("Grace", "dark", None, None),
+    ]
+
+    await sql_support.amigrate(postgres, name, "0007", down=True)
+    tables = {r.tablename for r in await db.run("SELECT tablename FROM pg_tables")}
+    assert not tables & {"profiles", "profile_skills"}
+    columns = await db.run(
+        "SELECT column_name FROM information_schema.columns WHERE table_name = 'users'"
+    )
+    assert not {"given_name", "family_name"} & {c.column_name for c in columns}
+    assert (await db.run("SELECT count(*) AS n FROM users"))[0].n == 2  # nothing lost
+    assert (await db.run("SELECT count(*) AS n FROM tasks"))[0].n == 1
+
+    await sql_support.amigrate(postgres, name, "head")
+    assert (await db.run("SELECT count(*) AS n FROM profiles"))[0].n == 2
+    await db.engine.dispose()

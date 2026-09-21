@@ -9,6 +9,7 @@ from datetime import date, datetime
 from uuid import UUID
 
 from sqlalchemy import (
+    Boolean,
     CheckConstraint,
     Computed,
     Date,
@@ -23,6 +24,8 @@ from sqlalchemy import (
     text,
 )
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+
+from app.domain import lists
 
 NAMING_CONVENTION = {
     "ix": "ix_%(table_name)s_%(column_0_N_name)s",
@@ -50,12 +53,24 @@ class UserRow(Base):
     role: Mapped[str] = mapped_column(Text, server_default="developer")
     avatar_url: Mapped[str | None] = mapped_column(Text)
     theme: Mapped[str] = mapped_column(Text, server_default="system")
+    given_name: Mapped[str | None] = mapped_column(Text)
+    family_name: Mapped[str | None] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=NOW)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=NOW)
 
     __table_args__ = (
         CheckConstraint(
             "char_length(name) BETWEEN 1 AND 80 AND name = btrim(name)", name="name_length"
+        ),
+        CheckConstraint(
+            "given_name IS NULL OR "
+            "(char_length(given_name) BETWEEN 1 AND 60 AND given_name = btrim(given_name))",
+            name="given_name_length",
+        ),
+        CheckConstraint(
+            "family_name IS NULL OR "
+            "(char_length(family_name) BETWEEN 1 AND 60 AND family_name = btrim(family_name))",
+            name="family_name_length",
         ),
         CheckConstraint(
             "email = lower(email) AND char_length(email) <= 254 AND position('@' in email) > 0",
@@ -244,4 +259,91 @@ class AiRequestRow(Base):
         ),
         Index("ix_ai_requests_user_id_created_at", "user_id", text("created_at DESC")),
         Index("ix_ai_requests_created_at", "created_at"),
+    )
+
+
+def _url_check(column: str, host: str | None = None) -> str:
+    """https only, at most 2,048 characters, and (GitHub, LinkedIn) the provider's own host."""
+    parts = [f"{column} IS NULL OR ({column} LIKE 'https://%' AND char_length({column}) <= 2048"]
+    if host is not None:
+        parts.append(f" AND {column} ~* '^https://([A-Za-z0-9-]+\\.)?{host}([/?#]|$)'")
+    return "".join(parts) + ")"
+
+
+def _trimmed(column: str, longest: int) -> str:
+    return (
+        f"{column} IS NULL OR "
+        f"(char_length({column}) BETWEEN 1 AND {longest} AND {column} = btrim({column}))"
+    )
+
+
+class ProfileRow(Base):
+    __tablename__ = "profiles"
+
+    user_id: Mapped[UUID] = mapped_column(
+        Uuid, ForeignKey("users.id", ondelete="CASCADE"), primary_key=True
+    )
+    discipline: Mapped[str] = mapped_column(Text)
+    seniority: Mapped[str] = mapped_column(Text)
+    employment_status: Mapped[str] = mapped_column(Text)
+    company_name: Mapped[str | None] = mapped_column(Text)
+    job_title: Mapped[str | None] = mapped_column(Text)
+    country_code: Mapped[str] = mapped_column(Text)
+    city: Mapped[str | None] = mapped_column(Text)
+    time_zone: Mapped[str] = mapped_column(Text)
+    headline: Mapped[str | None] = mapped_column(Text)
+    about: Mapped[str] = mapped_column(Text, server_default="")
+    github_url: Mapped[str | None] = mapped_column(Text)
+    linkedin_url: Mapped[str | None] = mapped_column(Text)
+    website_url: Mapped[str | None] = mapped_column(Text)
+    show_professional_details: Mapped[bool] = mapped_column(Boolean, server_default=text("true"))
+    terms_version: Mapped[str] = mapped_column(Text)
+    terms_accepted_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    age_confirmed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=NOW)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=NOW)
+
+    __table_args__ = (
+        CheckConstraint(lists.sql_in("discipline", lists.DISCIPLINES), name="discipline"),
+        CheckConstraint(lists.sql_in("seniority", lists.SENIORITIES), name="seniority"),
+        CheckConstraint(
+            lists.sql_in("employment_status", lists.EMPLOYMENT_STATUSES), name="employment_status"
+        ),
+        CheckConstraint(_trimmed("company_name", 120), name="company_name_length"),
+        CheckConstraint(_trimmed("job_title", 100), name="job_title_length"),
+        CheckConstraint(
+            "employment_status NOT IN ('employed', 'freelance') "
+            "OR (company_name IS NOT NULL AND job_title IS NOT NULL)",
+            name="employment_details",
+        ),
+        CheckConstraint("country_code ~ '^[A-Z]{2}$'", name="country_code"),
+        CheckConstraint(_trimmed("city", 80), name="city_length"),
+        CheckConstraint("char_length(time_zone) BETWEEN 1 AND 64", name="time_zone_length"),
+        CheckConstraint(
+            "headline IS NULL OR char_length(headline) BETWEEN 1 AND 120", name="headline_length"
+        ),
+        CheckConstraint("char_length(about) <= 500", name="about_length"),
+        CheckConstraint(_url_check("github_url", "github\\.com"), name="github_url_https"),
+        CheckConstraint(_url_check("linkedin_url", "linkedin\\.com"), name="linkedin_url_https"),
+        CheckConstraint(_url_check("website_url"), name="website_url_https"),
+        CheckConstraint(
+            "terms_version = 'legacy' OR age_confirmed_at IS NOT NULL", name="age_confirmed"
+        ),
+    )
+
+
+class ProfileSkillRow(Base):
+    __tablename__ = "profile_skills"
+
+    id: Mapped[UUID] = mapped_column(Uuid, primary_key=True, server_default=UUID_DEFAULT)
+    user_id: Mapped[UUID] = mapped_column(Uuid, ForeignKey("users.id", ondelete="CASCADE"))
+    name: Mapped[str] = mapped_column(Text)
+    sort_order: Mapped[int] = mapped_column(SmallInteger)
+
+    __table_args__ = (
+        CheckConstraint(
+            "char_length(name) BETWEEN 1 AND 30 AND name = btrim(name)", name="name_length"
+        ),
+        Index("ix_profile_skills_user_id", "user_id"),
+        Index("uq_profile_skills_user_id_name_lower", "user_id", text("lower(name)"), unique=True),
     )

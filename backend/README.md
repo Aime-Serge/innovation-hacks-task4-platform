@@ -83,6 +83,8 @@ setting is missing from it.
 | `AI_DAILY_LIMIT_PER_USER` | `20` | AI calls per user per UTC day (BR-409). |
 | `AI_PER_MINUTE_LIMIT` | `5` | AI calls per user per minute (BR-409). |
 | `AI_GLOBAL_DAILY_LIMIT` | `500` | AI calls for all users per UTC day (BR-409). |
+| `MIN_AGE` | `16` | Minimum age a person confirms at registration (MF-03). Not secret. |
+| `TERMS_VERSION` | `2026-09` | Terms version stored with each consent (MF-03). Not secret. |
 | `SEED_PASSWORD` | empty | Password for seeded accounts; empty prints a random one. |
 | `STORAGE_BACKEND` | `memory` | `sql` (PostgreSQL) or `memory`. Production refuses `memory`. |
 | `DATABASE_URL` | empty | Application role connection, `postgresql+asyncpg://ih_app:<set-me>@host:5432/db`. Production needs `?ssl=require`. |
