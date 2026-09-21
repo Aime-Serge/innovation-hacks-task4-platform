@@ -5,12 +5,18 @@ account cannot store an invalid row (TH-307). The matrix at the top is checked a
 catalogue, so a constraint added without a bypass test fails NFR-307.
 """
 
+from datetime import UTC, datetime
 from typing import Any
 from uuid import uuid4
 
 import pytest
 
 from tests.db.conftest import Db
+
+
+def utc(day: str) -> datetime:
+    return datetime.fromisoformat(day).replace(tzinfo=UTC)
+
 
 UNIQUE, FK, CHECK, NOT_NULL = "23505", "23503", "23514", "23502"
 LONG = "x" * 81
@@ -36,6 +42,21 @@ TASK = (
     "INSERT INTO tasks (id, project_id, title, description, status, priority, completed_at) "
     "VALUES (gen_random_uuid(), :project, :title, :description, :status, :priority, :completed)"
 )
+
+REFRESH = (
+    "INSERT INTO refresh_tokens (id, user_id, family_id, token_hash, expires_at, created_at) "
+    "VALUES (gen_random_uuid(), :user, gen_random_uuid(), :hash, "
+    "CAST(:expires AS timestamptz), CAST(:created AS timestamptz))"
+)
+REFRESH_CASES = [
+    ("hash 63 chars", {"hash": "a" * 63}, "ck_refresh_tokens_token_hash_length"),
+    ("hash 65 chars", {"hash": "a" * 65}, "ck_refresh_tokens_token_hash_length"),
+    (
+        "expires before it was created",
+        {"expires": utc("2026-01-01"), "created": utc("2026-02-01")},
+        "ck_refresh_tokens_expiry_after_creation",
+    ),
+]
 
 # (id, statement, overrides of a valid row, expected constraint) for every ck_ constraint.
 USER_CASES = [
@@ -255,6 +276,39 @@ async def test_tc321_all_six_delete_actions(app_db: Db) -> None:
 
 
 @pytest.mark.sql
+@pytest.mark.parametrize(
+    ("label", "change", "name"), REFRESH_CASES, ids=[c[0] for c in REFRESH_CASES]
+)
+async def test_tc406_refresh_token_constraints_reject_direct_sql(
+    app_db: Db, label: str, change: dict[str, Any], name: str
+) -> None:
+    good = {
+        "user": await app_db.user(),
+        "hash": "a" * 64,
+        "expires": utc("2026-02-01"),
+        "created": utc("2026-01-01"),
+    }
+    await _expect(app_db, REFRESH, good | change, name, CHECK)
+
+
+@pytest.mark.sql
+async def test_tc406_refresh_token_hash_is_unique_and_its_user_must_exist(app_db: Db) -> None:
+    user = await app_db.user()
+    good = {
+        "user": user,
+        "hash": "b" * 64,
+        "expires": utc("2026-02-01"),
+        "created": utc("2026-01-01"),
+    }
+    await app_db.run(REFRESH, **good)
+    await _expect(app_db, REFRESH, good, "uq_refresh_tokens_token_hash", UNIQUE)
+    ghost = good | {"user": UUID_1, "hash": "c" * 64}
+    await _expect(app_db, REFRESH, ghost, "fk_refresh_tokens_user_id_users", FK)
+    await app_db.run("DELETE FROM users WHERE id = :id", id=user)  # tokens go with their user
+    assert await app_db.run("SELECT count(*) AS n FROM refresh_tokens") == [(0,)]
+
+
+@pytest.mark.sql
 async def test_tc324_no_orphans_after_the_scenario(admin_db: Db) -> None:
     owner = await admin_db.user()
     project = await admin_db.project(owner)
@@ -289,9 +343,12 @@ async def test_nfr307_every_constraint_in_the_catalogue_has_a_bypass_test(admin_
         {name for *_, name in USER_CASES}
         | {name for *_, name in PROJECT_CASES}
         | {name for *_, name in TASK_CASES}
+        | {name for *_, name in REFRESH_CASES}
         | {
             "uq_users_email",
             "ck_activity_type",
+            "uq_refresh_tokens_token_hash",
+            "fk_refresh_tokens_user_id_users",
             "fk_projects_owner_id_users",
             "fk_tasks_project_id_projects",
             "fk_tasks_assignee_id_users",

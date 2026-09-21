@@ -570,6 +570,23 @@
         "title": "ProjectUpdate",
         "type": "object"
       },
+      "RefreshRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "refreshToken": {
+            "maxLength": 200,
+            "minLength": 20,
+            "pattern": "^[^\\x00]*$",
+            "title": "Refreshtoken",
+            "type": "string"
+          }
+        },
+        "required": [
+          "refreshToken"
+        ],
+        "title": "RefreshRequest",
+        "type": "object"
+      },
       "Role": {
         "enum": [
           "developer",
@@ -874,6 +891,19 @@
             "title": "Expiresin",
             "type": "integer"
           },
+          "refreshExpiresIn": {
+            "description": "Seconds until the refresh token expires.",
+            "examples": [
+              604800
+            ],
+            "title": "Refreshexpiresin",
+            "type": "integer"
+          },
+          "refreshToken": {
+            "description": "Single-use; exchange it at `POST /auth/refresh`.",
+            "title": "Refreshtoken",
+            "type": "string"
+          },
           "tokenType": {
             "const": "bearer",
             "default": "bearer",
@@ -883,7 +913,9 @@
         },
         "required": [
           "accessToken",
-          "expiresIn"
+          "expiresIn",
+          "refreshToken",
+          "refreshExpiresIn"
         ],
         "title": "TokenOut",
         "type": "object"
@@ -971,8 +1003,15 @@
             "type": "string"
           },
           "email": {
-            "title": "Email",
-            "type": "string"
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
           },
           "id": {
             "format": "uuid",
@@ -1216,6 +1255,8 @@
                 "example": {
                   "accessToken": "eyJhbGciOi...",
                   "expiresIn": 900,
+                  "refreshExpiresIn": 604800,
+                  "refreshToken": "q1w2e3...",
                   "tokenType": "bearer"
                 },
                 "schema": {
@@ -1392,6 +1433,147 @@
         ]
       }
     },
+    "/api/v1/auth/logout": {
+      "post": {
+        "description": "Revoke the session the refresh token belongs to. Needs no access token, and returns `204` whether or not the token is known, so it can be called twice.",
+        "operationId": "logout",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefreshRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "MALFORMED_REQUEST": {
+                    "summary": "MALFORMED_REQUEST",
+                    "value": {
+                      "error": {
+                        "code": "MALFORMED_REQUEST",
+                        "message": "The request body is not valid JSON.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Malformed request"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "PAYLOAD_TOO_LARGE": {
+                    "summary": "PAYLOAD_TOO_LARGE",
+                    "value": {
+                      "error": {
+                        "code": "PAYLOAD_TOO_LARGE",
+                        "message": "The request body is too large.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Payload too large"
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "UNSUPPORTED_MEDIA_TYPE": {
+                    "summary": "UNSUPPORTED_MEDIA_TYPE",
+                    "value": {
+                      "error": {
+                        "code": "UNSUPPORTED_MEDIA_TYPE",
+                        "message": "The content type must be application/json.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unsupported media type"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "VALIDATION_ERROR": {
+                    "summary": "VALIDATION_ERROR",
+                    "value": {
+                      "error": {
+                        "code": "VALIDATION_ERROR",
+                        "details": [
+                          {
+                            "field": "title",
+                            "message": "Must be between 1 and 120 characters."
+                          }
+                        ],
+                        "message": "One or more fields are invalid.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Validation error"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "INTERNAL_ERROR": {
+                    "summary": "INTERNAL_ERROR",
+                    "value": {
+                      "error": {
+                        "code": "INTERNAL_ERROR",
+                        "message": "Something went wrong on our side.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unexpected error"
+          }
+        },
+        "summary": "Log out",
+        "tags": [
+          "Authentication"
+        ]
+      }
+    },
     "/api/v1/auth/me": {
       "get": {
         "description": "Return the user the token belongs to. Useful to check a token is still valid.",
@@ -1458,6 +1640,198 @@
           }
         ],
         "summary": "Current user",
+        "tags": [
+          "Authentication"
+        ]
+      }
+    },
+    "/api/v1/auth/refresh": {
+      "post": {
+        "description": "Exchange a refresh token for a new access token and a new refresh token. Each refresh token works once: using it again revokes the whole session. Limited to 5 attempts per minute per token.",
+        "operationId": "refresh",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefreshRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokenOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "MALFORMED_REQUEST": {
+                    "summary": "MALFORMED_REQUEST",
+                    "value": {
+                      "error": {
+                        "code": "MALFORMED_REQUEST",
+                        "message": "The request body is not valid JSON.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Malformed request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "REFRESH_TOKEN_INVALID": {
+                    "summary": "REFRESH_TOKEN_INVALID",
+                    "value": {
+                      "error": {
+                        "code": "REFRESH_TOKEN_INVALID",
+                        "message": "The refresh token is expired, unknown, revoked or already used.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "PAYLOAD_TOO_LARGE": {
+                    "summary": "PAYLOAD_TOO_LARGE",
+                    "value": {
+                      "error": {
+                        "code": "PAYLOAD_TOO_LARGE",
+                        "message": "The request body is too large.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Payload too large"
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "UNSUPPORTED_MEDIA_TYPE": {
+                    "summary": "UNSUPPORTED_MEDIA_TYPE",
+                    "value": {
+                      "error": {
+                        "code": "UNSUPPORTED_MEDIA_TYPE",
+                        "message": "The content type must be application/json.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unsupported media type"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "VALIDATION_ERROR": {
+                    "summary": "VALIDATION_ERROR",
+                    "value": {
+                      "error": {
+                        "code": "VALIDATION_ERROR",
+                        "details": [
+                          {
+                            "field": "title",
+                            "message": "Must be between 1 and 120 characters."
+                          }
+                        ],
+                        "message": "One or more fields are invalid.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Validation error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "RATE_LIMITED": {
+                    "summary": "RATE_LIMITED",
+                    "value": {
+                      "error": {
+                        "code": "RATE_LIMITED",
+                        "message": "Too many attempts. Try again later.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Rate limited"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "INTERNAL_ERROR": {
+                    "summary": "INTERNAL_ERROR",
+                    "value": {
+                      "error": {
+                        "code": "INTERNAL_ERROR",
+                        "message": "Something went wrong on our side.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unexpected error"
+          }
+        },
+        "summary": "Refresh the session",
         "tags": [
           "Authentication"
         ]
@@ -4226,6 +4600,28 @@
               }
             },
             "description": "Malformed request"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "REGISTRATION_DISABLED": {
+                    "summary": "REGISTRATION_DISABLED",
+                    "value": {
+                      "error": {
+                        "code": "REGISTRATION_DISABLED",
+                        "message": "Registration is switched off.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
           },
           "409": {
             "content": {

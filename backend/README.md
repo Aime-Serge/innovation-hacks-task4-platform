@@ -122,6 +122,8 @@ and `sort` (`field`, or `-field` for descending).
 | Method | Path | Who | What |
 | --- | --- | --- | --- |
 | POST | `/api/v1/auth/login` | public | Exchange credentials for a token |
+| POST | `/api/v1/auth/refresh` | refresh token | Exchange a refresh token for a new pair (single use) |
+| POST | `/api/v1/auth/logout` | refresh token | Revoke the session; 204 whether or not the token is known |
 | GET | `/api/v1/auth/me` | any user | The current user |
 | POST | `/api/v1/users` | public | Register (201 + `Location`) |
 | GET | `/api/v1/users` | any user | List, search `q`, filter `role` |
@@ -183,12 +185,14 @@ traces and internals never appear in a response.
 | 400 | `MALFORMED_REQUEST` | The body is not valid JSON |
 | 401 | `UNAUTHENTICATED` | Missing, malformed, expired or forged token |
 | 401 | `INVALID_CREDENTIALS` | Wrong email or password (identical for both) |
+| 401 | `REFRESH_TOKEN_INVALID` | Refresh token expired, unknown, revoked or already used |
 | 403 | `FORBIDDEN` | Authenticated but not allowed |
 | 404 | `NOT_FOUND` | Unknown id or route |
 | 405 | `METHOD_NOT_ALLOWED` | Wrong method; `Allow` lists the right ones |
 | 409 | `EMAIL_ALREADY_EXISTS` | Registration with an address already in use |
 | 409 | `INVALID_STATUS_TRANSITION` | The workflow forbids the move |
 | 409 | `PROJECT_NOT_EMPTY` | Deleting a project that has tasks |
+| 403 | `REGISTRATION_DISABLED` | Registration is switched off (`REGISTRATION_ENABLED=false`) |
 | 409 | `PROJECT_CLOSED` | Adding a task to a completed project |
 | 409 | `USER_OWNS_PROJECTS` | Deleting a user who owns projects |
 | 409 | `LAST_LEAD` | Deleting or demoting the last lead |

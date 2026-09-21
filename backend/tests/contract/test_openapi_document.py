@@ -14,7 +14,15 @@ from scripts.export_openapi import SPEC_PATH, generate, render
 from scripts.openapi_diff import compare
 
 ROOT = Path(__file__).resolve().parents[2]
-PUBLIC = {"/", "/api/v1/auth/login", "/api/v1/users", "/healthz", "/readyz"}
+PUBLIC = {
+    "/",
+    "/api/v1/auth/login",
+    "/api/v1/auth/logout",
+    "/api/v1/auth/refresh",
+    "/api/v1/users",
+    "/healthz",
+    "/readyz",
+}
 HEALTH = {"/", "/healthz", "/readyz"}
 METHODS = {"get", "post", "patch", "delete"}
 

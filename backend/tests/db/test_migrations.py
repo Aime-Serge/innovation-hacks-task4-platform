@@ -9,13 +9,24 @@ from tests.db.conftest import Db
 from tests.sql_support import Postgres
 
 PK = re.compile(r"^pk_[a-z_]+$")
-FK = re.compile(r"^fk_(users|projects|tasks|activity)_[a-z_]+_(users|projects|tasks)$")
-UQ = re.compile(r"^uq_(users)_[a-z_]+$")
-CK = re.compile(r"^ck_(users|projects|tasks|activity)_[a-z_]+$")
-IX = re.compile(r"^ix_(users|projects|tasks|activity)_[a-z_]+$")
+FK = re.compile(
+    r"^fk_(users|projects|tasks|activity|refresh_tokens)_[a-z_]+_(users|projects|tasks)$"
+)
+UQ = re.compile(r"^uq_(users|refresh_tokens)_[a-z_]+$")
+CK = re.compile(r"^ck_(users|projects|tasks|activity|refresh_tokens)_[a-z_]+$")
+IX = re.compile(r"^ix_(users|projects|tasks|activity|refresh_tokens)_[a-z_]+$")
 
 # Section 6, column by column: (table, column) -> (type, nullable)
 COLUMNS = {
+    # Task 4, section 6: refresh_tokens
+    ("refresh_tokens", "id"): ("uuid", "NO"),
+    ("refresh_tokens", "user_id"): ("uuid", "NO"),
+    ("refresh_tokens", "family_id"): ("uuid", "NO"),
+    ("refresh_tokens", "token_hash"): ("text", "NO"),
+    ("refresh_tokens", "expires_at"): ("timestamp with time zone", "NO"),
+    ("refresh_tokens", "used_at"): ("timestamp with time zone", "YES"),
+    ("refresh_tokens", "revoked_at"): ("timestamp with time zone", "YES"),
+    ("refresh_tokens", "created_at"): ("timestamp with time zone", "NO"),
     ("users", "id"): ("uuid", "NO"),
     ("users", "name"): ("text", "NO"),
     ("users", "email"): ("text", "NO"),

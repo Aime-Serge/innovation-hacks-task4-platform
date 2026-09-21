@@ -9,6 +9,8 @@ from tests.conftest import DEV, LEAD, OTHER, Env, error_code, make_project, make
 PUBLIC = {
     ("get", "/"),
     ("post", "/api/v1/auth/login"),
+    ("post", "/api/v1/auth/logout"),
+    ("post", "/api/v1/auth/refresh"),
     ("post", "/api/v1/users"),
     ("get", "/healthz"),
     ("get", "/readyz"),

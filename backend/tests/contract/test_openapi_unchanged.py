@@ -32,11 +32,21 @@ def test_tc394_the_contract_has_no_breaking_change_against_the_task_2_baseline()
     assert compare(baseline, current) == []
 
 
-def test_tc394_only_the_documented_pattern_differences_exist() -> None:
+# S7 relaxes "unchanged" to "additive": additions are free, and only these two changes to an
+# existing schema are permitted: S4 (the login response gains fields) and S2 (email may be null).
+PERMITTED = {
+    "~ /components/schemas/TokenOut/required",
+    "- /components/schemas/UserOut/properties/email/type",
+}
+
+
+def test_tc394_only_additions_and_the_permitted_supersessions_differ() -> None:
     baseline = json.loads((ROOT / "docs/openapi.baseline.json").read_text())
     current = json.loads((ROOT / "docs/openapi.json").read_text())
     unexplained = [
-        d for d in differences(baseline, current) if not (d[0] in "+~" and ALLOWED.search(d))
+        d
+        for d in differences(baseline, current)
+        if not (d.startswith("+") or d in PERMITTED or (d[0] in "+~" and ALLOWED.search(d)))
     ]
     assert unexplained == []
-    assert baseline["paths"].keys() == current["paths"].keys()
+    assert set(baseline["paths"]) <= set(current["paths"])  # nothing was removed

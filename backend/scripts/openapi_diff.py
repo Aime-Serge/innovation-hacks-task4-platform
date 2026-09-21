@@ -95,8 +95,15 @@ def compare(base: Spec, new: Spec) -> list[str]:
 
 
 def main() -> int:
-    ref = os.environ.get("OPENAPI_BASE_REF", "origin/main")
-    base = load_base(ref)
+    # Task 4 compares against the committed Task 3 spec (NFR-424); git is the fallback.
+    baseline = os.environ.get("OPENAPI_BASELINE", "../docs/openapi.baseline.json")
+    if os.path.exists(baseline):
+        ref = baseline
+        with open(baseline) as handle:
+            base: Spec | None = json.load(handle)
+    else:
+        ref = os.environ.get("OPENAPI_BASE_REF", "origin/main")
+        base = load_base(ref)
     if base is None or not base.get("paths"):
         print(f"No baseline spec at {ref}; nothing to compare (first release).")
         return 0
