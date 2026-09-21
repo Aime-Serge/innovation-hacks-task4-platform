@@ -3,6 +3,8 @@ erDiagram
   PROJECTS ||--o{ ACTIVITY : project_id
   TASKS |o--o{ ACTIVITY : task_id
   USERS |o--o{ AI_REQUESTS : user_id
+  USERS ||--o{ PROFILES : user_id
+  USERS ||--o{ PROFILE_SKILLS : user_id
   USERS ||--o{ PROJECTS : owner_id
   USERS ||--o{ REFRESH_TOKENS : user_id
   USERS |o--o{ TASKS : assignee_id
@@ -17,6 +19,8 @@ erDiagram
     text theme
     timestamptz created_at
     timestamptz updated_at
+    text given_name
+    text family_name
   }
   PROJECTS {
     uuid id PK
@@ -49,4 +53,32 @@ erDiagram
     uuid task_id FK
     text type
     timestamptz at
+  }
+  PROFILES {
+    uuid user_id PK,FK
+    text discipline
+    text seniority
+    text employment_status
+    text company_name
+    text job_title
+    text country_code
+    text city
+    text time_zone
+    text headline
+    text about
+    text github_url
+    text linkedin_url
+    text website_url
+    boolean show_professional_details
+    text terms_version
+    timestamptz terms_accepted_at
+    timestamptz age_confirmed_at
+    timestamptz created_at
+    timestamptz updated_at
+  }
+  PROFILE_SKILLS {
+    uuid id PK
+    uuid user_id FK
+    text name
+    smallint sort_order
   }

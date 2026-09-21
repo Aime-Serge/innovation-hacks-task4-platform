@@ -1,4 +1,4 @@
-"""MT-01, MT-02, MT-04, MT-05, MT-07 to MT-09, MT-12 to MT-15: registration, profile and settings."""
+"""MT-01, MT-02, MT-04, MT-05, MT-07 to MT-09, MT-12 to MT-15: registration to settings."""
 
 import asyncio
 from typing import Any
@@ -51,7 +51,8 @@ async def test_mt01_both_steps_validate_create_nothing_and_the_final_submit_sign
     before = (await env.client.get(USERS, headers=env.auth(LEAD))).json()["total"]
     for step, data in ((1, step1), (2, step2)):
         ok = await env.client.post(f"{USERS}/validate", json={"step": step, **data})
-        assert ok.status_code == 200 and ok.json() == {"valid": True}
+        assert ok.status_code == 200
+        assert ok.json() == {"valid": True}
     assert (await env.client.get(USERS, headers=env.auth(LEAD))).json()["total"] == before
     assert (await env.login("wizard@example.com", body["password"])).status_code == 401
     created = await env.client.post(USERS, json=body)
@@ -85,7 +86,8 @@ async def test_mt01_validate_is_rate_limited() -> None:
             (await limited.client.post(f"{USERS}/validate", json={"step": 1})).status_code
             for _ in range(8)
         ]
-        assert codes[:6] == [422] * 6 and codes[6:] == [429, 429]
+        assert codes[:6] == [422] * 6
+        assert codes[6:] == [429, 429]
 
 
 # --- MT-02: the field-rule matrix ----------------------------------------------------------------
@@ -122,7 +124,8 @@ async def test_mt02_account_field_rules_reject_bad_values(
     env: Env, field: str, value: Any, reported: str
 ) -> None:
     response = await env.client.post(USERS, json=signup(**{field: value}))
-    assert response.status_code == 422 and reported in fields(response)
+    assert response.status_code == 422
+    assert reported in fields(response)
 
 
 @pytest.mark.parametrize(("field", "value"), BAD_PROFILE)
@@ -130,7 +133,8 @@ async def test_mt02_profile_field_rules_reject_bad_values(env: Env, field: str, 
     body = signup()
     body["profile"][field] = value
     response = await env.client.post(USERS, json=body)
-    assert response.status_code == 422 and f"profile.{field}" in fields(response)
+    assert response.status_code == 422
+    assert f"profile.{field}" in fields(response)
 
 
 @pytest.mark.parametrize("field", ["givenName", "familyName", "email", "password", "profile"])
@@ -174,7 +178,8 @@ async def test_mt02_company_and_title_are_required_when_employed_or_freelance(en
 async def test_mt02_the_composed_name_may_not_pass_80_characters(env: Env) -> None:
     body = signup() | {"givenName": "A" * 40, "familyName": "B" * 40}
     response = await env.client.post(USERS, json=body)
-    assert response.status_code == 422 and "familyName" in fields(response)
+    assert response.status_code == 422
+    assert "familyName" in fields(response)
     fine = signup(email="long@example.com") | {"givenName": "A" * 40, "familyName": "B" * 39}
     assert (await env.client.post(USERS, json=fine)).status_code == 201
 
@@ -194,8 +199,9 @@ async def test_mt04_terms_and_age_are_required_and_stored_with_the_terms_version
     env: Env,
 ) -> None:
     for missing in ({"termsAccepted": False}, {"ageConfirmed": False}):
-        response = await env.client.post(USERS, json=signup(**missing))
-        assert response.status_code == 422 and set(fields(response)) == set(missing)
+        response = await env.client.post(USERS, json=signup(**missing))  # type: ignore[arg-type]  # reason: overrides
+        assert response.status_code == 422
+        assert set(fields(response)) == set(missing)
     strict = await env.client.post(USERS, json=signup(termsAccepted=1))
     assert strict.status_code == 422  # a truthy number is not consent
 
@@ -239,10 +245,13 @@ async def test_mt07_a_member_page_follows_the_switch_and_never_shows_email_or_st
     shown = (await env.client.get(f"{USERS}/{uid}", headers=env.auth(OTHER))).json()
     assert shown["profile"]["discipline"] == "backend"
     assert shown["email"] is None  # BR-403: not to another developer
-    assert "stats" not in shown and "completeness" not in shown and "privacy" not in shown
+    assert "stats" not in shown
+    assert "completeness" not in shown
+    assert "privacy" not in shown
     lead_view = (await env.client.get(f"{USERS}/{uid}", headers=env.auth(LEAD))).json()
     assert lead_view["email"] == "nia@example.com"  # a lead still sees the email
-    assert "stats" not in lead_view and "completeness" not in lead_view
+    assert "stats" not in lead_view
+    assert "completeness" not in lead_view
 
     off = await env.client.put(
         f"{ME}/privacy", json={"showProfessionalDetails": False}, headers=headers
@@ -270,7 +279,8 @@ async def test_mt07_hidden_data_answers_exactly_like_missing_data(env: Env) -> N
         await uow.commit()
     hidden = (await env.client.get(f"{USERS}/{created['id']}", headers=env.auth(OTHER))).json()
     missing = (await env.client.get(f"{USERS}/{legacy.id}", headers=env.auth(OTHER))).json()
-    assert hidden["profile"] is None and missing["profile"] is None
+    assert hidden["profile"] is None
+    assert missing["profile"] is None
     assert set(_hidden_shape(hidden)) == set(_hidden_shape(missing))
 
 
@@ -280,14 +290,16 @@ async def test_mt14_the_switch_applies_at_once_to_get_user_and_the_picker_list(e
 
     async def listed() -> dict[str, Any]:
         page = (await env.client.get(f"{USERS}?q=Nia&pageSize=100", headers=env.auth(OTHER))).json()
-        return next(u for u in page["items"] if u["id"] == uid) | {"total": page["total"]}
+        return dict(next(u for u in page["items"] if u["id"] == uid) | {"total": page["total"]})
 
     before_total = (await listed())["total"]
     assert (await listed())["profile"]["companyName"] == "Acme"
     await env.client.put(f"{ME}/privacy", json={"showProfessionalDetails": False}, headers=headers)
     after = await listed()
-    assert after["profile"] is None and after["total"] == before_total
-    assert "Acme" not in str(after) and after["email"] is None
+    assert after["profile"] is None
+    assert after["total"] == before_total
+    assert "Acme" not in str(after)
+    assert after["email"] is None
     assert (await env.client.get(f"{USERS}/{uid}", headers=env.auth(OTHER))).json()[
         "profile"
     ] is None
@@ -342,7 +354,8 @@ async def test_mt08_editing_rebuilds_the_name_and_reports_per_field_messages(env
 async def test_mt08_employment_details_stay_required_for_working_people(env: Env) -> None:
     headers, _ = await join(env)
     response = await env.client.patch(f"{ME}/profile", json={"companyName": None}, headers=headers)
-    assert response.status_code == 422 and "companyName" in fields(response)
+    assert response.status_code == 422
+    assert "companyName" in fields(response)
     student = await env.client.patch(
         f"{ME}/profile",
         json={"employmentStatus": "student", "companyName": None, "jobTitle": None},
@@ -360,7 +373,8 @@ async def test_mt08_links_are_https_and_host_checked(env: Env) -> None:
         "website": "https://ada.dev/about?x=1",
     }
     ok = await env.client.patch(f"{ME}/profile", json={"links": good}, headers=headers)
-    assert ok.status_code == 200 and ok.json()["profile"]["links"] == good
+    assert ok.status_code == 200
+    assert ok.json()["profile"]["links"] == good
     for links in (
         {"github": "http://github.com/ada"},
         {"github": "https://evil.example/github.com"},
@@ -387,7 +401,8 @@ async def test_mt08_skills_are_limited_to_ten_and_unique_ignoring_case(env: Env)
     ok = await env.client.put(
         f"{ME}/skills", json={"skills": ["Python", "Go", " Rust "]}, headers=headers
     )
-    assert ok.status_code == 200 and ok.json()["profile"]["skills"] == ["Python", "Go", "Rust"]
+    assert ok.status_code == 200
+    assert ok.json()["profile"]["skills"] == ["Python", "Go", "Rust"]
     assert ok.json()["completeness"]["percent"] > 0
     for skills in (
         [f"s{i}" for i in range(11)],
@@ -415,7 +430,8 @@ async def test_mt08_concurrent_skill_replacements_never_pass_the_limit(env: Env)
     )
     assert all(r.status_code == 200 for r in responses)
     final = (await env.client.get(ME, headers=headers)).json()["profile"]["skills"]
-    assert len(final) == 10 and final in lists_  # exactly one whole list won, none were mixed
+    assert len(final) == 10
+    assert final in lists_
 
 
 async def test_mt09_markup_and_script_payloads_are_stored_and_returned_as_plain_text(
@@ -439,7 +455,8 @@ async def test_mt09_markup_and_script_payloads_are_stored_and_returned_as_plain_
     for name in ("headline", "about", "city", "companyName", "jobTitle"):
         assert profile[name] == payload, name  # unchanged: escaping is the client's job (MB-04)
     skills = await env.client.put(f"{ME}/skills", json={"skills": [payload[:29]]}, headers=headers)
-    assert skills.status_code == 200 and skills.json()["profile"]["skills"] == [payload[:29]]
+    assert skills.status_code == 200
+    assert skills.json()["profile"]["skills"] == [payload[:29]]
     assert ok.headers["content-type"].startswith("application/json")  # never served as HTML
     assert ok.headers.get("x-content-type-options", "nosniff") == "nosniff"
     for name in ("givenName", "familyName"):
@@ -611,7 +628,8 @@ async def test_mt15_deleting_needs_the_password_and_removes_the_person(env: Env)
     wrong = await env.client.post(
         f"{ME}/delete", json={"password": "wrong-password-123"}, headers=headers
     )
-    assert wrong.status_code == 403 and error_code(wrong) == "INVALID_CREDENTIALS"
+    assert wrong.status_code == 403
+    assert error_code(wrong) == "INVALID_CREDENTIALS"
     assert (await env.client.post(f"{ME}/delete", json={}, headers=headers)).status_code == 422
     assert (await env.client.get(ME, headers=headers)).status_code == 200  # still there
     gone = await env.client.post(f"{ME}/delete", json={"password": current}, headers=headers)
@@ -636,7 +654,8 @@ async def test_mt15_an_owner_of_projects_is_blocked_with_user_owns_projects(env:
     blocked = await env.client.post(
         f"{ME}/delete", json={"password": "correct-horse-battery"}, headers=headers
     )
-    assert blocked.status_code == 409 and error_code(blocked) == "USER_OWNS_PROJECTS"
+    assert blocked.status_code == 409
+    assert error_code(blocked) == "USER_OWNS_PROJECTS"
     assert (await env.client.get(ME, headers=headers)).status_code == 200  # nothing was removed
     assert (
         await env.client.get(f"{USERS}/{created['id']}", headers=env.auth(LEAD))
@@ -647,7 +666,8 @@ async def test_mt15_the_last_lead_cannot_delete_their_account(env: Env) -> None:
     blocked = await env.client.post(
         f"{ME}/delete", json={"password": PASSWORD}, headers=env.auth(LEAD)
     )
-    assert blocked.status_code == 409 and error_code(blocked) == "LAST_LEAD"
+    assert blocked.status_code == 409
+    assert error_code(blocked) == "LAST_LEAD"
 
 
 # --- MT-15 (preferences) and the existing sign-in surface ----------------------------------------

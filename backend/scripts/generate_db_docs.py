@@ -20,7 +20,7 @@ from sqlalchemy.pool import NullPool
 DOCS = Path("database/docs")
 ERD = DOCS / "erd.mmd"
 DICTIONARY = DOCS / "data-dictionary.md"
-TABLES = ("users", "projects", "tasks", "activity")
+TABLES = ("users", "projects", "tasks", "activity", "profiles", "profile_skills")
 ACTIONS = {"a": "no action", "r": "restrict", "c": "cascade", "n": "set null", "d": "set default"}
 
 COLUMNS = text(
@@ -131,7 +131,13 @@ def render_dictionary(schema: dict[str, Any]) -> str:
             nullable = c.is_nullable.lower()
             out.append(f"| `{c.column_name}` | {short_type(c.data_type)} | {nullable} | {note} |")
         out += ["", "| Constraint | Kind | Definition |", "| --- | --- | --- |"]
-        kinds = {"p": "primary key", "f": "foreign key", "u": "unique", "c": "check"}
+        kinds = {
+            "p": "primary key",
+            "f": "foreign key",
+            "u": "unique",
+            "c": "check",
+            "t": "constraint trigger",
+        }
         for c in info["constraints"]:
             extra = f" (on delete {ACTIONS[c.delete_action]})" if c.kind == "f" else ""
             out.append(f"| `{c.conname}` | {kinds[c.kind]} | `{c.definition}`{extra} |")

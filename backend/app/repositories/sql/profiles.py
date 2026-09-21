@@ -2,7 +2,8 @@ from collections.abc import Sequence
 from typing import Any
 from uuid import UUID
 
-from sqlalchemy import Row, delete, insert, select, update
+from sqlalchemy import Row, Select, delete, func, insert, literal_column, select, update
+from sqlalchemy.dialects.postgresql import aggregate_order_by
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.domain.models import Profile
@@ -16,37 +17,40 @@ class SqlProfileRepository:
     def __init__(self, session: AsyncSession) -> None:
         self._session = session
 
-    async def _skills(self, user_ids: Sequence[UUID]) -> dict[UUID, list[str]]:
-        statement = (
-            select(ProfileSkillRow.user_id, ProfileSkillRow.name)
-            .where(ProfileSkillRow.user_id.in_(user_ids))
-            .order_by(ProfileSkillRow.user_id, ProfileSkillRow.sort_order)
+    @staticmethod
+    def _select() -> Select[Any]:
+        """One query: the profile columns and its skills, in order, as an array."""
+        skills = (
+            select(
+                func.coalesce(
+                    func.array_agg(
+                        aggregate_order_by(ProfileSkillRow.name, ProfileSkillRow.sort_order)
+                    ),
+                    literal_column("ARRAY[]::text[]"),
+                )
+            )
+            .where(ProfileSkillRow.user_id == ProfileRow.user_id)
+            .scalar_subquery()
         )
-        found: dict[UUID, list[str]] = {}
-        for row in (await common.run(self._session, statement, "read")).all():
-            found.setdefault(row.user_id, []).append(row.name)
-        return found
+        return select(*_COLUMNS, skills.label("skills"))
 
-    async def _build(self, rows: Sequence[Row[Any]]) -> dict[UUID, Profile]:
-        skills = await self._skills([row.user_id for row in rows]) if rows else {}
-        return {
-            row.user_id: mappers.profile_from(row, tuple(skills.get(row.user_id, ())))
-            for row in rows
-        }
+    @staticmethod
+    def _build(rows: Sequence[Row[Any]]) -> dict[UUID, Profile]:
+        return {row.user_id: mappers.profile_from(row, tuple(row.skills)) for row in rows}
 
     async def get(self, user_id: UUID, *, for_update: bool = False) -> Profile | None:
-        statement = select(*_COLUMNS).where(ProfileRow.user_id == user_id)
+        statement = self._select().where(ProfileRow.user_id == user_id)
         if for_update:
             statement = statement.with_for_update()  # the lock PUT /me/skills serialises on
         row = (await common.run(self._session, statement, "read")).first()
-        return None if row is None else (await self._build([row]))[user_id]
+        return None if row is None else self._build([row])[user_id]
 
     async def get_many(self, user_ids: Sequence[UUID]) -> dict[UUID, Profile]:
         if not user_ids:
             return {}
-        statement = select(*_COLUMNS).where(ProfileRow.user_id.in_(list(user_ids)))
+        statement = self._select().where(ProfileRow.user_id.in_(list(user_ids)))
         rows = (await common.run(self._session, statement, "read")).all()
-        return await self._build(rows)
+        return self._build(rows)
 
     async def add(self, profile: Profile) -> Profile:
         await common.run(
