@@ -41,6 +41,8 @@ const TEXT: [string, string][] = [
   ["accent-fg", "surface"],
   ["accent-fg", "accent-subtle"],
   ["on-accent", "accent"],
+  ["on-accent", "accent-hover"], // the hover state must meet contrast too, not only the resting one
+  ["surface", "danger-hover"],
   ["success", "success-bg"],
   ["warning", "warning-bg"],
   ["danger", "danger-bg"],

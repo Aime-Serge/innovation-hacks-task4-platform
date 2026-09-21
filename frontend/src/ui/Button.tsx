@@ -2,10 +2,10 @@ import type { ComponentPropsWithRef } from "react";
 import { cn } from "@/lib/cn";
 
 const VARIANTS = {
-  primary: "bg-accent text-on-accent hover:opacity-90",
+  primary: "bg-accent text-on-accent hover:bg-accent-hover",
   secondary: "border border-line-strong bg-surface text-fg hover:bg-subtle",
   ghost: "text-fg hover:bg-subtle",
-  danger: "bg-danger text-surface hover:opacity-90",
+  danger: "bg-danger text-surface hover:bg-danger-hover",
 } as const;
 
 const SIZES = { sm: "h-8 px-3 text-sm", md: "h-10 px-4 text-sm" } as const;
