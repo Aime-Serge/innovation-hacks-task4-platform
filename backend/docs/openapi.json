@@ -60,6 +60,66 @@
         "title": "ActivityType",
         "type": "string"
       },
+      "AiStatusOut": {
+        "additionalProperties": false,
+        "properties": {
+          "enabled": {
+            "title": "Enabled",
+            "type": "boolean"
+          },
+          "features": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Features",
+            "type": "array"
+          },
+          "quota": {
+            "$ref": "#/components/schemas/QuotaOut"
+          }
+        },
+        "required": [
+          "enabled",
+          "features",
+          "quota"
+        ],
+        "title": "AiStatusOut",
+        "type": "object"
+      },
+      "AiSummaryOut": {
+        "additionalProperties": false,
+        "properties": {
+          "meta": {
+            "$ref": "#/components/schemas/MetaOut"
+          },
+          "nextSteps": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Nextsteps",
+            "type": "array"
+          },
+          "risks": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Risks",
+            "type": "array"
+          },
+          "summary": {
+            "title": "Summary",
+            "type": "string"
+          }
+        },
+        "required": [
+          "summary",
+          "risks",
+          "nextSteps",
+          "meta"
+        ],
+        "title": "AiSummaryOut",
+        "type": "object"
+      },
       "ErrorBody": {
         "additionalProperties": false,
         "properties": {
@@ -180,6 +240,41 @@
           "password"
         ],
         "title": "LoginRequest",
+        "type": "object"
+      },
+      "MetaOut": {
+        "additionalProperties": false,
+        "properties": {
+          "model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model"
+          },
+          "promptVersion": {
+            "examples": [
+              "task-generation-v1"
+            ],
+            "title": "Promptversion",
+            "type": "string"
+          },
+          "requestId": {
+            "format": "uuid",
+            "title": "Requestid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "model",
+          "promptVersion",
+          "requestId"
+        ],
+        "title": "MetaOut",
         "type": "object"
       },
       "PageOut_ActivityOut_": {
@@ -371,6 +466,27 @@
           }
         },
         "title": "Preferences",
+        "type": "object"
+      },
+      "PrioritizationOut": {
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/RankedTaskOut"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/MetaOut"
+          }
+        },
+        "required": [
+          "items",
+          "meta"
+        ],
+        "title": "PrioritizationOut",
         "type": "object"
       },
       "Priority": {
@@ -570,6 +686,67 @@
         "title": "ProjectUpdate",
         "type": "object"
       },
+      "QuotaOut": {
+        "additionalProperties": false,
+        "properties": {
+          "dailyLimit": {
+            "title": "Dailylimit",
+            "type": "integer"
+          },
+          "remainingToday": {
+            "title": "Remainingtoday",
+            "type": "integer"
+          },
+          "resetsAt": {
+            "format": "date-time",
+            "title": "Resetsat",
+            "type": "string"
+          }
+        },
+        "required": [
+          "dailyLimit",
+          "remainingToday",
+          "resetsAt"
+        ],
+        "title": "QuotaOut",
+        "type": "object"
+      },
+      "RankedTaskOut": {
+        "additionalProperties": false,
+        "properties": {
+          "rank": {
+            "title": "Rank",
+            "type": "integer"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          },
+          "suggestedPriority": {
+            "enum": [
+              "low",
+              "medium",
+              "high",
+              "urgent"
+            ],
+            "title": "Suggestedpriority",
+            "type": "string"
+          },
+          "taskId": {
+            "format": "uuid",
+            "title": "Taskid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "taskId",
+          "rank",
+          "suggestedPriority",
+          "reason"
+        ],
+        "title": "RankedTaskOut",
+        "type": "object"
+      },
       "RefreshRequest": {
         "additionalProperties": false,
         "properties": {
@@ -609,6 +786,70 @@
           "status"
         ],
         "title": "StatusChange",
+        "type": "object"
+      },
+      "SuggestionOut": {
+        "additionalProperties": false,
+        "properties": {
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "dueInDays": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Days from today, 0 to 90; the interface adds it.",
+            "title": "Dueindays"
+          },
+          "priority": {
+            "enum": [
+              "low",
+              "medium",
+              "high",
+              "urgent"
+            ],
+            "title": "Priority",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "title",
+          "description",
+          "priority",
+          "dueInDays"
+        ],
+        "title": "SuggestionOut",
+        "type": "object"
+      },
+      "SuggestionsOut": {
+        "additionalProperties": false,
+        "properties": {
+          "meta": {
+            "$ref": "#/components/schemas/MetaOut"
+          },
+          "suggestions": {
+            "items": {
+              "$ref": "#/components/schemas/SuggestionOut"
+            },
+            "title": "Suggestions",
+            "type": "array"
+          }
+        },
+        "required": [
+          "suggestions",
+          "meta"
+        ],
+        "title": "SuggestionsOut",
         "type": "object"
       },
       "SummaryOut": {
@@ -818,6 +1059,38 @@
         ],
         "title": "TaskStatus",
         "type": "string"
+      },
+      "TaskSuggestionRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "brief": {
+            "anyOf": [
+              {
+                "maxLength": 1000,
+                "pattern": "^[^\\x00]*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "What the work is about, in a sentence or two. Optional.",
+            "examples": [
+              "Launch the mobile onboarding flow"
+            ],
+            "title": "Brief"
+          },
+          "count": {
+            "default": 5,
+            "description": "How many tasks to suggest.",
+            "maximum": 10.0,
+            "minimum": 1.0,
+            "title": "Count",
+            "type": "integer"
+          }
+        },
+        "title": "TaskSuggestionRequest",
+        "type": "object"
       },
       "TaskUpdate": {
         "additionalProperties": false,
@@ -1231,6 +1504,771 @@
         "summary": "Recent activity",
         "tags": [
           "Dashboard"
+        ]
+      }
+    },
+    "/api/v1/ai/projects/{projectId}/prioritization": {
+      "post": {
+        "description": "Ranks the project's open tasks (up to 50) and suggests a priority and a reason for each. Nothing is changed: accepting a suggestion uses the normal task update.",
+        "operationId": "prioritize",
+        "parameters": [
+          {
+            "description": "The project's id.",
+            "in": "path",
+            "name": "projectId",
+            "required": true,
+            "schema": {
+              "description": "The project's id.",
+              "format": "uuid",
+              "title": "Projectid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrioritizationOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "UNAUTHENTICATED": {
+                    "summary": "UNAUTHENTICATED",
+                    "value": {
+                      "error": {
+                        "code": "UNAUTHENTICATED",
+                        "message": "The access token is missing, invalid or expired.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "FORBIDDEN": {
+                    "summary": "FORBIDDEN",
+                    "value": {
+                      "error": {
+                        "code": "FORBIDDEN",
+                        "message": "Only the project owner or a lead may do this.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "NOT_FOUND": {
+                    "summary": "NOT_FOUND",
+                    "value": {
+                      "error": {
+                        "code": "NOT_FOUND",
+                        "message": "The resource was not found.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "VALIDATION_ERROR": {
+                    "summary": "VALIDATION_ERROR",
+                    "value": {
+                      "error": {
+                        "code": "VALIDATION_ERROR",
+                        "details": [
+                          {
+                            "field": "title",
+                            "message": "Must be between 1 and 120 characters."
+                          }
+                        ],
+                        "message": "One or more fields are invalid.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Validation error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "AI_QUOTA_EXCEEDED": {
+                    "summary": "AI_QUOTA_EXCEEDED",
+                    "value": {
+                      "error": {
+                        "code": "AI_QUOTA_EXCEEDED",
+                        "message": "The AI limit was reached. Try again later.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Rate limited"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "INTERNAL_ERROR": {
+                    "summary": "INTERNAL_ERROR",
+                    "value": {
+                      "error": {
+                        "code": "INTERNAL_ERROR",
+                        "message": "Something went wrong on our side.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unexpected error"
+          },
+          "502": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "AI_BAD_RESPONSE": {
+                    "summary": "AI_BAD_RESPONSE",
+                    "value": {
+                      "error": {
+                        "code": "AI_BAD_RESPONSE",
+                        "message": "The AI answer could not be used. Try a shorter brief.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad gateway"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "AI_DISABLED": {
+                    "summary": "AI_DISABLED",
+                    "value": {
+                      "error": {
+                        "code": "AI_DISABLED",
+                        "message": "AI features are switched off.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  },
+                  "AI_UNAVAILABLE": {
+                    "summary": "AI_UNAVAILABLE",
+                    "value": {
+                      "error": {
+                        "code": "AI_UNAVAILABLE",
+                        "message": "AI is unavailable right now. You can add tasks manually.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service unavailable"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Suggest priorities",
+        "tags": [
+          "AI"
+        ]
+      }
+    },
+    "/api/v1/ai/projects/{projectId}/summary": {
+      "post": {
+        "description": "A short progress summary with up to five risks and five next steps, built from the project's counts and task titles. Anyone who can read the project may ask.",
+        "operationId": "summarize",
+        "parameters": [
+          {
+            "description": "The project's id.",
+            "in": "path",
+            "name": "projectId",
+            "required": true,
+            "schema": {
+              "description": "The project's id.",
+              "format": "uuid",
+              "title": "Projectid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiSummaryOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "UNAUTHENTICATED": {
+                    "summary": "UNAUTHENTICATED",
+                    "value": {
+                      "error": {
+                        "code": "UNAUTHENTICATED",
+                        "message": "The access token is missing, invalid or expired.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "NOT_FOUND": {
+                    "summary": "NOT_FOUND",
+                    "value": {
+                      "error": {
+                        "code": "NOT_FOUND",
+                        "message": "The resource was not found.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "VALIDATION_ERROR": {
+                    "summary": "VALIDATION_ERROR",
+                    "value": {
+                      "error": {
+                        "code": "VALIDATION_ERROR",
+                        "details": [
+                          {
+                            "field": "title",
+                            "message": "Must be between 1 and 120 characters."
+                          }
+                        ],
+                        "message": "One or more fields are invalid.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Validation error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "AI_QUOTA_EXCEEDED": {
+                    "summary": "AI_QUOTA_EXCEEDED",
+                    "value": {
+                      "error": {
+                        "code": "AI_QUOTA_EXCEEDED",
+                        "message": "The AI limit was reached. Try again later.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Rate limited"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "INTERNAL_ERROR": {
+                    "summary": "INTERNAL_ERROR",
+                    "value": {
+                      "error": {
+                        "code": "INTERNAL_ERROR",
+                        "message": "Something went wrong on our side.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unexpected error"
+          },
+          "502": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "AI_BAD_RESPONSE": {
+                    "summary": "AI_BAD_RESPONSE",
+                    "value": {
+                      "error": {
+                        "code": "AI_BAD_RESPONSE",
+                        "message": "The AI answer could not be used. Try a shorter brief.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad gateway"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "AI_DISABLED": {
+                    "summary": "AI_DISABLED",
+                    "value": {
+                      "error": {
+                        "code": "AI_DISABLED",
+                        "message": "AI features are switched off.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  },
+                  "AI_UNAVAILABLE": {
+                    "summary": "AI_UNAVAILABLE",
+                    "value": {
+                      "error": {
+                        "code": "AI_UNAVAILABLE",
+                        "message": "AI is unavailable right now. You can add tasks manually.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service unavailable"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Summarise a project",
+        "tags": [
+          "AI"
+        ]
+      }
+    },
+    "/api/v1/ai/projects/{projectId}/task-suggestions": {
+      "post": {
+        "description": "Suggests tasks for a project. Nothing is saved: the person reviews the suggestions and adds them through `POST /tasks`. Needs the right to create tasks in the project.",
+        "operationId": "suggest_tasks",
+        "parameters": [
+          {
+            "description": "The project's id.",
+            "in": "path",
+            "name": "projectId",
+            "required": true,
+            "schema": {
+              "description": "The project's id.",
+              "format": "uuid",
+              "title": "Projectid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/TaskSuggestionRequest"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Payload"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuggestionsOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "UNAUTHENTICATED": {
+                    "summary": "UNAUTHENTICATED",
+                    "value": {
+                      "error": {
+                        "code": "UNAUTHENTICATED",
+                        "message": "The access token is missing, invalid or expired.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "FORBIDDEN": {
+                    "summary": "FORBIDDEN",
+                    "value": {
+                      "error": {
+                        "code": "FORBIDDEN",
+                        "message": "Only the project owner or a lead may do this.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "NOT_FOUND": {
+                    "summary": "NOT_FOUND",
+                    "value": {
+                      "error": {
+                        "code": "NOT_FOUND",
+                        "message": "The resource was not found.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "VALIDATION_ERROR": {
+                    "summary": "VALIDATION_ERROR",
+                    "value": {
+                      "error": {
+                        "code": "VALIDATION_ERROR",
+                        "details": [
+                          {
+                            "field": "title",
+                            "message": "Must be between 1 and 120 characters."
+                          }
+                        ],
+                        "message": "One or more fields are invalid.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Validation error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "AI_QUOTA_EXCEEDED": {
+                    "summary": "AI_QUOTA_EXCEEDED",
+                    "value": {
+                      "error": {
+                        "code": "AI_QUOTA_EXCEEDED",
+                        "message": "The AI limit was reached. Try again later.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Rate limited"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "INTERNAL_ERROR": {
+                    "summary": "INTERNAL_ERROR",
+                    "value": {
+                      "error": {
+                        "code": "INTERNAL_ERROR",
+                        "message": "Something went wrong on our side.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unexpected error"
+          },
+          "502": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "AI_BAD_RESPONSE": {
+                    "summary": "AI_BAD_RESPONSE",
+                    "value": {
+                      "error": {
+                        "code": "AI_BAD_RESPONSE",
+                        "message": "The AI answer could not be used. Try a shorter brief.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad gateway"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "AI_DISABLED": {
+                    "summary": "AI_DISABLED",
+                    "value": {
+                      "error": {
+                        "code": "AI_DISABLED",
+                        "message": "AI features are switched off.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  },
+                  "AI_UNAVAILABLE": {
+                    "summary": "AI_UNAVAILABLE",
+                    "value": {
+                      "error": {
+                        "code": "AI_UNAVAILABLE",
+                        "message": "AI is unavailable right now. You can add tasks manually.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service unavailable"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Suggest tasks",
+        "tags": [
+          "AI"
+        ]
+      }
+    },
+    "/api/v1/ai/status": {
+      "get": {
+        "description": "Whether AI is switched on, which features exist, and how many calls the caller has left today (UTC). The interface shows AI actions only when `enabled` is true.",
+        "operationId": "ai_status",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiStatusOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "UNAUTHENTICATED": {
+                    "summary": "UNAUTHENTICATED",
+                    "value": {
+                      "error": {
+                        "code": "UNAUTHENTICATED",
+                        "message": "The access token is missing, invalid or expired.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "INTERNAL_ERROR": {
+                    "summary": "INTERNAL_ERROR",
+                    "value": {
+                      "error": {
+                        "code": "INTERNAL_ERROR",
+                        "message": "Something went wrong on our side.",
+                        "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10"
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unexpected error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "AI status",
+        "tags": [
+          "AI"
         ]
       }
     },

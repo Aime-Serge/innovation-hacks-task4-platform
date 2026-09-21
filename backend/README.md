@@ -74,9 +74,10 @@ setting is missing from it.
 | `REFRESH_TOKEN_TTL_SECONDS` | `604800` | Refresh-token lifetime, 7 days (BR-404). Task 4 name: `REFRESH_TOKEN_TTL_S`. |
 | `REGISTRATION_ENABLED` | `true` | When false, registration returns 403 `REGISTRATION_DISABLED` (BR-414). |
 | `AI_ENABLED` | `true` | AI kill switch; false makes every AI endpoint return 503 `AI_DISABLED` (BR-412). |
-| `LLM_PROVIDER` | `fake` | `fake` or `anthropic`. `fake` is refused when `APP_ENV=production` (FR-427). |
-| `LLM_API_KEY` | none | Provider key. Required for `anthropic`. Secret; set only in the platform dashboard. |
-| `LLM_MODEL` | none | Model name. Required for `anthropic`; never hard-coded. |
+| `LLM_PROVIDER` | `fake` | `fake` or `gemini`. `fake` is refused when `APP_ENV=production` (FR-427). |
+| `LLM_API_KEY` | none | Provider key. Required for `gemini`. Secret; set only in the platform dashboard. |
+| `LLM_MODEL` | none | Model name. Required for `gemini`; never hard-coded. |
+| `FAKE_LLM_SCENARIO` | `ok` | Dev and test only: what the fake provider does (`ok`, `bad_json`, `too_long`, `injection_echo`, `timeout`, `rate_limited`, `invalid_then_ok`). |
 | `LLM_TIMEOUT_S` | `20` | Provider call timeout in seconds (at most 25, the AI time budget). |
 | `LLM_MAX_OUTPUT_TOKENS` | `1024` | Output token limit per call (NFR-419). |
 | `AI_DAILY_LIMIT_PER_USER` | `20` | AI calls per user per UTC day (BR-409). |
@@ -124,6 +125,10 @@ and `sort` (`field`, or `-field` for descending).
 | POST | `/api/v1/auth/login` | public | Exchange credentials for a token |
 | POST | `/api/v1/auth/refresh` | refresh token | Exchange a refresh token for a new pair (single use) |
 | POST | `/api/v1/auth/logout` | refresh token | Revoke the session; 204 whether or not the token is known |
+| GET | `/api/v1/ai/status` | any | Whether AI is on, the features, and the caller's remaining quota |
+| POST | `/api/v1/ai/projects/{projectId}/task-suggestions` | owner or lead | Suggest tasks; nothing is saved |
+| POST | `/api/v1/ai/projects/{projectId}/prioritization` | reader | Rank the open tasks and suggest priorities |
+| POST | `/api/v1/ai/projects/{projectId}/summary` | reader | A short summary, risks and next steps |
 | GET | `/api/v1/auth/me` | any user | The current user |
 | POST | `/api/v1/users` | public | Register (201 + `Location`) |
 | GET | `/api/v1/users` | any user | List, search `q`, filter `role` |
@@ -193,6 +198,10 @@ traces and internals never appear in a response.
 | 409 | `INVALID_STATUS_TRANSITION` | The workflow forbids the move |
 | 409 | `PROJECT_NOT_EMPTY` | Deleting a project that has tasks |
 | 403 | `REGISTRATION_DISABLED` | Registration is switched off (`REGISTRATION_ENABLED=false`) |
+| 429 | `AI_QUOTA_EXCEEDED` | An AI limit was reached; `Retry-After` says when to try again |
+| 502 | `AI_BAD_RESPONSE` | The AI answer was still invalid after one repair attempt |
+| 503 | `AI_DISABLED` | AI is switched off (`AI_ENABLED=false`) |
+| 503 | `AI_UNAVAILABLE` | The provider timed out, was unreachable or rate limited us |
 | 409 | `PROJECT_CLOSED` | Adding a task to a completed project |
 | 409 | `USER_OWNS_PROJECTS` | Deleting a user who owns projects |
 | 409 | `LAST_LEAD` | Deleting or demoting the last lead |

@@ -96,6 +96,7 @@ END` |
 
 | Index | Definition |
 | --- | --- |
+| `ix_tasks_assignee_id_project_id` | `CREATE INDEX ix_tasks_assignee_id_project_id ON public.tasks USING btree (assignee_id, project_id) WHERE (assignee_id IS NOT NULL)` |
 | `ix_tasks_assignee_id_status` | `CREATE INDEX ix_tasks_assignee_id_status ON public.tasks USING btree (assignee_id, status) WHERE (assignee_id IS NOT NULL)` |
 | `ix_tasks_created_at_id` | `CREATE INDEX ix_tasks_created_at_id ON public.tasks USING btree (created_at, id)` |
 | `ix_tasks_description_trgm` | `CREATE INDEX ix_tasks_description_trgm ON public.tasks USING gin (description gin_trgm_ops)` |
