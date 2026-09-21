@@ -3,7 +3,6 @@
 import { createContext, useContext, useMemo, type ReactNode } from "react";
 import { createHttpServices } from "@/adapters/http";
 import { createMockServices } from "@/adapters/mock";
-import { dataSource } from "@/lib/data-source";
 import type { Services } from "@/services/types";
 import { useAuth } from "./AuthProvider";
 import { useScenario } from "./scenario";
@@ -18,7 +17,7 @@ export function ServicesProvider({ children }: { children: ReactNode }) {
   const { getUserId } = useAuth();
   const services = useMemo(
     () =>
-      dataSource() === "mock"
+      process.env["NEXT_PUBLIC_DATA_SOURCE"] === "mock" // inlined at build, so http builds drop the mock
         ? createMockServices({ scenario, getActorId: getUserId }).services
         : createHttpServices(),
     [scenario, getUserId],
