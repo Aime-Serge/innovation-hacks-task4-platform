@@ -1,5 +1,6 @@
 import { memo } from "react";
 import { formatDate, isOverdue, todayIso } from "@/lib/dates";
+import { statusChoices } from "@/lib/workflow";
 import { t } from "@/i18n";
 import { TaskStatus, type Task } from "@/schemas";
 import { Avatar } from "@/ui/Avatar";
@@ -84,7 +85,7 @@ export const TaskCard = memo(function TaskCard({
           value={task.status}
           onChange={(event) => onStatusChange(task.id, TaskStatus.parse(event.target.value))}
         >
-          {TaskStatus.options.map((status) => (
+          {statusChoices(task.status).map((status) => (
             <option key={status} value={status}>
               {t(`taskStatus.${status}`)}
             </option>

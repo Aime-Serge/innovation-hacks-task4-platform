@@ -79,7 +79,7 @@ export function createMockAuth(): AuthService {
         name,
         email,
         role: "developer",
-        preferences: { theme: "system" },
+        preferences: { theme: "dark" },
       };
       getAccounts().push({ user, password, resetToken: null, resetExpiresAt: null });
       saveAccounts();

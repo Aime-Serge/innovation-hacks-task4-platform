@@ -7,7 +7,6 @@ export function Sidebar() {
     <aside className="hidden w-(--sidebar-width) shrink-0 border-r border-line bg-surface lg:block">
       <div className="brand-bar" />
       <nav aria-label={t("layout.primaryNav")} className="sticky top-0 p-4">
-        <p className="mb-4 px-3 text-lg font-semibold">{t("app.name")}</p>
         <NavLinks />
       </nav>
     </aside>

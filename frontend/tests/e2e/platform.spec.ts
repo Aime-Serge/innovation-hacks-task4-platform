@@ -102,7 +102,16 @@ test.describe("TC-009 theme (FR-24)", () => {
     await context.close();
   });
 
-  test("TC-009 the toggle cycles system, light and dark, and the choice survives a reload", async ({
+  test("TC-009 dark is the default even when the OS prefers light", async ({ browser }) => {
+    const context = await browser.newContext({ colorScheme: "light" });
+    await signIn(context);
+    const page = await context.newPage();
+    await page.goto("/");
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+    await context.close();
+  });
+
+  test("TC-009 the Appearance menu switches light and dark, and the choice survives a reload", async ({
     page,
     context,
   }) => {
@@ -110,13 +119,19 @@ test.describe("TC-009 theme (FR-24)", () => {
     await page.setViewportSize({ width: 1280, height: 800 });
     await visit(page, "/");
     const html = page.locator("html");
-    await page.getByRole("button", { name: /^Theme: System/ }).click();
+    const choose = async (name: string) => {
+      await page.getByRole("button", { name: /Account menu for/ }).click();
+      await page.getByRole("menuitem", { name: "Appearance" }).focus();
+      await page.keyboard.press("ArrowRight");
+      await page.getByRole("menuitemradio", { name }).focus();
+      await page.keyboard.press("Enter");
+    };
+    await choose("Light");
     await expect(html).toHaveAttribute("data-theme", "light");
-    await page.getByRole("button", { name: /^Theme: Light/ }).click();
+    await choose("Dark");
     await expect(html).toHaveAttribute("data-theme", "dark");
     await page.reload();
     await expect(html).toHaveAttribute("data-theme", "dark");
-    await expect(page.getByRole("button", { name: /^Theme: Dark/ })).toBeVisible();
   });
 
   test("TC-009 the profile form theme select applies immediately", async ({ page, context }) => {

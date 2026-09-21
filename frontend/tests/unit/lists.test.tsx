@@ -8,7 +8,8 @@ import { TaskCard } from "@/features/tasks/TaskCard";
 import { TasksView } from "@/features/tasks/TasksView";
 import { useTaskQuery } from "@/features/tasks/useTaskQuery";
 import { useProjectQuery } from "@/features/projects/useProjectQuery";
-import { emptyTaskQuery, type Scenario } from "@/schemas";
+import { emptyTaskQuery, type Scenario, type TaskStatus } from "@/schemas";
+import { allowedNext } from "@/lib/workflow";
 import { renderHook, act } from "@testing-library/react";
 import { makeProject, makeTask } from "./helpers";
 import { nav } from "./next-mock";
@@ -113,8 +114,8 @@ describe("TC-030 cards show every field (FR-11, FR-12)", () => {
         onStatusChange={onStatusChange}
       />,
     );
-    await userEvent.selectOptions(screen.getByRole("combobox"), "done");
-    expect(onStatusChange).toHaveBeenCalledWith(expect.any(String), "done");
+    await userEvent.selectOptions(screen.getByRole("combobox"), "in_progress");
+    expect(onStatusChange).toHaveBeenCalledWith(expect.any(String), "in_progress");
   });
 
   it("TC-030 the project card shows name, status, due date, progress and counts", () => {
@@ -256,7 +257,7 @@ describe("TC-054 tasks page (FR-15..19, FR-21)", () => {
     const first = (await screen.findAllByRole("article"))[0] as HTMLElement;
     const select = within(first).getByRole("combobox");
     const before = (select as HTMLSelectElement).value;
-    const next = before === "done" ? "todo" : "done";
+    const next = allowedNext(before as TaskStatus)[0] as string;
     await userEvent.selectOptions(select, next);
     expect(
       await screen.findByText("Could not update the task. The change was undone."),
@@ -271,7 +272,7 @@ describe("TC-054 tasks page (FR-15..19, FR-21)", () => {
     open(<TasksView />);
     const first = (await screen.findAllByRole("article"))[0] as HTMLElement;
     const select = within(first).getByRole<HTMLSelectElement>("combobox");
-    const next = select.value === "done" ? "todo" : "done";
+    const next = allowedNext(select.value as TaskStatus)[0] as string;
     await userEvent.selectOptions(select, next);
     await waitFor(() => expect(screen.queryByText(/could not update/i)).toBeNull());
     expect(screen.queryByText("Could not update the task. The change was undone.")).toBeNull();

@@ -1,10 +1,11 @@
 "use client";
 
 import { array } from "zod/mini";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { useAuth } from "@/providers/AuthProvider";
 import { Grid } from "@/layout/Grid";
 import { PageHeader } from "@/layout/PageHeader";
+import { useCreateIntent } from "../shared/useCreateIntent";
 import { t, tCount } from "@/i18n";
 import { projectProgress } from "@/lib/query-logic";
 import { ProjectSort, ProjectStatus } from "@/schemas";
@@ -22,7 +23,7 @@ import { useProjectQuery } from "./useProjectQuery";
 
 export function ProjectsView() {
   const { query, update, clear, filtered } = useProjectQuery();
-  const [creating, setCreating] = useState(false);
+  const [creating, setCreating] = useCreateIntent();
   const { user } = useAuth();
   const projects = useProjects(query);
   const tasks = useAllTasks();

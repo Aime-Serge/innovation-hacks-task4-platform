@@ -27,7 +27,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   // Next apply the nonce to its own scripts (docs/adr/ADR-011-csp-and-theme-script.md).
   const nonce = (await headers()).get("x-nonce") ?? undefined;
   return (
-    <html lang="en" data-theme="light" className={inter.variable} suppressHydrationWarning>
+    <html lang="en" data-theme="dark" className={inter.variable} suppressHydrationWarning>
       <head>
         {/* Blocks first paint on purpose: sets data-theme so there is no flash (FR-24). */}
         <script nonce={nonce}>{THEME_INIT_SCRIPT}</script>
