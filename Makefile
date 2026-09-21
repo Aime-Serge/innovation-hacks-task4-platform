@@ -48,9 +48,10 @@ security-full:  ## gitleaks (files and history), the built bundle, npm audit, pi
 	$(WEB) npx vitest run --configLoader runner tests/unit/security.test.ts tests/unit/bff.test.ts tests/unit/session-lib.test.ts tests/unit/proxy.test.ts
 	$(UV) pytest -q --no-cov tests/security tests/unit/test_settings_task4.py
 
-deploy-check:  ## render.yaml, Vercel settings and headers, env tables against Settings, additive migrations
+deploy-check:  ## render.yaml, Vercel settings and headers, env tables against Settings, additive migrations, the previous release on the new schema
 	$(UV) python ../scripts/deploy_check.py
 	$(UV) pytest -q --no-cov tests/unit/test_deploy_check.py
+	./scripts/compat-check.sh
 
 docs-check:  ## README sections, env tables, ADR index, the supersession log, the runbook
 	$(UV) pytest -q --no-cov tests/unit/test_documentation.py

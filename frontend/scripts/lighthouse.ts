@@ -58,9 +58,12 @@ function medianOf(runs: Measurement[]): Measurement {
 }
 
 async function main(): Promise<void> {
-  execFileSync("npm", ["run", "build"], { stdio: "inherit" });
+  // These are the Task 1 pages on the mock adapter (S8); the real build is measured on the live stack.
+  const env = { ...process.env, NEXT_PUBLIC_DATA_SOURCE: "mock" };
+  execFileSync("npm", ["run", "build"], { stdio: "inherit", env });
   const server: ChildProcess = spawn("npx", ["next", "start", "-p", String(PORT)], {
     stdio: "ignore",
+    env,
   });
   // Reuse the Chromium Playwright already installed, so no separate Chrome is needed.
   const chrome = await launch({
