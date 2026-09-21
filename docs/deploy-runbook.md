@@ -20,6 +20,27 @@ Everything below is done by you, in your accounts: nothing in this repository ca
 | Render's internal database hostname format and that external access can be limited to your IP | Render database page |
 | The current Gemini model name for `LLM_MODEL`, and the provider's retention and training terms for your key | Google AI documentation |
 
+## 0b. Environment for the minimal profile (feat/minimal-profile)
+
+Two non-secret settings are new on the API. Both have defaults, so a deploy that does not set them still starts; set them to be explicit.
+
+**API on Render**
+
+| Variable | Purpose | Notes |
+|---|---|---|
+| `MIN_AGE` | Minimum age the registration checkbox confirms | Default 16; no birth date is stored |
+| `TERMS_VERSION` | The terms version stored with each registration | Text, default `2026-09`; existing users are backfilled as `legacy` by migration 0008 |
+
+All other API variables are listed in the README table and in `backend/README.md`.
+
+**Frontend on Vercel**
+
+| Variable | Purpose | Notes |
+|---|---|---|
+| `API_BASE_URL`, `SITE_URL` | Unchanged | The minimal profile adds no frontend variable and no `NEXT_PUBLIC_` variable |
+
+`make guide-check` verifies that `.env.example` lists `MIN_AGE` and `TERMS_VERSION` and that the API Settings reads them.
+
 ## 1. Make the secrets (in your shell)
 
 ```bash
@@ -50,7 +71,7 @@ It prints only the database name and "Roles created".
 
 ```bash
 export MIGRATION_DATABASE_URL="postgresql+asyncpg://ih_migrator:${MIGRATOR_DB_PASSWORD}@<external host>/ih_platform?ssl=require"
-CONFIRM_PROD=yes make db-migrate-prod     # alembic upgrade head, then prints 0007 (head)
+CONFIRM_PROD=yes make db-migrate-prod     # alembic upgrade head, then prints 0008 (head) once the minimal profile migration is merged
 ```
 
 `MIGRATION_DATABASE_URL` is never set on the Render service (FR-439). Then remove the external access rule from the database if the plan allows it.
@@ -113,14 +134,13 @@ The database is **not** rolled back by down-migrations. Migrations only add thin
 
 ## The release order every time (section 8)
 
-1. Merge to `main` only through a pull request with the gate green.
-2. `CONFIRM_PROD=yes make db-migrate-prod` (additive, so the old API keeps working).
-3. Deploy the API on Render; wait for `/healthz` and `/readyz`.
-4. `make smoke` against the site (it exercises the API).
-5. Deploy the frontend on Vercel.
-6. `make smoke` again against both.
+1. Merge to `main` only through a pull request with the gate green (`make gate`, which ends with `make guide-check`).
+2. **Migrate.** `CONFIRM_PROD=yes make db-migrate-prod`. Migration `0008_minimal_profile` (down revision `0007`) only adds two tables and two nullable columns, so the previous API keeps working on the new schema (ADR-609, ADR-413).
+3. **API.** Deploy the API on Render; wait for `/healthz` and `/readyz`.
+4. **Frontend.** Deploy the frontend on Vercel.
+5. **Smoke.** `SITE_URL=https://<your vercel domain> make smoke` against the site, which exercises the API. It includes register-with-profile, profile edit, assignment with the picker, password change and sign out once the profile endpoints are deployed. Then sign in with a second browser to check the privacy switch and the password change by hand.
 
-A change that removes or renames something is split across two releases: add the new form and stop using the old one in the first, remove the old one in the second.
+A change that removes or renames something is split across two releases: add the new form and stop using the old one in the first, remove the old one in the second. Rollback: redeploy the previous deployment on each platform; the migration is not rolled back (its downgrade drops the profile tables and would destroy data).
 
 ## Kill switches and emergencies
 
