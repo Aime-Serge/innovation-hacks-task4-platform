@@ -6,7 +6,8 @@ import { SCENARIOS, settled, signIn, visit } from "../e2e/helpers";
 // in every scenario, checked with data on screen and, for loading, on skeletons.
 const TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"];
 const THEMES = ["light", "dark"] as const;
-const APP_ROUTES = ["/", "/projects", "/tasks", "/profile"] as const;
+// MF-06, MF-08, MF-12, MN-01: the new profile, editor and settings screens join the sweep.
+const APP_ROUTES = ["/", "/projects", "/tasks", "/profile", "/profile/edit", "/settings"] as const;
 
 async function setTheme(page: Page, theme: (typeof THEMES)[number]): Promise<void> {
   await page.evaluate((value) => {
@@ -51,6 +52,21 @@ test.describe("TC-091 axe on the app routes", () => {
       await visit(page, "/projects/unknown");
       await setTheme(page, theme);
       await expect(page.getByRole("heading", { name: "Project not found" })).toBeVisible();
+      expect(await violations(page)).toEqual([]);
+    });
+
+    // MF-07: another member's page, and the same unknown-id path landing on the shared 404.
+    test(`TC-091 /people/user-2 · ${theme}`, async ({ page }) => {
+      await visit(page, "/people/user-2");
+      await setTheme(page, theme);
+      await settled(page);
+      expect(await violations(page)).toEqual([]);
+    });
+
+    test(`TC-091 /people/unknown (not found) · ${theme}`, async ({ page }) => {
+      await visit(page, "/people/unknown");
+      await setTheme(page, theme);
+      await expect(page.getByRole("heading", { name: "Page not found" })).toBeVisible();
       expect(await violations(page)).toEqual([]);
     });
 
