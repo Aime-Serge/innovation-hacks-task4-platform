@@ -176,7 +176,7 @@ export function createMockAuth(): AuthService {
         givenName: input.givenName,
         familyName: input.familyName,
         email: input.email,
-        role: "developer",
+        role: input.role ?? "developer",
         preferences: { theme: "system" },
         ...(input.avatarUrl != null ? { avatarUrl: input.avatarUrl } : {}),
         createdAt: new Date().toISOString(),

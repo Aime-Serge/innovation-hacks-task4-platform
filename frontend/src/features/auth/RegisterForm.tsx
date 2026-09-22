@@ -6,11 +6,13 @@ import { useAuth } from "@/providers/AuthProvider";
 import { t } from "@/i18n";
 import { hardNavigate } from "@/lib/navigation";
 import { setWelcomeFlag } from "@/lib/welcome";
+import type { Role } from "@/schemas";
 import { ServiceError } from "@/services/types";
 import { ProgressBar } from "@/ui/ProgressBar";
 import { FormAlert } from "./messages";
 import { RegisterAccountStep } from "./RegisterAccountStep";
 import { RegisterProfileStep } from "./RegisterProfileStep";
+import { RegisterRoleDialog } from "./RegisterRoleDialog";
 import {
   emptyAccount,
   emptyProfile,
@@ -37,6 +39,7 @@ export function RegisterForm() {
   const [avatarError, setAvatarError] = useState<string | undefined>(undefined);
   const [formError, setFormError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [roleDialogOpen, setRoleDialogOpen] = useState(false);
 
   const checkStep1 = async () => {
     try {
@@ -81,10 +84,16 @@ export function RegisterForm() {
     }
   };
 
-  const submit = async () => {
+  // RF-01: the role choice is asked in its own dialog after step 2, never pre-selected;
+  // Create account there is disabled until one option is chosen (RegisterRoleDialog).
+  const openRoleDialog = () => {
     // A rejected photo leaves its message up until it is replaced or cleared; do not silently
     // register without the photo the person was still trying to fix.
     if (avatarError !== undefined) return;
+    setRoleDialogOpen(true);
+  };
+
+  const submit = async (role: Role) => {
     setBusy(true);
     setFormError(null);
     try {
@@ -96,6 +105,7 @@ export function RegisterForm() {
         profile: profileBlock(profile),
         termsAccepted: true,
         ageConfirmed: true,
+        role,
         ...(avatarUrl !== null ? { avatarUrl } : {}),
       });
       // MF-01: a successful registration signs the person in.
@@ -111,6 +121,9 @@ export function RegisterForm() {
   };
 
   const handleSubmitFailure = (failure: unknown) => {
+    // Whatever went wrong, the person needs to see it on the form the failing field lives on,
+    // not behind the role dialog.
+    setRoleDialogOpen(false);
     if (!(failure instanceof ServiceError)) {
       setFormError(t("auth.genericError"));
       return;
@@ -150,13 +163,19 @@ export function RegisterForm() {
           onChange={setProfile}
           onBlurField={() => void checkStep2()}
           onBack={() => setStep(1)}
-          onSubmit={() => void submit()}
+          onSubmit={openRoleDialog}
           avatarUrl={avatarUrl}
           avatarError={avatarError}
           onAvatarChange={setAvatarUrl}
           onAvatarError={setAvatarError}
         />
       )}
+      <RegisterRoleDialog
+        open={roleDialogOpen}
+        onOpenChange={setRoleDialogOpen}
+        busy={busy}
+        onConfirm={(role) => void submit(role)}
+      />
       <p className="text-sm">
         {t("auth.haveAccount")}{" "}
         <Link href="/login" className="text-accent-fg underline">

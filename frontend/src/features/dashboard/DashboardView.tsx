@@ -5,6 +5,7 @@ import { Grid } from "@/layout/Grid";
 import { PageHeader } from "@/layout/PageHeader";
 import { t } from "@/i18n";
 import { addDays, todayIso } from "@/lib/dates";
+import { useAuth } from "@/providers/AuthProvider";
 import { emptyProjectQuery } from "@/schemas";
 import { Skeleton } from "@/ui/Skeleton";
 import { RegionState, type RegionStatus } from "@/ui/RegionState";
@@ -14,6 +15,8 @@ import { ActivityFeed } from "./ActivityFeed";
 import { DeadlineList } from "./DeadlineList";
 import { KpiTile } from "./KpiTile";
 import { computeKpis, upcomingDeadlines } from "./kpis";
+import { computeTeamStats } from "./teamStats";
+import { TeamPanel } from "./TeamPanel";
 import { WelcomeBanner } from "./WelcomeBanner";
 
 const statusOf = (...queries: { isPending: boolean; isError: boolean }[]): RegionStatus =>
@@ -23,8 +26,14 @@ const statusOf = (...queries: { isPending: boolean; isError: boolean }[]): Regio
       ? "loading"
       : "success";
 
-/** FR-01..04: three independent regions, so one failure never blanks the page (NFR-19). */
+/** FR-01..04: three independent regions, so one failure never blanks the page (NFR-19).
+ * RF-04/RF-05: one route, one component for both roles; the scope of the data (own vs
+ * team-wide) already comes from the API (BR-401) via these same queries. RF-06/RF-07: the
+ * title, KPI labels and the team panel are the only things that vary by role, from
+ * `user.role` already on the session — see docs/role-alignment-contract.md. */
 export function DashboardView() {
+  const { user } = useAuth();
+  const isLead = user?.role === "lead";
   const tasks = useAllTasks();
   const projects = useProjects(emptyProjectQuery());
   const users = useUsers();
@@ -40,6 +49,12 @@ export function DashboardView() {
     () => upcomingDeadlines(tasks.data?.items ?? [], today, addDays(today, 7)),
     [tasks.data, today],
   );
+  // RF-07: computed only when rendered (isLead below); no extra fetch either way — it reads
+  // the same tasks/users queries every dashboard already makes.
+  const teamStats = useMemo(
+    () => (isLead ? computeTeamStats(users.data ?? [], tasks.data?.items ?? [], today) : []),
+    [isLead, users.data, tasks.data, today],
+  );
 
   const retryKpis = () => {
     void tasks.refetch();
@@ -49,7 +64,10 @@ export function DashboardView() {
   return (
     <>
       <WelcomeBanner />
-      <PageHeader title={t("dashboard.title")} description={t("dashboard.description")} />
+      <PageHeader
+        title={isLead ? t("dashboard.title.lead") : t("dashboard.title")}
+        description={isLead ? t("dashboard.description.lead") : t("dashboard.description")}
+      />
       <section aria-labelledby="kpi-heading" className="mb-6">
         <h2 id="kpi-heading" className="sr-only">
           {t("dashboard.kpis")}
@@ -76,15 +94,19 @@ export function DashboardView() {
                   label={t("kpi.activeProjects")}
                   value={String(value.activeProjects)}
                 />
-                <KpiTile icon="tasks" label={t("kpi.openTasks")} value={String(value.openTasks)} />
+                <KpiTile
+                  icon="tasks"
+                  label={t(isLead ? "kpi.openTasks.lead" : "kpi.openTasks")}
+                  value={String(value.openTasks)}
+                />
                 <KpiTile
                   icon="alert"
-                  label={t("kpi.overdueTasks")}
+                  label={t(isLead ? "kpi.overdueTasks.lead" : "kpi.overdueTasks")}
                   value={String(value.overdueTasks)}
                 />
                 <KpiTile
                   icon="checkCircle"
-                  label={t("kpi.completionRate")}
+                  label={t(isLead ? "kpi.completionRate.lead" : "kpi.completionRate")}
                   value={`${value.completionRate}%`}
                 />
               </Grid>
@@ -132,6 +154,7 @@ export function DashboardView() {
           </RegionState>
         </section>
       </Grid>
+      {isLead && <TeamPanel members={teamStats} />}
     </>
   );
 }

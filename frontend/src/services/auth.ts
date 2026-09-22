@@ -1,4 +1,4 @@
-import type { ProfileDraft, User } from "@/schemas";
+import type { ProfileDraft, Role, User } from "@/schemas";
 
 // MF-01, S-A: registration step 1 (account) and step 2 (professional details and consent),
 // checked one at a time by POST /users/validate before the final POST /users.
@@ -27,6 +27,8 @@ export type RegisterInput = {
   /** ADR-426: an https link, or an uploaded photo read straight to a `data:` URL. Optional; the
    * initials avatar is used when it is omitted. */
   avatarUrl?: string | null;
+  /** RF-02: chosen in the role dialog. Omitted defaults to developer server-side (RF-03). */
+  role?: Role;
 };
 
 /** Session and account management. Mocked in Task 1; the real API in Task 4. */
