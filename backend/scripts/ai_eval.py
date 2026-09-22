@@ -15,6 +15,7 @@ import argparse
 import asyncio
 import csv
 import os
+import secrets
 import statistics
 import sys
 import time
@@ -161,7 +162,9 @@ async def evaluate(provider: str, runs: int, count: int) -> tuple[list[Run], Set
             given_name="Evaluator",
             family_name="Runner",
             email="evaluator@example.com",
-            password="evaluation-pass-1",  # noqa: S106  # a local evaluation account, memory only
+            # Generated fresh each run: this account lives only in this process's memory
+            # repository and is discarded when the script exits, so nothing needs it to be stable.
+            password=secrets.token_urlsafe(18),
             profile=RegistrationProfile(
                 discipline=Discipline.OTHER,
                 seniority=Seniority.MID,
