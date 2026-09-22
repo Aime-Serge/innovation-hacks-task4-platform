@@ -19,6 +19,45 @@ The T+75 rule stopped new work before Phase 2 (types) and Phase 3 (frontend). Co
 - The current frontend registration posts `name`, which the new `POST /users` rejects (S-A). Do not deploy the API without the frontend work.
 - MT-01 (UI part), MT-06 UI, MT-10, MT-11, MT-16, MT-19, MT-23 not done.
 
+**Resolved 2026-09-22 (frontend worker, `feat/minimal-profile`):** all of the above is now done.
+`npm run generate:api` and `npm run check:api` both pass; the registration wizard, mock adapter
+(S-D), avatar menu (S-C), own/member profile pages, editor, settings and people picker are built.
+See B-F4 below for what is still open from this pass.
+
+## B-F4 (2026-09-22): frontend minimal-profile pass — status and open items
+
+Done: registration wizard (`/register`), dashboard welcome banner, own profile (`/profile`),
+member profile (`/people/[id]`), profile editor (`/profile/edit`, reused in Settings), settings
+(`/settings`, four tabs), people picker in the task form, avatar menu update. `npm run typecheck`,
+`npm run lint`, `npm run check:api`, `npm run check:no-js` and `npm run test` (375 tests, coverage
+above the 80% floor on all four metrics) all pass. Full detail in the handback report.
+
+Open items, none of which blocked the gate:
+- **Not run**: `npm run test:e2e` and `npm run test:a11y` (Playwright). No Docker/live backend was
+  started in this session, so the new and updated specs (`tests/e2e/auth.spec.ts`,
+  `tests/a11y/axe.spec.ts`, plus the untouched existing specs) are written and believed correct but
+  unexecuted. Run them once the stack is up.
+- **Password change cannot keep the caller's own session.** The pack (via ADR-610) expected
+  `POST /me/password` to receive the caller's `refreshToken` so only *other* sessions end. The
+  refresh cookie is scoped to `Path=/api/bff/auth` (ADR-425) precisely so it is never sent on an
+  ordinary page request such as `/api/bff/me/password`, so the browser has no way to hand it to the
+  BFF for that call. Widening the cookie's path would undo ADR-425's protection. The frontend
+  therefore omits `refreshToken` (the documented "omit to end all, including the caller's" mode):
+  after a successful password change the person is signed out and sent to `/login`. This matches
+  the contract but not the nicer UX ADR-610 assumed; flagging for the author/backend worker in case
+  a different mechanism (e.g. a short-lived one-time code) is wanted later.
+- **Theme sync is one-way.** Settings → Preferences saves `{theme, timeZone}` to the server via
+  `PUT /me/preferences`, and the header's `ThemeToggle` and the Preferences tab share the same
+  `ThemeProvider` value. But nothing yet reads the server's stored theme back at sign-in (the app
+  still boots from `localStorage` only), so MF-15's "applied on any device at the next sign-in" is
+  only half true: it's saved everywhere, not yet re-applied everywhere. Deliberately deferred to
+  avoid changing `AuthProvider`'s session-loading path under time pressure.
+- **Pre-existing, unrelated**: `npm run lint`'s `check-tokens` step fails on
+  `src/layout/Sidebar.tsx:7` (arbitrary Tailwind value `h-[calc(...)]`). Confirmed via `git log`
+  that this file was last touched in commit `4ee485b`, before this branch existed, and is untouched
+  by the minimal-profile work; `eslint`/`prettier` themselves are clean. Left alone rather than
+  risking a layout regression in an unrelated file with no visual test coverage for it.
+
 ## B-F3 (2026-09-22): gitleaks history leak needs a decision only the author can make
 `backend/scripts/ai_eval.py:164` in commit fc2179d contains the literal `evaluation-pass-1`
 (a throwaway in-memory evaluator password, not a real credential). The current working tree no
