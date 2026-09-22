@@ -16,6 +16,7 @@ import { createMockAuth } from "@/adapters/mock";
 import { hardNavigate, safeInternalPath } from "@/lib/navigation";
 import type { User } from "@/schemas";
 import type { AuthService } from "@/services/auth";
+import { useTheme } from "./ThemeProvider";
 
 type SessionStatus = "loading" | "authenticated" | "unauthenticated";
 type AuthValue = {
@@ -40,6 +41,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
   const [user, setUser] = useState<User | null>(null);
   const [status, setStatus] = useState<SessionStatus>("loading");
+  const { setTheme } = useTheme();
   const userRef = useRef<User | null>(null);
   const getUserId = useCallback(() => userRef.current?.id, []);
   useEffect(() => {
@@ -57,6 +59,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setStatus(session === null ? "unauthenticated" : "authenticated");
     });
   }, [auth]);
+
+  useEffect(() => {
+    if (user !== null) setTheme(user.preferences.theme);
+  }, [setTheme, user]);
 
   // A refresh that fails ends the session wherever the person is (FR-405).
   useEffect(

@@ -2,6 +2,13 @@
 // split from en.ts to keep it under the house line-length rule.
 export const enProfile = {
   "auth.step": "Step {step} of {total}",
+  "auth.avatarHint": "Optional. Add a photo, or your initials are used instead.",
+  "auth.avatarUpload": "Upload a photo",
+  "auth.avatarUrl": "Or paste an image link",
+  "auth.avatarInvalidType": "Only PNG, JPEG, or WebP images are allowed.",
+  "auth.avatarTooLarge": "Image must be 500 KB or smaller.",
+  "auth.avatarInvalidUrl": "Enter a valid https:// image link.",
+  "auth.avatarRemove": "Remove photo",
   "auth.stepAccount.heading": "Create your account",
   "auth.stepProfile.heading": "Tell us about your work",
   "auth.givenName": "First name",

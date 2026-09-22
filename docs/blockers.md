@@ -59,12 +59,10 @@ Still open items, none of which blocked the gate:
   after a successful password change the person is signed out and sent to `/login`. This matches
   the contract but not the nicer UX ADR-610 assumed; flagging for the author/backend worker in case
   a different mechanism (e.g. a short-lived one-time code) is wanted later.
-- **Theme sync is one-way.** Settings → Preferences saves `{theme, timeZone}` to the server via
-  `PUT /me/preferences`, and the header's `ThemeToggle` and the Preferences tab share the same
-  `ThemeProvider` value. But nothing yet reads the server's stored theme back at sign-in (the app
-  still boots from `localStorage` only), so MF-15's "applied on any device at the next sign-in" is
-  only half true: it's saved everywhere, not yet re-applied everywhere. Deliberately deferred to
-  avoid changing `AuthProvider`'s session-loading path under time pressure.
+- **Theme sync resolved 2026-09-22.** `AuthProvider` now hydrates the shared `ThemeProvider` from
+  the authenticated user's server-held preference after `GET /auth/me` and login. The fresh-browser
+  MF-15 journey saves `light`, signs in from a new context, and asserts `html[data-theme="light"]`;
+  the focused test passes against recreated compose containers.
 - **Pre-existing, unrelated**: `npm run lint`'s `check-tokens` step fails on
   `src/layout/Sidebar.tsx:7` (arbitrary Tailwind value `h-[calc(...)]`). Confirmed via `git log`
   that this file was last touched in commit `4ee485b`, before this branch existed, and is untouched

@@ -29,6 +29,7 @@ function localTime(timeZone: string): string | null {
 export type ProfileSubject = {
   id: string;
   name: string;
+  avatarUrl?: string | null | undefined;
   profile: Profile | null;
 };
 
@@ -49,7 +50,7 @@ export function ProfileHeader({
 
   return (
     <Card className="mb-6 flex flex-wrap items-start gap-4">
-      <Avatar name={subject.name} size="lg" />
+      <Avatar name={subject.name} avatarUrl={subject.avatarUrl} size="lg" />
       <div className="min-w-0 flex-1">
         <p className="break-words text-lg font-semibold">{subject.name}</p>
         {profile !== null && (

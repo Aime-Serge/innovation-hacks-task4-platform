@@ -73,6 +73,9 @@ export function TaskList(props: Props) {
                 assigneeName={
                   task.assigneeId === null ? undefined : users.get(task.assigneeId)?.name
                 }
+                assigneeAvatarUrl={
+                  task.assigneeId === null ? undefined : users.get(task.assigneeId)?.avatarUrl
+                }
                 onStatusChange={props.onStatusChange}
                 {...(props.onDelete !== undefined && props.canDelete?.(task) === true
                   ? { onDelete: props.onDelete }

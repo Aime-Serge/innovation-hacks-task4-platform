@@ -110,6 +110,106 @@ describe("MT-01 registration wizard", () => {
     expect(window.sessionStorage.getItem("devdash_show_welcome")).toBe("1");
   });
 
+  it("ADR-426: registering with an image link sends it as avatarUrl", async () => {
+    holder.register.mockResolvedValue({ id: "user-9", name: "Ada Lovelace" });
+    holder.login.mockResolvedValue(undefined);
+    const user = userEvent.setup();
+    renderApp(<RegisterForm />);
+    await user.type(screen.getByLabelText("First name"), "Ada");
+    await user.type(screen.getByLabelText("Last name"), "Lovelace");
+    await user.type(screen.getByLabelText("Email"), "ada@example.com");
+    await user.type(screen.getByLabelText("Password"), "password123456");
+    await user.click(screen.getByRole("button", { name: "Next" }));
+    await screen.findByRole("heading", { name: "Tell us about your work" });
+    await user.selectOptions(screen.getByLabelText("Country"), "RW");
+    await user.type(
+      screen.getByLabelText("Or paste an image link"),
+      "https://example.com/ada.png",
+    );
+    await user.click(screen.getByLabelText(/accept the Terms/));
+    await user.click(screen.getByLabelText(/confirm that I meet/));
+    await user.click(screen.getByRole("button", { name: "Create account" }));
+    await waitFor(() =>
+      expect(holder.register).toHaveBeenCalledWith(
+        expect.objectContaining({ avatarUrl: "https://example.com/ada.png" }),
+      ),
+    );
+  });
+
+  it("ADR-426: registering with an uploaded photo sends the file read to a data: URL", async () => {
+    holder.register.mockResolvedValue({ id: "user-9", name: "Ada Lovelace" });
+    holder.login.mockResolvedValue(undefined);
+    const user = userEvent.setup();
+    const { container } = renderApp(<RegisterForm />);
+    await user.type(screen.getByLabelText("First name"), "Ada");
+    await user.type(screen.getByLabelText("Last name"), "Lovelace");
+    await user.type(screen.getByLabelText("Email"), "ada@example.com");
+    await user.type(screen.getByLabelText("Password"), "password123456");
+    await user.click(screen.getByRole("button", { name: "Next" }));
+    await screen.findByRole("heading", { name: "Tell us about your work" });
+    await user.selectOptions(screen.getByLabelText("Country"), "RW");
+    const file = new File(["fake-bytes"], "ada.png", { type: "image/png" });
+    await user.upload(screen.getByLabelText("Upload a photo"), file);
+    // The live preview proves the file was read before the account is ever submitted. Avatar's
+    // <img> has alt="" (decorative), so it has no accessible "img" role to query by; check the
+    // DOM directly instead, as Task 1's own Avatar test does.
+    await waitFor(() => expect(container.querySelector("img")).not.toBeNull());
+    await user.click(screen.getByLabelText(/accept the Terms/));
+    await user.click(screen.getByLabelText(/confirm that I meet/));
+    await user.click(screen.getByRole("button", { name: "Create account" }));
+    await waitFor(() => expect(holder.register).toHaveBeenCalled());
+    const sent = holder.register.mock.calls[0]?.[0] as { avatarUrl?: string };
+    expect(sent.avatarUrl).toMatch(/^data:image\/png;base64,/);
+  });
+
+  it("ADR-426: an http link is refused without a request, and blocks submission until fixed", async () => {
+    const user = userEvent.setup();
+    renderApp(<RegisterForm />);
+    await user.type(screen.getByLabelText("First name"), "Ada");
+    await user.type(screen.getByLabelText("Last name"), "Lovelace");
+    await user.type(screen.getByLabelText("Email"), "ada@example.com");
+    await user.type(screen.getByLabelText("Password"), "password123456");
+    await user.click(screen.getByRole("button", { name: "Next" }));
+    await screen.findByRole("heading", { name: "Tell us about your work" });
+    await user.selectOptions(screen.getByLabelText("Country"), "RW");
+    await user.type(screen.getByLabelText("Or paste an image link"), "http://example.com/a.png");
+    await user.click(screen.getByLabelText("Or paste an image link"));
+    await user.tab();
+    expect(await screen.findByText("Enter a valid https:// image link.")).toBeInTheDocument();
+    await user.click(screen.getByLabelText(/accept the Terms/));
+    await user.click(screen.getByLabelText(/confirm that I meet/));
+    await user.click(screen.getByRole("button", { name: "Create account" }));
+    expect(holder.register).not.toHaveBeenCalled();
+
+    await user.click(screen.getByRole("button", { name: "Remove photo" }));
+    await user.click(screen.getByRole("button", { name: "Create account" }));
+    await waitFor(() =>
+      expect(holder.register).toHaveBeenCalledWith(
+        expect.not.objectContaining({ avatarUrl: expect.anything() }),
+      ),
+    );
+  });
+
+  it("registering with no photo omits avatarUrl entirely", async () => {
+    holder.register.mockResolvedValue({ id: "user-9", name: "Ada Lovelace" });
+    holder.login.mockResolvedValue(undefined);
+    const user = userEvent.setup();
+    renderApp(<RegisterForm />);
+    await user.type(screen.getByLabelText("First name"), "Ada");
+    await user.type(screen.getByLabelText("Last name"), "Lovelace");
+    await user.type(screen.getByLabelText("Email"), "ada@example.com");
+    await user.type(screen.getByLabelText("Password"), "password123456");
+    await user.click(screen.getByRole("button", { name: "Next" }));
+    await screen.findByRole("heading", { name: "Tell us about your work" });
+    await user.selectOptions(screen.getByLabelText("Country"), "RW");
+    await user.click(screen.getByLabelText(/accept the Terms/));
+    await user.click(screen.getByLabelText(/confirm that I meet/));
+    await user.click(screen.getByRole("button", { name: "Create account" }));
+    await waitFor(() => expect(holder.register).toHaveBeenCalled());
+    const sent = holder.register.mock.calls[0]?.[0] as Record<string, unknown>;
+    expect("avatarUrl" in sent).toBe(false);
+  });
+
   it("a duplicate email sends the person back to step 1 with a message", async () => {
     holder.register.mockRejectedValueOnce(new ServiceError("EMAIL_ALREADY_EXISTS", "x", 409));
     const user = userEvent.setup();

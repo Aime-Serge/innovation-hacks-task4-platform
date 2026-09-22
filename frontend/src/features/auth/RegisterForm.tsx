@@ -32,6 +32,9 @@ export function RegisterForm() {
   const [accountErrors, setAccountErrors] = useState<AccountErrors>({});
   const [profile, setProfile] = useState<ProfileDraftForm>(emptyProfile);
   const [profileErrors, setProfileErrors] = useState<ProfileErrors>({});
+  // A top-level field, like givenName, not part of the profile block (ADR-426).
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [avatarError, setAvatarError] = useState<string | undefined>(undefined);
   const [formError, setFormError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -79,6 +82,9 @@ export function RegisterForm() {
   };
 
   const submit = async () => {
+    // A rejected photo leaves its message up until it is replaced or cleared; do not silently
+    // register without the photo the person was still trying to fix.
+    if (avatarError !== undefined) return;
     setBusy(true);
     setFormError(null);
     try {
@@ -90,6 +96,7 @@ export function RegisterForm() {
         profile: profileBlock(profile),
         termsAccepted: true,
         ageConfirmed: true,
+        ...(avatarUrl !== null ? { avatarUrl } : {}),
       });
       // MF-01: a successful registration signs the person in.
       await login(account.email.trim(), account.password);
@@ -108,8 +115,12 @@ export function RegisterForm() {
       setFormError(t("auth.genericError"));
       return;
     }
-    if (failure.status === 422) setProfileErrors(errorsFrom(failure, LINK_FIELD_MAP));
-    else if (failure.status === 409) {
+    if (failure.status === 422) {
+      // avatarUrl is not part of the profile block, so it is routed to its own field rather
+      // than left unread inside profileErrors (ProfileErrors has no key for it).
+      setAvatarError(failure.details?.find((d) => d.field === "avatarUrl")?.message);
+      setProfileErrors(errorsFrom(failure, { ...LINK_FIELD_MAP, avatarUrl: "__avatar__" }));
+    } else if (failure.status === 409) {
       setStep(1);
       setAccountErrors({ email: t("auth.emailTaken") });
     } else if (failure.code === "REGISTRATION_DISABLED") setFormError(t("auth.registrationClosed"));
@@ -140,6 +151,10 @@ export function RegisterForm() {
           onBlurField={() => void checkStep2()}
           onBack={() => setStep(1)}
           onSubmit={() => void submit()}
+          avatarUrl={avatarUrl}
+          avatarError={avatarError}
+          onAvatarChange={setAvatarUrl}
+          onAvatarError={setAvatarError}
         />
       )}
       <p className="text-sm">

@@ -9,8 +9,8 @@ from app.domain.profile_rules import completeness
 from app.schemas.base import (
     CLEAN,
     ApiModel,
+    AvatarUrl,
     Email,
-    HttpsUrl,
     Name,
     OutModel,
     PatchModel,
@@ -47,7 +47,7 @@ class UserCreate(ApiModel):
         description="Must be true; the terms version and time are stored."
     )
     age_confirmed: StrictBool = Field(description="Must be true: the person meets the minimum age.")
-    avatar_url: HttpsUrl | None = None
+    avatar_url: AvatarUrl | None = None
     preferences: Preferences | None = None
 
 
@@ -68,7 +68,7 @@ class UserUpdate(PatchModel):
     nullable: ClassVar[frozenset[str]] = frozenset({"avatar_url"})
 
     name: Name | None = None
-    avatar_url: HttpsUrl | None = None
+    avatar_url: AvatarUrl | None = None
     preferences: Preferences | None = None
     role: Role | None = Field(default=None, description="Only a lead may change a role.")
 

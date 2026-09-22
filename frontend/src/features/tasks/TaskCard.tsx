@@ -15,6 +15,8 @@ type TaskCardProps = {
   task: Task;
   projectName: string | undefined;
   assigneeName: string | undefined;
+  /** Kept beside the name so a registration photo follows the assignee into task views. */
+  assigneeAvatarUrl?: string | null | undefined;
   onStatusChange: (id: string, status: TaskStatus) => void;
   /** Present only when the person may delete this task (BR-203). */
   onDelete?: (task: Task) => void;
@@ -32,6 +34,7 @@ export const TaskCard = memo(function TaskCard({
   task,
   projectName,
   assigneeName,
+  assigneeAvatarUrl,
   onStatusChange,
   onDelete,
   headingLevel: Heading = "h2",
@@ -69,7 +72,7 @@ export const TaskCard = memo(function TaskCard({
           <span className="text-muted">{t("task.unassigned")}</span>
         ) : (
           <>
-            <Avatar name={assigneeName} size="sm" />
+            <Avatar name={assigneeName} avatarUrl={assigneeAvatarUrl} size="sm" />
             <span className="truncate" title={assigneeName}>
               {assigneeName}
             </span>

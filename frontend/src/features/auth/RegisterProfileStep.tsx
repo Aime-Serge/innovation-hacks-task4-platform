@@ -7,6 +7,7 @@ import { Button } from "@/ui/Button";
 import { Checkbox } from "@/ui/Checkbox";
 import { FormField } from "@/ui/FormField";
 import { Input, Select } from "@/ui/Input";
+import { RegisterAvatarField } from "./RegisterAvatarField";
 import type { ProfileDraftForm, ProfileErrors } from "./registration-form";
 
 function StepHeading({ text }: { text: string }) {
@@ -27,9 +28,14 @@ type Props = {
   onBlurField: () => void;
   onBack: () => void;
   onSubmit: () => void;
+  /** ADR-426: a top-level field, not part of the profile block above. */
+  avatarUrl: string | null;
+  avatarError: string | undefined;
+  onAvatarChange: (avatarUrl: string | null) => void;
+  onAvatarError: (message: string | undefined) => void;
 };
 
-/** MF-01 step 2: professional details and consent. */
+/** MF-01 step 2: professional details, a photo, and consent. */
 export function RegisterProfileStep({
   profile,
   errors,
@@ -38,6 +44,10 @@ export function RegisterProfileStep({
   onBlurField,
   onBack,
   onSubmit,
+  avatarUrl,
+  avatarError,
+  onAvatarChange,
+  onAvatarError,
 }: Props) {
   return (
     <form
@@ -108,6 +118,12 @@ export function RegisterProfileStep({
           />
         )}
       </FormField>
+      <RegisterAvatarField
+        avatarUrl={avatarUrl}
+        avatarError={avatarError}
+        onAvatarChange={onAvatarChange}
+        onAvatarError={onAvatarError}
+      />
       <Checkbox
         id="reg-terms"
         label={t("auth.termsAccepted")}

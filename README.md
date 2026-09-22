@@ -17,9 +17,9 @@ Each feature is tied to the requirement of the [Innovation Hacks guide](docs/sta
 | Task 4: dashboard statistics and recent activity | Dashboard summary and activity feed | Built |
 | Task 4: project management, task management, assign, priority, due dates | Project and task CRUD, assignment, priority, due dates, search and filter | Built |
 | Task 4: at least one AI feature | AI task generation, prioritisation and project summary; the AI only suggests | Built; live evaluation not yet run ([`docs/ai-evaluation.md`](docs/ai-evaluation.md)) |
-| Task 1: user and profile section; Task 4: registration | Two-step registration that captures professional information, own profile page and editor, member profile page | Added on feat/minimal-profile, in progress |
-| Task 4: assign tasks | People picker showing each member's discipline and company | Added on feat/minimal-profile, in progress |
-| Task 4: logout; security | Settings (profile, preferences, privacy, account), change password, sign out of all devices | Added on feat/minimal-profile, in progress |
+| Task 1: user and profile section; Task 4: registration | Two-step registration that captures professional information, own profile page and editor, member profile page | Built and covered by live profile tests |
+| Task 4: assign tasks | People picker showing each member's discipline and company | Built and covered by live profile tests |
+| Task 4: logout; security | Settings (profile, preferences, privacy, account), change password, sign out of all devices | Built; account deletion remains subject to the documented ownership conflict |
 
 ## Technology stack
 
@@ -63,7 +63,7 @@ Three commands install and start everything: `make env`, `make up`, then open th
 
 ## Screenshots
 
-Task 1 screenshots are in [`frontend/docs/screenshots/`](frontend/docs/screenshots/) and Task 3 screenshots in [`backend/docs/screenshots/`](backend/docs/screenshots/). The Task 4 set is captured by `make screenshots` (script: [`scripts/screenshots.ts`](scripts/screenshots.ts)) into `docs/screenshots/task-4/` at 1440x900 and 390x844, using synthetic data only. **Not yet captured**: this section will embed them once the profile screens are finished and the script has been run.
+Task 1 screenshots are in [`frontend/docs/screenshots/`](frontend/docs/screenshots/) and Task 3 screenshots in [`backend/docs/screenshots/`](backend/docs/screenshots/). The Task 4 set is captured by `make screenshots` (script: [`scripts/screenshots.ts`](scripts/screenshots.ts)) into [`docs/screenshots/task-4/`](docs/screenshots/task-4/) at 1440x900 and 390x844, using synthetic data only. The current set contains 18 screens covering login, registration, dashboard, projects, tasks, profile, settings, member profile and task assignment.
 
 ## Demo
 
@@ -143,7 +143,7 @@ The timed script for the recording is [`docs/submission/demo-script.md`](docs/su
 
 ## Known limitations
 
-- Email addresses are not verified and there is no password reset, because both need an email provider (ADR-605). The Task 1 screens for changing the email and for avatar upload answer "not available in this version"; change password and account deletion are added on feat/minimal-profile and are not yet verified.
+- Email addresses are not verified and there is no password reset, because both need an email provider (ADR-605). Registration accepts an optional profile photo; changing an existing avatar and changing email remain unavailable in this version (ADR-426).
 - A duplicate email is reported at registration, so the existence of an account can be learned.
 - Companies are free text (ADR-602), and profiles are visible to signed-in members only (ADR-603).
 - The rate limiter is per process, so the API runs as **one instance**. Behind the site every visitor shares one client address, so registration is limited to a few per minute for everyone; login is limited per email.

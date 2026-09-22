@@ -19,7 +19,7 @@ export function UserMenu() {
           kind: "header",
           content: (
             <span className="flex items-center gap-3">
-              <Avatar name={user.name} size="sm" />
+              <Avatar name={user.name} avatarUrl={user.avatarUrl} size="sm" />
               <span className="min-w-0">
                 <span className="block truncate text-sm font-semibold">{user.name}</span>
                 {headline !== null && (
@@ -43,7 +43,7 @@ export function UserMenu() {
           aria-label={t("layout.userMenu", { name: user.name })}
           className="touch-target flex items-center rounded-full p-0.5 hover:bg-subtle"
         >
-          <Avatar name={user.name} size="sm" />
+          <Avatar name={user.name} avatarUrl={user.avatarUrl} size="sm" />
         </button>
       }
     />

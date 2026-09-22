@@ -27,6 +27,7 @@ Decisions 401 to 417 come from the pack. 601 to 608 come from the Minimal Profil
 | [ADR-423](../../backend/docs/adr/ADR-423-visibility-is-a-read-scope-built-once.md) | visibility is a `ReadScope` built by one function and applied by every query |
 | [ADR-424](../../backend/docs/adr/ADR-424-gemini-is-the-live-provider.md) | Gemini is the live AI provider; Anthropic is not implemented |
 | [ADR-425](ADR-425-refresh-runs-through-the-server-layer-and-a-session-marker.md) | silent refresh is triggered by the page through the server layer, and a marker cookie feeds the route guard |
+| [ADR-426](ADR-426-registration-photo-is-an-optional-validated-avatar-source.md) | Registration has an optional, validated profile image that is available throughout the platform |
 | [ADR-601](ADR-601-scope-chosen-by-the-four-test-rule-of-section-1.md) | Scope chosen by the four-test rule of section 1 |
 | [ADR-602](ADR-602-company-is-free-text-not-a-shared-record.md) | Company is free text, not a shared record |
 | [ADR-603](ADR-603-one-privacy-switch-instead-of-per-section-visibility.md) | One privacy switch instead of per-section visibility |

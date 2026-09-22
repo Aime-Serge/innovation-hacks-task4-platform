@@ -150,7 +150,7 @@ export function PeoplePicker({ id, value, knownUsers, onChange }: PeoplePickerPr
                   index === activeIndex ? "bg-subtle" : ""
                 }`}
               >
-                <Avatar name={user.name} size="sm" />
+                <Avatar name={user.name} avatarUrl={user.avatarUrl} size="sm" />
                 <span className="min-w-0">
                   <span className="block truncate">{user.name}</span>
                   {summaryOf(user) !== null && (

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { t } from "@/i18n";
 import { useReplaceSkills } from "../data/hooks";
 import { skillProblem } from "./links-validate";
@@ -22,9 +22,15 @@ export function SkillsEditor({ skills }: { skills: string[] }) {
   // Mirrors `skills` optimistically so two adds fired before the first PUT /me/skills
   // resolves both build on the list the person just saw, instead of the stale prop
   // (a lost update: add "COBOL", then "Debugging" before the first response lands, would
-  // otherwise overwrite the list with only "Debugging").
+  // otherwise overwrite the list with only "Debugging"). Reconciled with the prop during
+  // render (React's "adjust state when a prop changes" pattern), not in an effect: an effect
+  // would commit the stale list for one extra render before catching up.
   const [localSkills, setLocalSkills] = useState(skills);
-  useEffect(() => setLocalSkills(skills), [skills]);
+  const [syncedWith, setSyncedWith] = useState(skills);
+  if (skills !== syncedWith) {
+    setSyncedWith(skills);
+    setLocalSkills(skills);
+  }
   const replace = useReplaceSkills();
 
   const add = () => {

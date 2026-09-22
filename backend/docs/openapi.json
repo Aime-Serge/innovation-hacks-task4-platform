@@ -2165,8 +2165,8 @@
           "avatarUrl": {
             "anyOf": [
               {
-                "maxLength": 2048,
-                "pattern": "^https://[A-Za-z0-9]([A-Za-z0-9.-]*[A-Za-z0-9])?(:[0-9]{1,5})?([/?#][^ \\t\\r\\n\\x00]*)?$",
+                "maxLength": 700000,
+                "pattern": "(?:^https://[A-Za-z0-9]([A-Za-z0-9.-]*[A-Za-z0-9])?(:[0-9]{1,5})?([/?#][^ \\t\\r\\n\\x00]*)?$)|(?:^data:image/(png|jpeg|webp);base64,[A-Za-z0-9+/]+={0,2}$)",
                 "type": "string"
               },
               {
@@ -2353,8 +2353,8 @@
           "avatarUrl": {
             "anyOf": [
               {
-                "maxLength": 2048,
-                "pattern": "^https://[A-Za-z0-9]([A-Za-z0-9.-]*[A-Za-z0-9])?(:[0-9]{1,5})?([/?#][^ \\t\\r\\n\\x00]*)?$",
+                "maxLength": 700000,
+                "pattern": "(?:^https://[A-Za-z0-9]([A-Za-z0-9.-]*[A-Za-z0-9])?(:[0-9]{1,5})?([/?#][^ \\t\\r\\n\\x00]*)?$)|(?:^data:image/(png|jpeg|webp);base64,[A-Za-z0-9+/]+={0,2}$)",
                 "type": "string"
               },
               {

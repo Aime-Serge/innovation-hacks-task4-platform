@@ -24,6 +24,9 @@ export type RegisterInput = {
   profile: ProfileDraft;
   termsAccepted: true;
   ageConfirmed: true;
+  /** ADR-426: an https link, or an uploaded photo read straight to a `data:` URL. Optional; the
+   * initials avatar is used when it is omitted. */
+  avatarUrl?: string | null;
 };
 
 /** Session and account management. Mocked in Task 1; the real API in Task 4. */

@@ -78,6 +78,52 @@ async def test_mt01_a_step_names_every_missing_field_at_once(env: Env) -> None:
     }
 
 
+# --- ADR-426: a profile photo at registration, a link or an upload -----------------------------
+
+
+async def test_mt01_registering_with_an_avatar_link_stores_it(env: Env) -> None:
+    body = signup(email="link-avatar@example.com", avatarUrl="https://example.com/ada.png")
+    created = await env.client.post(USERS, json=body)
+    assert created.status_code == 201, created.text
+    assert created.json()["avatarUrl"] == "https://example.com/ada.png"
+
+
+async def test_mt01_registering_with_an_uploaded_photo_stores_it(env: Env) -> None:
+    photo = "data:image/png;base64,iVBORw0KGgo="
+    body = signup(email="upload-avatar@example.com", avatarUrl=photo)
+    created = await env.client.post(USERS, json=body)
+    assert created.status_code == 201, created.text
+    assert created.json()["avatarUrl"] == photo
+
+
+async def test_mt01_registering_with_no_photo_leaves_avatar_null(env: Env) -> None:
+    body = signup(email="no-avatar@example.com")
+    created = await env.client.post(USERS, json=body)
+    assert created.status_code == 201, created.text
+    assert created.json()["avatarUrl"] is None
+
+
+@pytest.mark.parametrize(
+    ("label", "bad_avatar"),
+    [
+        ("http, not https", "http://example.com/a.png"),
+        ("wrong image type", "data:image/gif;base64,R0lGOD=="),
+        ("not an image at all", "data:text/html;base64,PHNjcmlwdD4="),
+        ("oversized upload", "data:image/png;base64," + "A" * 700_001),
+        ("not base64", "data:image/png;base64,<script>"),
+    ],
+)
+async def test_mt01_a_bad_avatar_is_refused_and_creates_no_account(
+    env: Env, label: str, bad_avatar: str
+) -> None:
+    body = signup(email="rejected-avatar@example.com", avatarUrl=bad_avatar)
+    rejected = await env.client.post(USERS, json=body)
+    assert rejected.status_code == 422, label
+    assert "avatarUrl" in fields(rejected)
+    # The rejected photo never left a half-registered account behind.
+    assert (await env.login("rejected-avatar@example.com", body["password"])).status_code == 401
+
+
 async def test_mt01_validate_is_rate_limited() -> None:
     from tests.conftest import build_env
 

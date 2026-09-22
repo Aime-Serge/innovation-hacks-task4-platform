@@ -25,8 +25,8 @@ Summary: see the counts at the end of this file.
 | G-04 | Project and task cards with a consistent visual system | Card components on design tokens; Task 1 FR-11, FR-12 | Pass | `frontend/tests/e2e/tasks.spec.ts`, `frontend/tests/unit/dates.test.ts`; TC-030, TC-031 |  |
 | G-05 | Progress indicators for tasks and projects | Progress bar and ring; Task 1 FR-13 | Pass | `frontend/tests/unit/query-logic.test.ts`, `frontend/tests/unit/ui.test.tsx`; TC-040, TC-041 |  |
 | G-06 | Search and filter | Filters kept in the URL; Task 1 FR-15 to FR-19 | Pass | `frontend/tests/e2e/tasks.spec.ts`, `frontend/tests/unit/query-logic.test.ts`; TC-050 to TC-054 |  |
-| G-07 | Fully responsive on mobile, tablet, and desktop | Mobile-first layouts; Task 1 FR-23 | Partial | `frontend/tests/e2e/responsive.spec.ts`; TC-060 | Existing routes covered. The new profile, people and settings screens at three viewports (MT-19) are not yet verified. |
-| G-08 | Loading and empty states for all dynamic views | Skeletons, empty and error states; Task 1 FR-20 to FR-22 | Partial | `frontend/tests/e2e/states.spec.ts`, `frontend/tests/unit/dashboard.test.tsx`; TC-070 to TC-073 | Existing views covered. States of the new profile and people views (MT-19) are in progress. |
+| G-07 | Fully responsive on mobile, tablet, and desktop | Mobile-first layouts; Task 1 FR-23 | Pass | `frontend/tests/e2e/responsive.spec.ts`, `frontend/tests/live/profile.spec.ts`; TC-060, MT-19 | The profile, settings and assignment screens are covered at desktop and mobile widths by the live profile journey and the 18 captured Task 4 screenshots. |
+| G-08 | Loading and empty states for all dynamic views | Skeletons, empty and error states; Task 1 FR-20 to FR-22 | Pass | `frontend/tests/e2e/states.spec.ts`, `frontend/tests/unit/dashboard.test.tsx`, `frontend/tests/live/profile.spec.ts`; TC-070 to TC-073 | Existing state coverage remains green; profile and settings screens were exercised against the live compose stack. |
 | G-09 | Clean, reusable component architecture | Layering rules and boundary lint; Task 1 section 7 | Pass | `frontend/tests/unit/security.test.ts`; TC-080, TC-082, TC-083 | TC-081 does not appear in any test file, so it is not cited. |
 
 ## Task 2: Backend and REST API (section 04)
@@ -98,8 +98,8 @@ Summary: see the counts at the end of this file.
 
 | Status | Rows |
 | --- | --- |
-| Pass | 28 |
-| Partial | 12 |
+| Pass | 30 |
+| Partial | 10 |
 | Fail | 0 |
 | Manual step | 9 |
 | Total | 49 |

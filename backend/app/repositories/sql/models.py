@@ -78,9 +78,12 @@ class UserRow(Base):
         ),
         CheckConstraint("char_length(password_hash) > 0", name="password_hash_present"),
         CheckConstraint("role IN ('developer', 'lead')", name="role"),
+        # An https link, or the photo itself inline as base64 when it was uploaded (ADR-426).
         CheckConstraint(
             "avatar_url IS NULL OR "
-            "(avatar_url LIKE 'https://%' AND char_length(avatar_url) <= 2048)",
+            "(avatar_url LIKE 'https://%' AND char_length(avatar_url) <= 2048) OR "
+            "(avatar_url ~ '^data:image/(png|jpeg|webp);base64,[A-Za-z0-9+/]+={0,2}$'"
+            " AND char_length(avatar_url) <= 700000)",
             name="avatar_url",
         ),
         CheckConstraint("theme IN ('light', 'dark', 'system')", name="theme"),
