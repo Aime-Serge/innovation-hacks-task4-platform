@@ -14,6 +14,7 @@ import { ActivityFeed } from "./ActivityFeed";
 import { DeadlineList } from "./DeadlineList";
 import { KpiTile } from "./KpiTile";
 import { computeKpis, upcomingDeadlines } from "./kpis";
+import { WelcomeBanner } from "./WelcomeBanner";
 
 const statusOf = (...queries: { isPending: boolean; isError: boolean }[]): RegionStatus =>
   queries.some((q) => q.isError)
@@ -47,6 +48,7 @@ export function DashboardView() {
 
   return (
     <>
+      <WelcomeBanner />
       <PageHeader title={t("dashboard.title")} description={t("dashboard.description")} />
       <section aria-labelledby="kpi-heading" className="mb-6">
         <h2 id="kpi-heading" className="sr-only">
