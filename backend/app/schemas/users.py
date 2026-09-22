@@ -49,6 +49,9 @@ class UserCreate(ApiModel):
     age_confirmed: StrictBool = Field(description="Must be true: the person meets the minimum age.")
     avatar_url: AvatarUrl | None = None
     preferences: Preferences | None = None
+    role: Role | None = Field(
+        default=None, description="developer or lead; defaults to developer when omitted."
+    )
 
 
 class RegistrationCheck(ApiModel):
