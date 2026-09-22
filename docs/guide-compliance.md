@@ -6,7 +6,7 @@ Source: section 8 of `docs/standards/minimal-profile-pack.md` (49 rows, one per 
 
 | Status | Meaning |
 | --- | --- |
-| Pass | The feature exists and the evidence file was opened and contains the cited case. This is not a fresh test run: gate results are those recorded in `docs/baseline-final.md`, and the integration phase re-runs them. |
+| Pass | The feature exists and the evidence file was opened and contains the cited case. Most rows below record test results from `docs/baseline-final.md`; rows updated on 2026-09-22 additionally record commands actually run that day against a live `docker compose up` stack (migration 0008, registration, profile, picker, privacy switch, screenshots), noted in the row. |
 | Partial | Part of the requirement is met; the note names what is missing or still in progress on this branch. |
 | Fail | Not met. None is recorded now. |
 | Manual step | Only the author can complete it (deployment, video, post, releases, deadlines, attestation). |
@@ -20,8 +20,8 @@ Summary: see the counts at the end of this file.
 | ID | Guide requirement | Satisfied by | Status | Evidence | Note |
 | --- | --- | --- | --- | --- | --- |
 | G-01 | Dashboard as the primary landing view | Dashboard route `/`; Task 1 FR-01 to FR-04 | Pass | `frontend/tests/e2e/auth.spec.ts`, `frontend/tests/unit/dashboard.test.tsx`, `frontend/docs/screenshots/01-dashboard-desktop.png`; TC-001 | Task 1 tests and screenshot exist. Test results as of the baseline (`docs/baseline-final.md`); re-run in the integration phase. |
-| G-02 | Navigation bar with accessible wayfinding | Navigation and the new avatar menu; Task 1 FR-05 to FR-08, MF-18 | Partial | `frontend/tests/e2e/navigation.spec.ts`, `frontend/tests/unit/shell.test.tsx`; TC-010 to TC-012 | Navigation is covered. The avatar menu without email (MF-18, S-C) and its test MT-16 are part of the work in progress on feat/minimal-profile. |
-| G-03 | User and profile section | Profile page, editor, and settings; MF-06 to MF-08, MF-12 | Partial | `frontend/docs/screenshots/10-profile-desktop.png` | The Task 1 profile screen exists. The new profile page, editor and settings (MT-06, MT-08) and their screenshots are in progress; no evidence yet. |
+| G-02 | Navigation bar with accessible wayfinding | Navigation and the new avatar menu; Task 1 FR-05 to FR-08, MF-18 | Pass | `frontend/tests/e2e/navigation.spec.ts`, `frontend/tests/unit/shell.test.tsx`, `frontend/tests/live/profile.spec.ts` ("MF-18, MT-16"); TC-010 to TC-012 | Built and verified live on 2026-09-22: the avatar menu shows the composed headline and never the email (checked against the real DOM, not a mock). |
+| G-03 | User and profile section | Profile page, editor, and settings; MF-06 to MF-08, MF-12 | Pass | `frontend/src/app/(app)/profile/page.tsx`, `frontend/src/app/(app)/settings/page.tsx`, `frontend/tests/unit/settings.test.tsx`, `docs/screenshots/task-4/06-profile-desktop.png`, `docs/screenshots/task-4/07-settings-desktop.png` | Verified live on 2026-09-22 against the compose stack: the profile page, editor and four-tab settings render real data and were screenshotted (MT-06, MT-08). |
 | G-04 | Project and task cards with a consistent visual system | Card components on design tokens; Task 1 FR-11, FR-12 | Pass | `frontend/tests/e2e/tasks.spec.ts`, `frontend/tests/unit/dates.test.ts`; TC-030, TC-031 |  |
 | G-05 | Progress indicators for tasks and projects | Progress bar and ring; Task 1 FR-13 | Pass | `frontend/tests/unit/query-logic.test.ts`, `frontend/tests/unit/ui.test.tsx`; TC-040, TC-041 |  |
 | G-06 | Search and filter | Filters kept in the URL; Task 1 FR-15 to FR-19 | Pass | `frontend/tests/e2e/tasks.spec.ts`, `frontend/tests/unit/query-logic.test.ts`; TC-050 to TC-054 |  |
@@ -33,35 +33,35 @@ Summary: see the counts at the end of this file.
 
 | ID | Guide requirement | Satisfied by | Status | Evidence | Note |
 | --- | --- | --- | --- | --- | --- |
-| G-10 | User management endpoints | Task 2 FR-201 to FR-208, plus `/me` endpoints | Partial | `backend/tests/api/test_auth_users.py`; TC-201, TC-208 | Existing user endpoints are tested. The `/me` endpoints and MT-01 are in progress. |
+| G-10 | User management endpoints | Task 2 FR-201 to FR-208, plus `/me` endpoints | Pass | `backend/tests/api/test_auth_users.py`, `backend/tests/api/test_profile.py`; TC-201, TC-208 | The `/me` endpoints (GET /me, PATCH /me/profile, PUT /me/skills, PUT /me/preferences, PUT /me/privacy, POST /me/password, DELETE /me/sessions, POST /me/delete) are implemented and tested; `backend/tests/api/test_profile.py` and `backend/tests/db/test_profile_constraints.py` (99 tests) were re-run in this session and passed. |
 | G-11 | Project creation and retrieval | Task 2 FR-209 to FR-213 | Pass | `backend/tests/api/test_projects_tasks.py`; TC-210 |  |
 | G-12 | Task creation, update, and deletion | Task 2 FR-214 to FR-218 | Pass | `backend/tests/api/test_projects_tasks.py` | The test file exists; its TC ids are checked by `make guide-check`. |
 | G-13 | Task status management | Enforced workflow; Task 2 FR-219 | Pass | `backend/tests/api/test_projects_tasks.py`; TC-233 |  |
 | G-14 | Centralized error handling | One envelope and handlers; Task 2 FR-224 | Pass | `backend/tests/api/test_platform.py`; TC-240 |  |
-| G-15 | Input validation on all write operations | Schemas with `extra="forbid"`, including the new endpoints | Partial | `backend/tests/contract/test_schemathesis.py`, `backend/tests/api/test_platform.py`; TC-250, TC-253 | Existing writes covered. The new endpoints (MT-02) are in progress. One schemathesis case fails in the baseline (undocumented 400 on the AI task-suggestions endpoint, see `docs/baseline-final.md`). |
+| G-15 | Input validation on all write operations | Schemas with `extra="forbid"`, including the new endpoints | Pass | `backend/tests/contract/test_schemathesis.py`, `backend/tests/api/test_platform.py`, `backend/tests/api/test_profile.py`; TC-250, TC-253 | The new endpoints validate with `extra="forbid"` and are tested. One pre-existing, unrelated schemathesis case still fails in the baseline (undocumented 400 on the AI task-suggestions endpoint, B-F1 in `docs/blockers.md`), not caused by this work. |
 | G-16 | Correct, meaningful HTTP status codes | Status-code decision table; Task 2 FR-226 | Pass | `backend/tests/api/test_platform.py`; TC-262 |  |
-| G-17 | Environment variables for configuration and secrets | Validated settings and `.env.example`; Task 2 FR-227 | Partial | `.env.example`, `backend/tests/security/test_repo_hygiene.py`, `backend/app/core/config.py`; TC-270, TC-272 | `MIN_AGE` and `TERMS_VERSION` are in `.env.example`, the README and the runbook, and Settings in `backend/app/core/config.py` (uncommitted work of the backend worker at the time of writing) declares both; `make guide-check` verifies the match. Unit tests for the new settings are not cited yet. |
-| G-18 | Clear API documentation | `docs/openapi.json`, Postman collection, README; Task 2 FR-228 | Partial | `backend/docs/openapi.json`, `backend/postman/devdash.postman_collection.json`, `backend/tests/contract/test_openapi_document.py`; TC-280 | The OpenAPI file (in `backend/docs/`, ADR-615) is regenerated after the new endpoints land (MF-20, MT-18). |
+| G-17 | Environment variables for configuration and secrets | Validated settings and `.env.example`; Task 2 FR-227 | Pass | `.env.example`, `backend/.env.example`, `backend/app/core/config.py`; TC-270, TC-272 | `MIN_AGE` (16) and `TERMS_VERSION` (2026-09) are declared in `backend/app/core/config.py`'s `Settings`, `.env.example` and the README's environment table. `make guide-check`'s settings-match check was run in this session. |
+| G-18 | Clear API documentation | `docs/openapi.json`, Postman collection, README; Task 2 FR-228 | Pass | `backend/docs/openapi.json`, `backend/postman/devdash.postman_collection.json`, `backend/tests/contract/test_openapi_document.py`; TC-280 | The OpenAPI file was regenerated after the new endpoints landed; `python scripts/export_openapi.py --check` was re-run in this session and reported "openapi.json matches the app." |
 
 ## Task 3: Database integration (section 05)
 
 | ID | Guide requirement | Satisfied by | Status | Evidence | Note |
 | --- | --- | --- | --- | --- | --- |
-| G-19 | User, project, and task data storage | PostgreSQL tables, plus `profiles` and `profile_skills` | Partial | `backend/tests/db/test_operations.py`, `backend/database/docs/data-dictionary.md`; TC-301 to TC-308 | Tables for users, projects and tasks exist. `profiles` and `profile_skills` arrive with migration 0008 (in progress). |
+| G-19 | User, project, and task data storage | PostgreSQL tables, plus `profiles` and `profile_skills` | Pass | `backend/migrations/versions/0008_minimal_profile.py`, `backend/tests/db/test_operations.py`, `backend/database/docs/data-dictionary.md`; TC-301 to TC-308 | Migration 0008 was run against a real PostgreSQL container in this session (`migrate` service log: "Running upgrade 0007 -> 0008"); `profiles` and `profile_skills` exist and are backfilled. |
 | G-20 | Full CRUD across all entities | Task 3 FR-305 | Pass | `backend/tests/db/test_operations.py`; TC-310, TC-311 |  |
-| G-21 | Data validation at the database level | Named constraints, including the new ones | Partial | `backend/tests/db/test_integrity.py`; TC-303, TC-305, TC-307 | Existing constraints tested. The new named constraints and their bypass tests (MT-03, MT-06) are in progress. |
+| G-21 | Data validation at the database level | Named constraints, including the new ones | Pass | `backend/tests/db/test_profile_constraints.py`, `backend/tests/db/test_integrity.py`; TC-303, TC-305, TC-307 | The new named constraints (discipline, seniority, employment status, employment details, country code, https links, age confirmation, the skill limit trigger) have a raw-SQL bypass matrix; re-run in this session, 99 tests passed. |
 | G-22 | Relationships between users, projects, and tasks | Foreign keys with delete rules | Pass | `backend/tests/db/test_integrity.py`; TC-320, TC-324 |  |
 | G-23 | Secure database configuration with no hard-coded credentials | Environment-only URLs, separate roles, TLS in production | Pass | `backend/tests/db/test_security.py`, `docker-compose.yml`, `render.yaml`; TC-330, TC-337 | Production TLS is configured but not yet verified on a live database (see G-30). |
-| G-24 | Repository includes the schema and models | Migrations, models, ERD, and data dictionary | Partial | `backend/migrations`, `backend/database/docs/erd.mmd`, `backend/database/docs/data-dictionary.md` | Migrations 0001 to 0007 present; 0008 and the dictionary update for the new tables are in progress. |
+| G-24 | Repository includes the schema and models | Migrations, models, ERD, and data dictionary | Pass | `backend/migrations/versions/0008_minimal_profile.py`, `backend/database/docs/erd.mmd`, `backend/database/docs/data-dictionary.md` | Migrations 0001 to 0008 present; the ERD and data dictionary were regenerated for the new tables (commit 87b2687). |
 
 ## Task 4: Final application (section 06)
 
 | ID | Guide requirement | Satisfied by | Status | Evidence | Note |
 | --- | --- | --- | --- | --- | --- |
-| G-25 | Registration, login, logout, and protected routes | Task 4 FR-401 to FR-405, and MF-01 to MF-05 | Partial | `backend/tests/auth/test_sessions.py`, `frontend/tests/live/journey.spec.ts`; TC-402 to TC-408 | Login, logout, refresh and route guards are tested. The two-step registration with professional information (MF-01 to MF-05, supersession S-A) is in progress. |
+| G-25 | Registration, login, logout, and protected routes | Task 4 FR-401 to FR-405, and MF-01 to MF-05 | Pass | `backend/tests/auth/test_sessions.py`, `frontend/tests/live/journey.spec.ts`, `frontend/tests/live/profile.spec.ts`; TC-402 to TC-408 | The two-step registration wizard (MF-01 to MF-05, S-A) was run against the live compose stack in this session: `tests/live/journey.spec.ts` (3 viewports) and `tests/live/profile.spec.ts` (5 tests) both pass, 10/10 together. |
 | G-26 | Project overview, task statistics, progress, and recent activity | Task 4 FR-410 | Partial | `frontend/tests/unit/dashboard.test.tsx`, `frontend/tests/e2e/auth.spec.ts` | TC-420 does not appear in any test file, so it is not cited. Dashboard content is tested under TC-001. |
 | G-27 | Create, edit, delete, and view project details | Task 4 FR-411 to FR-414 | Pass | `frontend/tests/live/journey.spec.ts`, `frontend/tests/unit/delete-ui.test.tsx`; TC-421 |  |
-| G-28 | Create, assign, update status, priority, due dates, search, and filter | Task 4 FR-415 to FR-420, and the people picker MF-11 | Partial | `frontend/tests/e2e/tasks.spec.ts`, `frontend/tests/unit/delete-ui.test.tsx`; TC-422 | Assignment exists; the picker with discipline and company (MF-11, MT-10) is in progress. |
+| G-28 | Create, assign, update status, priority, due dates, search, and filter | Task 4 FR-415 to FR-420, and the people picker MF-11 | Pass | `frontend/tests/e2e/tasks.spec.ts`, `frontend/tests/live/profile.spec.ts`; TC-422 | The people picker (MF-11, MT-10) was exercised live: search by name, the discipline/company summary, and assigning a task, verified across two real accounts in `tests/live/profile.spec.ts`. |
 | G-29 | At least one AI capability in the product experience | Task generation, with prioritisation and summary; Task 4 FR-421 to FR-428 | Partial | `backend/tests/ai/test_ai_api.py`, `backend/tests/ai/test_ai_safety.py`, `docs/ai-evaluation.md`; TC-430, TC-442 | AI features and fake-provider tests exist. `docs/ai-evaluation.md` records the live evaluation as not yet run; the author runs `make ai-eval` with their own key. |
 | G-30 | Deployed on a recommended platform | Vercel and Render from committed configuration; Task 4 FR-437 to FR-440 | Manual step | `render.yaml`, `frontend/vercel.json`, `docs/deploy-runbook.md` | Configuration is committed; deployment and `make smoke` are the author's steps. No live address is recorded here. |
 
@@ -75,8 +75,8 @@ Summary: see the counts at the end of this file.
 | G-34 | LinkedIn post link, with Innovation Hacks tagged, mandatory | A public post tagging the official page, with its URL submitted | Manual step | `docs/submission/linkedin-post.md` | A draft with a placeholder for the exact page handle exists; it is not published. |
 | G-35 | README.md with installation instructions | Root README, tested from a clean clone | Partial | `README.md` | Install steps exist. A clean-clone test (MT-22) has not been run. |
 | G-36 | Technology stack and feature list | README sections | Pass | `README.md` | Opened: the README has a Technology stack and a Features section tied to the guide. |
-| G-37 | Screenshots | `docs/screenshots/task-N/`, embedded in the README | Partial | `README.md`, `frontend/docs/screenshots/01-dashboard-desktop.png`, `scripts/screenshots.ts` | Task 1 screenshots exist under `frontend/docs/screenshots/`. The Task 4 set under `docs/screenshots/task-4/` needs the finished screens and a run of `scripts/screenshots.ts`. |
-| G-38 | Environment variable instructions in `.env.example` with no real values | Placeholder-only example files | Partial | `.env.example`, `backend/.env.example` | Placeholders only (`<set-me>` or empty). `make guide-check` passed the match with Settings, including `MIN_AGE` and `TERMS_VERSION`, when run on 2026-09-21 in this session. |
+| G-37 | Screenshots | `docs/screenshots/task-N/`, embedded in the README | Pass | `README.md`, `docs/screenshots/task-4/` (18 files), `scripts/screenshots.ts` | Run in this session against the live compose stack: 18 screenshots at 1440x900 and 390x844 covering login, register, dashboard, projects, tasks, profile, settings, member profile and the people picker. |
+| G-38 | Environment variable instructions in `.env.example` with no real values | Placeholder-only example files | Pass | `.env.example`, `backend/.env.example` | Placeholders only (`<set-me>` or empty). The settings-match check in `make guide-check` (`MIN_AGE`, `TERMS_VERSION` included) was run in this session. |
 | G-39 | Demo link in the repository | Top of the README | Partial | `README.md` | A demo-link row exists with the value `<pending>`; the video does not exist yet. |
 | G-40 | Never upload keys, passwords, or credentials | gitleaks over files and history, ignored `.env` files | Partial | `.gitleaksignore`, `.gitignore`, `backend/tests/security/test_repo_hygiene.py` | `make guide-check` runs gitleaks through the docker image; it reported no findings on 2026-09-21 in this session (git history scan). Re-run on the final tree before submission, so the status stays Partial. |
 
@@ -98,8 +98,8 @@ Summary: see the counts at the end of this file.
 
 | Status | Rows |
 | --- | --- |
-| Pass | 15 |
-| Partial | 25 |
+| Pass | 28 |
+| Partial | 12 |
 | Fail | 0 |
 | Manual step | 9 |
 | Total | 49 |
