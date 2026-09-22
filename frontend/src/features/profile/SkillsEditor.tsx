@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { t } from "@/i18n";
 import { useReplaceSkills } from "../data/hooks";
 import { skillProblem } from "./links-validate";
@@ -19,27 +19,37 @@ const MESSAGES = {
 export function SkillsEditor({ skills }: { skills: string[] }) {
   const [draft, setDraft] = useState("");
   const [error, setError] = useState<string | null>(null);
+  // Mirrors `skills` optimistically so two adds fired before the first PUT /me/skills
+  // resolves both build on the list the person just saw, instead of the stale prop
+  // (a lost update: add "COBOL", then "Debugging" before the first response lands, would
+  // otherwise overwrite the list with only "Debugging").
+  const [localSkills, setLocalSkills] = useState(skills);
+  useEffect(() => setLocalSkills(skills), [skills]);
   const replace = useReplaceSkills();
 
   const add = () => {
-    const problem = skillProblem(draft, skills);
+    const problem = skillProblem(draft, localSkills);
     if (problem !== null) {
       setError(t(MESSAGES[problem]));
       return;
     }
     setError(null);
-    replace.mutate([...skills, draft.trim()]);
+    const next = [...localSkills, draft.trim()];
+    setLocalSkills(next);
+    replace.mutate(next);
     setDraft("");
   };
 
   const remove = (skill: string) => {
-    replace.mutate(skills.filter((s) => s !== skill));
+    const next = localSkills.filter((s) => s !== skill);
+    setLocalSkills(next);
+    replace.mutate(next);
   };
 
   return (
     <div className="flex flex-col gap-2">
       <ul className="flex flex-wrap gap-2">
-        {skills.map((skill) => (
+        {localSkills.map((skill) => (
           <li
             key={skill}
             className="flex items-center gap-1 rounded-full border border-line-strong bg-subtle px-3 py-1 text-sm"
