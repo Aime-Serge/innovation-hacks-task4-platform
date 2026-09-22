@@ -24,12 +24,21 @@ for (const viewport of VIEWPORTS) {
       await page.goto("/projects");
       await expect(page).toHaveURL(/\/login\?next=%2Fprojects/);
 
-      // Register: success signs the person in (FR-401).
+      // Register: two steps, professional details, consent, success signs the person in
+      // (FR-401, MF-01).
       await page.goto("/register");
-      await page.getByLabel("Name", { exact: true }).fill("Journey Tester");
+      await page.getByLabel("First name", { exact: true }).fill("Journey");
+      await page.getByLabel("Last name", { exact: true }).fill("Tester");
       await page.getByLabel("Email").fill(email);
       await page.getByLabel("Password", { exact: true }).fill("journey-password-1");
-      await page.getByLabel("Confirm password").fill("journey-password-1");
+      await page.getByRole("button", { name: "Next" }).click();
+      await page.getByLabel("Discipline").selectOption("backend");
+      await page.getByLabel("Seniority").selectOption("mid");
+      await page.getByLabel("Employment status").selectOption("student");
+      await page.getByLabel("Country").selectOption("RW");
+      await page.getByLabel(/Time zone/).fill("UTC");
+      await page.getByLabel(/accept the Terms/).check();
+      await page.getByLabel(/meet the minimum age/).check();
       await page.getByRole("button", { name: "Create account" }).click();
       await expect(page).toHaveURL(/\/$/);
 
