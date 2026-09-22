@@ -6,18 +6,28 @@ import { RegisterForm } from "@/features/auth/RegisterForm";
 import { ServiceError } from "@/services/types";
 import { renderApp } from "./render";
 
-const holder = vi.hoisted((): { register: unknown } => ({ register: null }));
+const holder = vi.hoisted((): { register: unknown; login: unknown } => ({
+  register: null,
+  login: null,
+}));
 vi.mock("@/providers/AuthProvider", () => ({
-  useAuth: () => ({ auth: { register: holder.register } }),
+  useAuth: () => ({
+    auth: { register: holder.register, validateRegistration: vi.fn().mockResolvedValue(undefined) },
+    login: holder.login,
+  }),
 }));
 
 async function submit() {
   const user = userEvent.setup();
   renderApp(<RegisterForm />);
-  await user.type(screen.getByLabelText("Name"), "Ada");
+  await user.type(screen.getByLabelText("First name"), "Ada");
+  await user.type(screen.getByLabelText("Last name"), "Lovelace");
   await user.type(screen.getByLabelText("Email"), "ada@example.com");
   await user.type(screen.getByLabelText("Password"), "long-password-1");
-  await user.type(screen.getByLabelText("Confirm password"), "long-password-1");
+  await user.click(screen.getByRole("button", { name: "Next" }));
+  await user.selectOptions(await screen.findByLabelText("Country"), "RW");
+  await user.click(screen.getByLabelText(/accept the Terms/));
+  await user.click(screen.getByLabelText(/confirm that I meet/));
   await user.click(screen.getByRole("button", { name: "Create account" }));
 }
 
@@ -29,6 +39,7 @@ describe("FR-401 registration failures are explained", () => {
     [new ServiceError("INTERNAL_ERROR", "x", 500), /Something went wrong/],
   ])("shows the right message for %s", async (error, words) => {
     holder.register = vi.fn().mockRejectedValue(error);
+    holder.login = vi.fn();
     await submit();
     await waitFor(() => expect(screen.getByText(words)).toBeInTheDocument());
   });
