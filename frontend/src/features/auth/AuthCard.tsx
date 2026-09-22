@@ -10,6 +10,8 @@ export function AuthCard({ title, children }: { title: string; children: ReactNo
       className="mx-auto flex min-h-dvh max-w-md flex-col justify-center gap-4 p-4"
     >
       <div className="brand-bar" />
+      <p className="text-center text-lg font-semibold text-fg">{t("auth.welcomeGreeting")}</p>
+      <p className="text-center text-sm text-muted">{t("footer.tagline")}</p>
       <p className="text-center text-sm font-semibold text-muted">{t("app.name")}</p>
       <Card className="flex flex-col gap-4 p-6">
         <h1 className="text-2xl font-semibold">{title}</h1>

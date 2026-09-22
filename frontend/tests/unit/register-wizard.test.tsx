@@ -21,6 +21,7 @@ const holder = vi.hoisted(() => ({
   validateRegistration: vi.fn(),
   register: vi.fn(),
   login: vi.fn(),
+  hardNavigate: vi.fn(),
 }));
 
 vi.mock("@/providers/AuthProvider", () => ({
@@ -30,10 +31,16 @@ vi.mock("@/providers/AuthProvider", () => ({
   }),
 }));
 
+vi.mock("@/lib/navigation", async (original) => ({
+  ...(await original<Record<string, unknown>>()),
+  hardNavigate: holder.hardNavigate,
+}));
+
 beforeEach(() => {
   holder.validateRegistration.mockReset().mockResolvedValue(undefined);
   holder.register.mockReset();
   holder.login.mockReset();
+  holder.hardNavigate.mockReset();
   window.sessionStorage.clear();
 });
 
@@ -100,9 +107,8 @@ describe("MT-01 registration wizard", () => {
     expect(screen.queryByLabelText("Company")).not.toBeInTheDocument();
   });
 
-  it("submits, signs in, and redirects to the dashboard (MF-01, MF-05)", async () => {
+  it("ADR-619: submits and sends the person to login, without signing them in", async () => {
     holder.register.mockResolvedValue({ id: "user-9", name: "Ada Lovelace" });
-    holder.login.mockResolvedValue(undefined);
     const user = userEvent.setup();
     renderApp(<RegisterForm />);
     await user.type(screen.getByLabelText("First name"), "Ada");
@@ -119,13 +125,15 @@ describe("MT-01 registration wizard", () => {
     expect(holder.register).toHaveBeenCalledWith(
       expect.objectContaining({ role: "developer" }),
     );
-    expect(holder.login).toHaveBeenCalledWith("ada@example.com", "password123456");
+    // The account is created, but nothing signs the person in on their behalf (ADR-619):
+    // they confirm the password they just set by logging in with it themselves.
+    expect(holder.login).not.toHaveBeenCalled();
+    await waitFor(() => expect(holder.hardNavigate).toHaveBeenCalledWith("/login?registered=1"));
     expect(window.sessionStorage.getItem("devdash_show_welcome")).toBe("1");
   });
 
   it("RF-02: choosing Team Lead in the role dialog sends role=lead", async () => {
     holder.register.mockResolvedValue({ id: "user-9", name: "Ada Lovelace" });
-    holder.login.mockResolvedValue(undefined);
     const user = userEvent.setup();
     renderApp(<RegisterForm />);
     await user.type(screen.getByLabelText("First name"), "Ada");
@@ -178,7 +186,6 @@ describe("MT-01 registration wizard", () => {
 
   it("ADR-426: registering with an image link sends it as avatarUrl", async () => {
     holder.register.mockResolvedValue({ id: "user-9", name: "Ada Lovelace" });
-    holder.login.mockResolvedValue(undefined);
     const user = userEvent.setup();
     renderApp(<RegisterForm />);
     await user.type(screen.getByLabelText("First name"), "Ada");
@@ -204,7 +211,6 @@ describe("MT-01 registration wizard", () => {
 
   it("ADR-426: registering with an uploaded photo sends the file read to a data: URL", async () => {
     holder.register.mockResolvedValue({ id: "user-9", name: "Ada Lovelace" });
-    holder.login.mockResolvedValue(undefined);
     const user = userEvent.setup();
     const { container } = renderApp(<RegisterForm />);
     await user.type(screen.getByLabelText("First name"), "Ada");
@@ -258,7 +264,6 @@ describe("MT-01 registration wizard", () => {
 
   it("registering with no photo omits avatarUrl entirely", async () => {
     holder.register.mockResolvedValue({ id: "user-9", name: "Ada Lovelace" });
-    holder.login.mockResolvedValue(undefined);
     const user = userEvent.setup();
     renderApp(<RegisterForm />);
     await user.type(screen.getByLabelText("First name"), "Ada");

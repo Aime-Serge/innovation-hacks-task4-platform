@@ -57,6 +57,9 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  // robots.txt must stay public so crawlers get the file, not the login page.
-  matcher: [{ source: "/((?!_next/static|_next/image|favicon.ico|robots.txt).*)" }],
+  // robots.txt, the logo and the app icon must stay public: a crawler, an unauthenticated
+  // login/register page, and the browser's own favicon request all need them unguarded.
+  matcher: [
+    { source: "/((?!_next/static|_next/image|favicon.ico|robots.txt|logo.png|icon.png).*)" },
+  ],
 };

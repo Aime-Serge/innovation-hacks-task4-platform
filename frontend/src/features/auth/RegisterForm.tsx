@@ -28,7 +28,7 @@ const LINK_FIELD_MAP = { "links.github": "links", "links.linkedin": "links" };
 
 /** MF-01: two-step registration (account, then professional details and consent). */
 export function RegisterForm() {
-  const { auth, login } = useAuth();
+  const { auth } = useAuth();
   const [step, setStep] = useState<1 | 2>(1);
   const [account, setAccount] = useState<Account>(emptyAccount);
   const [accountErrors, setAccountErrors] = useState<AccountErrors>({});
@@ -108,11 +108,11 @@ export function RegisterForm() {
         role,
         ...(avatarUrl !== null ? { avatarUrl } : {}),
       });
-      // MF-01: a successful registration signs the person in.
-      await login(account.email.trim(), account.password);
+      // ADR-619 (was MF-01 "success signs the person in"; see supersession-log.md): registering
+      // no longer starts a session by itself. The person confirms their own new credentials by
+      // logging in, rather than the app trusting the form submission as proof of the password.
       setWelcomeFlag();
-      // MF-01 (was: the mock sent the person to /login instead; see supersession-log.md).
-      hardNavigate("/");
+      hardNavigate("/login?registered=1");
     } catch (failure) {
       handleSubmitFailure(failure);
     } finally {

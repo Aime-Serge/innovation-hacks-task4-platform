@@ -29,7 +29,7 @@ export const enProfile = {
   "auth.termsAccepted": "I accept the Terms of Service and Privacy Policy.",
   "auth.ageConfirmed": "I confirm that I meet the minimum age to use this service.",
   "auth.validating": "Checking…",
-  "auth.welcomeBanner.title": "Welcome! Your profile is {percent}% complete.",
+  "auth.welcomeBanner.title": "Welcome, {name}! Your profile is {percent}% complete.",
   "auth.welcomeBanner.action": "Finish your profile",
 
   "profile.completeYourProfile": "Complete your profile",
