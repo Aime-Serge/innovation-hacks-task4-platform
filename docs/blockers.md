@@ -32,11 +32,24 @@ member profile (`/people/[id]`), profile editor (`/profile/edit`, reused in Sett
 `npm run lint`, `npm run check:api`, `npm run check:no-js` and `npm run test` (375 tests, coverage
 above the 80% floor on all four metrics) all pass. Full detail in the handback report.
 
-Open items, none of which blocked the gate:
-- **Not run**: `npm run test:e2e` and `npm run test:a11y` (Playwright). No Docker/live backend was
-  started in this session, so the new and updated specs (`tests/e2e/auth.spec.ts`,
-  `tests/a11y/axe.spec.ts`, plus the untouched existing specs) are written and believed correct but
-  unexecuted. Run them once the stack is up.
+**Resolved 2026-09-22 (later the same day):** the compose stack was actually brought up
+(`RATE_LIMIT_ATTEMPTS=200 docker compose up -d --build`, migration 0008 ran clean) and the Playwright
+live suites were run against it for real, not just written. `tests/live/journey.spec.ts` and
+`tests/live/a11y.spec.ts` still targeted the old single-step registration form and failed outright
+against the real wizard; both were corrected to the actual field labels and flow, and
+`tests/live/a11y.spec.ts` gained axe checks for the register step 2, profile and settings screens.
+A pre-existing WCAG failure (not from this branch: the header's home link lost its accessible name
+below the `sm` breakpoint, `display:none` instead of `sr-only`) was found and fixed. A new
+`tests/live/profile.spec.ts` (what `make e2e-profile` runs) was written and verified: registration
+through the welcome banner, editing and viewing the own profile, the privacy switch taking effect
+at once across two real accounts through the people picker (MB-02), the saved time zone surviving a
+fresh sign-in, and the avatar menu never showing an email. **10/10 live specs pass together**
+(journey ×3 viewports, a11y ×2 widths, profile ×5). While building `profile.spec.ts`, a genuine race
+condition surfaced in `SkillsEditor` (two rapid additions before the first `PUT /me/skills`
+resolved could silently drop the earlier skill) and was fixed with optimistic local state, not
+worked around in the test.
+
+Still open items, none of which blocked the gate:
 - **Password change cannot keep the caller's own session.** The pack (via ADR-610) expected
   `POST /me/password` to receive the caller's `refreshToken` so only *other* sessions end. The
   refresh cookie is scoped to `Path=/api/bff/auth` (ADR-425) precisely so it is never sent on an
