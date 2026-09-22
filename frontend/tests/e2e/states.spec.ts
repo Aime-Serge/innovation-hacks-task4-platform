@@ -79,7 +79,7 @@ for (const viewport of VIEWPORTS) {
       const select = card.getByRole("combobox");
       await expect(select).toBeVisible();
       const before = await select.inputValue();
-      await select.selectOption((await select.locator("option").nth(1).getAttribute("value"))); // the first workflow-legal move (FR-417)
+      await select.selectOption(await select.locator("option").nth(1).getAttribute("value")); // the first workflow-legal move (FR-417)
       await expect(
         page.getByText("Could not update the task. The change was undone.", { exact: true }),
       ).toBeVisible();

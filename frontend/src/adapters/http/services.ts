@@ -4,6 +4,7 @@ import type { AiService } from "@/services/ai";
 import { ServiceError } from "@/services/types";
 import type {
   ActivityService,
+  MeService,
   ProjectService,
   Services,
   TaskService,
@@ -13,6 +14,7 @@ import type {
 import { call, callJson } from "./client";
 import {
   parseActivity,
+  parseMe,
   parseUser,
   projectBody,
   projectParams,
@@ -88,6 +90,12 @@ const users: UserService = {
         parseUser,
       )
     ).items,
+  // MF-11: one page, at most 20 results; the server applies the privacy switch (S-B).
+  search: async (query, signal) => {
+    const params = new URLSearchParams({ q: query, page: "1", pageSize: "20" });
+    const raw = await callJson<{ items: unknown[] }>("GET", "users", { query: params, signal });
+    return raw.items.map(parseUser);
+  },
   get: (id, signal) =>
     orNull(async () => parseUser(await callJson("GET", `users/${id}`, { signal }))),
   update: async (id, patch: UserPatch) => {
@@ -95,6 +103,28 @@ const users: UserService = {
     if (patch.name !== undefined) body["name"] = patch.name;
     if (patch.theme !== undefined) body["preferences"] = { theme: patch.theme };
     return parseUser(await callJson("PATCH", `users/${id}`, { body }));
+  },
+};
+
+const me: MeService = {
+  get: async (signal) => parseMe(await callJson("GET", "me", { signal })),
+  updateProfile: async (patch) => parseMe(await callJson("PATCH", "me/profile", { body: patch })),
+  replaceSkills: async (skills) =>
+    parseMe(await callJson("PUT", "me/skills", { body: { skills } })),
+  updatePreferences: async (input) =>
+    parseMe(await callJson("PUT", "me/preferences", { body: input })),
+  updatePrivacy: async (showProfessionalDetails) =>
+    parseMe(await callJson("PUT", "me/privacy", { body: { showProfessionalDetails } })),
+  changePassword: async (input) => {
+    await call("POST", "me/password", {
+      body: { currentPassword: input.currentPassword, newPassword: input.newPassword },
+    });
+  },
+  signOutAllDevices: async () => {
+    await call("DELETE", "me/sessions");
+  },
+  deleteAccount: async (password) => {
+    await call("POST", "me/delete", { body: { password } });
   },
 };
 
@@ -121,7 +151,7 @@ const ai: AiService = {
 };
 
 export function createHttpServices(): Services {
-  return { projects, tasks, users, activity, ai };
+  return { projects, tasks, users, activity, ai, me };
 }
 
 export type { Page };

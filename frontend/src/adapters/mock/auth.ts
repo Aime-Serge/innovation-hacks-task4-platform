@@ -1,7 +1,15 @@
-import type { User } from "@/schemas";
-import type { AuthService } from "@/services/auth";
+import type { Profile, User } from "@/schemas";
+import type { AuthService, RegistrationCheck } from "@/services/auth";
 import { ServiceError } from "@/services/types";
 import { findByEmail, findById, getAccounts, saveAccounts } from "./accounts";
+import { composeDisplayHeadline } from "./profile";
+import {
+  validateDisplayName,
+  validateEmailField,
+  validateGivenOrFamilyName,
+  validatePasswordField,
+  validateProfileDraft,
+} from "./profile-validate";
 
 const SESSION_COOKIE = "mock_session";
 const SESSION_KEY = "devdash_session_user_id";
@@ -12,6 +20,8 @@ const AVATAR_TYPES = ["image/png", "image/jpeg", "image/webp"];
 const wait = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 const fail = (message: string, status = 400, code = "bad_request") =>
   new ServiceError(code, message, status);
+const failFields = (details: { field: string; message: string }[]) =>
+  new ServiceError("VALIDATION_ERROR", "One or more fields are invalid.", 422, undefined, details);
 const token = () => Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2);
 
 // A plain readable cookie (there is no server to keep a secret from) that
@@ -69,19 +79,97 @@ export function createMockAuth(): AuthService {
       persistSession(found.user.id);
       return found.user;
     },
-    async register(name, email, password) {
+    // MF-01: one step at a time, and it creates nothing (~30/min in the real API; not
+    // reproduced here, since the mock is single-user and has no shared rate limiter).
+    async validateRegistration(check: RegistrationCheck) {
+      await wait(200);
+      const errors =
+        check.step === 1
+          ? [
+              check.givenName !== undefined
+                ? validateGivenOrFamilyName("givenName", check.givenName)
+                : null,
+              check.familyName !== undefined
+                ? validateGivenOrFamilyName("familyName", check.familyName)
+                : null,
+              check.givenName !== undefined && check.familyName !== undefined
+                ? validateDisplayName(check.givenName, check.familyName)
+                : null,
+              check.email !== undefined ? validateEmailField(check.email) : null,
+              check.email !== undefined && check.password !== undefined
+                ? validatePasswordField(
+                    check.password,
+                    check.email,
+                    check.givenName ?? "",
+                    check.familyName ?? "",
+                  )
+                : null,
+            ].filter((e) => e !== null)
+          : [
+              ...(check.profile !== undefined
+                ? validateProfileDraft(check.profile, { required: false })
+                : []),
+              check.termsAccepted !== undefined && !check.termsAccepted
+                ? { field: "termsAccepted", message: "You must accept the terms." }
+                : null,
+              check.ageConfirmed !== undefined && !check.ageConfirmed
+                ? { field: "ageConfirmed", message: "You must confirm you meet the minimum age." }
+                : null,
+            ].filter((e) => e !== null);
+      if (errors.length > 0) throw failFields(errors);
+    },
+    // S-A: creates the account only; the caller signs in with POST /auth/login afterwards.
+    async register(input) {
       await wait(400);
-      if (findByEmail(email) !== undefined) {
-        throw fail("An account with this email already exists.", 409, "conflict");
+      const step1Errors = [
+        validateGivenOrFamilyName("givenName", input.givenName),
+        validateGivenOrFamilyName("familyName", input.familyName),
+        validateDisplayName(input.givenName, input.familyName),
+        validateEmailField(input.email),
+        validatePasswordField(input.password, input.email, input.givenName, input.familyName),
+      ].filter((e) => e !== null);
+      // termsAccepted and ageConfirmed are typed `true` (RegisterInput): the wizard cannot send
+      // false, so there is nothing to validate here beyond the compiler's own check.
+      const step2Errors = validateProfileDraft(input.profile, { required: true });
+      if (step1Errors.length > 0 || step2Errors.length > 0)
+        throw failFields([...step1Errors, ...step2Errors]);
+      if (findByEmail(input.email) !== undefined) {
+        throw fail("An account with this email already exists.", 409, "EMAIL_ALREADY_EXISTS");
       }
+      const profile: Profile = {
+        discipline: input.profile.discipline,
+        seniority: input.profile.seniority,
+        employmentStatus: input.profile.employmentStatus,
+        companyName: input.profile.companyName ?? null,
+        jobTitle: input.profile.jobTitle ?? null,
+        country: input.profile.country,
+        city: input.profile.city ?? null,
+        timeZone: input.profile.timeZone,
+        headline: null,
+        displayHeadline: null,
+        about: "",
+        links: { github: null, linkedin: null, website: null },
+        skills: [],
+      };
       const user: User = {
         id: `user-${token().slice(0, 7)}`,
-        name,
-        email,
+        name: `${input.givenName} ${input.familyName}`,
+        givenName: input.givenName,
+        familyName: input.familyName,
+        email: input.email,
         role: "developer",
-        preferences: { theme: "dark" },
+        preferences: { theme: "system" },
+        createdAt: new Date().toISOString(),
+        profile: { ...profile, displayHeadline: composeDisplayHeadline(profile) },
       };
-      getAccounts().push({ user, password, resetToken: null, resetExpiresAt: null });
+      getAccounts().push({
+        user,
+        password: input.password,
+        resetToken: null,
+        resetExpiresAt: null,
+        showProfessionalDetails: true,
+        legacyProfile: false,
+      });
       saveAccounts();
       return user;
     },

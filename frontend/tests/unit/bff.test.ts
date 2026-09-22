@@ -215,10 +215,25 @@ describe("TC-450 refusals", () => {
     for (const segments of [["docs"], ["tasks", ".."], ["tasks", "%2e%2e", "x"]]) {
       expect((await handleBff(req("GET", "x"), segments, deps)).status).toBe(404);
     }
+    // MF-15, MF-16, MB-05: PUT is now allowed (whole-value replacement of /me/skills etc.);
+    // a method still outside the whitelist keeps answering 405 (was PUT before that change).
     expect(
-      (await handleBff(req("PUT", "tasks/1", { body: {} }), ["tasks", "1"], deps)).status,
+      (await handleBff(req("OPTIONS", "tasks/1", { body: {} }), ["tasks", "1"], deps)).status,
     ).toBe(405);
     expect(calls).toHaveLength(0);
+  });
+
+  it("MF-16 forwards a PUT to /me/privacy with the access token", async () => {
+    const { calls, deps } = setup(json(200, { showProfessionalDetails: false }));
+    const res = await handleBff(
+      req("PUT", "me/privacy", { body: { showProfessionalDetails: false }, cookie: ACCESS }),
+      ["me", "privacy"],
+      deps,
+    );
+    expect(res.status).toBe(200);
+    expect(calls[0]?.method).toBe("PUT");
+    expect(calls[0]?.url).toBe("https://api.example.com/api/v1/me/privacy");
+    expect(calls[0]?.headers.get("authorization")).toBe("Bearer ACCESS-SECRET");
   });
   it("turns a timeout into 504 and a network failure into 502, in the API's envelope", async () => {
     const slow = setup(new DOMException("timed out", "TimeoutError"));

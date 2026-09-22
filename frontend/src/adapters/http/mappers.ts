@@ -1,5 +1,6 @@
 import {
   Activity,
+  Me,
   User,
   pageOf,
   type NewProject,
@@ -77,6 +78,7 @@ function withoutNulls(raw: unknown, keys: string[]): unknown {
 }
 
 export const parseUser = (raw: unknown): User => User.parse(withoutNulls(raw, ["avatarUrl"]));
+export const parseMe = (raw: unknown): Me => Me.parse(withoutNulls(raw, ["avatarUrl"]));
 export const parseActivity = (raw: unknown): Activity =>
   Activity.parse(withoutNulls(raw, ["taskId"]));
 

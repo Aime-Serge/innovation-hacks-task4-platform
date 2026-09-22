@@ -18,7 +18,8 @@ export const readTheme = (): Theme => {
   }
 };
 
-export const resolveTheme = (theme: Theme): "light" | "dark" => (theme === "light" ? "light" : "dark");
+export const resolveTheme = (theme: Theme): "light" | "dark" =>
+  theme === "light" ? "light" : "dark";
 
 /** The two themes a person can pick; "system" stays in the API schema only. */
 export const THEME_CHOICES = ["light", "dark"] as const;
