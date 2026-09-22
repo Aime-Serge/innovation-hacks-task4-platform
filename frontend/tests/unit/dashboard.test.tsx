@@ -149,7 +149,7 @@ describe("TC-003 dashboard lists", () => {
 
 // RF-04..08: same route and DashboardView for both roles; only labels and the lead-only
 // TeamPanel vary, driven by the session's own role (see docs/role-alignment-contract.md).
-describe("TC-090 role-aware dashboard (RF-06, RF-07)", () => {
+describe("RF-06/RF-07 role-aware dashboard (Developer vs Team Lead pack)", () => {
   const developer = authState.user;
 
   afterEach(() => {
