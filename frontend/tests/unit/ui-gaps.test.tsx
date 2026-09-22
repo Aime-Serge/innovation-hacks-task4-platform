@@ -1,5 +1,5 @@
 // FR-401 (registration closed, too many attempts), FR-412 (edit only for owner or lead), FR-415 (closed project).
-import { screen, waitFor } from "@testing-library/react";
+import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { RegisterForm } from "@/features/auth/RegisterForm";
@@ -28,7 +28,11 @@ async function submit() {
   await user.selectOptions(await screen.findByLabelText("Country"), "RW");
   await user.click(screen.getByLabelText(/accept the Terms/));
   await user.click(screen.getByLabelText(/confirm that I meet/));
+  // RF-01: "Create account" now opens the role dialog first.
   await user.click(screen.getByRole("button", { name: "Create account" }));
+  const dialog = await screen.findByRole("dialog");
+  await user.click(within(dialog).getByRole("radio", { name: "Developer" }));
+  await user.click(within(dialog).getByRole("button", { name: "Create account" }));
 }
 
 describe("FR-401 registration failures are explained", () => {

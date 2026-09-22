@@ -1,11 +1,21 @@
 // MT-01: the two-step registration wizard, per-step validation, and the final sign-in.
-import { screen, waitFor } from "@testing-library/react";
+import { screen, waitFor, within } from "@testing-library/react";
+import type { UserEvent } from "@testing-library/user-event";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { RegisterForm } from "@/features/auth/RegisterForm";
 import type { RegistrationCheck } from "@/services/auth";
 import { ServiceError } from "@/services/types";
 import { renderApp } from "./render";
+
+// RF-01: "Create account" on step 2 now opens the role dialog rather than submitting directly;
+// the dialog has its own "Create account" button as its confirm action.
+async function chooseRoleAndCreate(user: UserEvent, role: "Developer" | "Team Lead" = "Developer") {
+  await user.click(screen.getByRole("button", { name: "Create account" }));
+  const dialog = await screen.findByRole("dialog");
+  await user.click(within(dialog).getByRole("radio", { name: role }));
+  await user.click(within(dialog).getByRole("button", { name: "Create account" }));
+}
 
 const holder = vi.hoisted(() => ({
   validateRegistration: vi.fn(),
@@ -104,10 +114,66 @@ describe("MT-01 registration wizard", () => {
     await user.selectOptions(screen.getByLabelText("Country"), "RW");
     await user.click(screen.getByLabelText(/accept the Terms/));
     await user.click(screen.getByLabelText(/confirm that I meet/));
-    await user.click(screen.getByRole("button", { name: "Create account" }));
+    await chooseRoleAndCreate(user);
     await waitFor(() => expect(holder.register).toHaveBeenCalled());
+    expect(holder.register).toHaveBeenCalledWith(
+      expect.objectContaining({ role: "developer" }),
+    );
     expect(holder.login).toHaveBeenCalledWith("ada@example.com", "password123456");
     expect(window.sessionStorage.getItem("devdash_show_welcome")).toBe("1");
+  });
+
+  it("RF-02: choosing Team Lead in the role dialog sends role=lead", async () => {
+    holder.register.mockResolvedValue({ id: "user-9", name: "Ada Lovelace" });
+    holder.login.mockResolvedValue(undefined);
+    const user = userEvent.setup();
+    renderApp(<RegisterForm />);
+    await user.type(screen.getByLabelText("First name"), "Ada");
+    await user.type(screen.getByLabelText("Last name"), "Lovelace");
+    await user.type(screen.getByLabelText("Email"), "ada@example.com");
+    await user.type(screen.getByLabelText("Password"), "password123456");
+    await user.click(screen.getByRole("button", { name: "Next" }));
+    await screen.findByRole("heading", { name: "Tell us about your work" });
+    await user.selectOptions(screen.getByLabelText("Country"), "RW");
+    await user.click(screen.getByLabelText(/accept the Terms/));
+    await user.click(screen.getByLabelText(/confirm that I meet/));
+    await chooseRoleAndCreate(user, "Team Lead");
+    await waitFor(() =>
+      expect(holder.register).toHaveBeenCalledWith(expect.objectContaining({ role: "lead" })),
+    );
+  });
+
+  it("RT-01: the role dialog blocks Create account until an option is chosen, keyboard-reachable", async () => {
+    const user = userEvent.setup();
+    renderApp(<RegisterForm />);
+    await user.type(screen.getByLabelText("First name"), "Ada");
+    await user.type(screen.getByLabelText("Last name"), "Lovelace");
+    await user.type(screen.getByLabelText("Email"), "ada@example.com");
+    await user.type(screen.getByLabelText("Password"), "password123456");
+    await user.click(screen.getByRole("button", { name: "Next" }));
+    await screen.findByRole("heading", { name: "Tell us about your work" });
+    await user.selectOptions(screen.getByLabelText("Country"), "RW");
+    await user.click(screen.getByLabelText(/accept the Terms/));
+    await user.click(screen.getByLabelText(/confirm that I meet/));
+    await user.click(screen.getByRole("button", { name: "Create account" }));
+    const dialog = await screen.findByRole("dialog");
+    const confirm = within(dialog).getByRole("button", { name: "Create account" });
+    expect(confirm).toBeDisabled();
+    expect(holder.register).not.toHaveBeenCalled();
+    // Keyboard-only: focus the radio (as Tab would land on it) and select with Space, no mouse.
+    const developerRadio = within(dialog).getByRole("radio", { name: "Developer" });
+    developerRadio.focus();
+    expect(developerRadio).toHaveFocus();
+    await user.keyboard(" ");
+    expect(developerRadio).toBeChecked();
+    expect(confirm).toBeEnabled();
+    // Escape leaves the account form exactly as it was, nothing submitted.
+    await user.keyboard("{Escape}");
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    expect(holder.register).not.toHaveBeenCalled();
+    expect(
+      screen.getByRole("heading", { name: "Tell us about your work" }),
+    ).toBeInTheDocument();
   });
 
   it("ADR-426: registering with an image link sends it as avatarUrl", async () => {
@@ -128,7 +194,7 @@ describe("MT-01 registration wizard", () => {
     );
     await user.click(screen.getByLabelText(/accept the Terms/));
     await user.click(screen.getByLabelText(/confirm that I meet/));
-    await user.click(screen.getByRole("button", { name: "Create account" }));
+    await chooseRoleAndCreate(user);
     await waitFor(() =>
       expect(holder.register).toHaveBeenCalledWith(
         expect.objectContaining({ avatarUrl: "https://example.com/ada.png" }),
@@ -156,7 +222,7 @@ describe("MT-01 registration wizard", () => {
     await waitFor(() => expect(container.querySelector("img")).not.toBeNull());
     await user.click(screen.getByLabelText(/accept the Terms/));
     await user.click(screen.getByLabelText(/confirm that I meet/));
-    await user.click(screen.getByRole("button", { name: "Create account" }));
+    await chooseRoleAndCreate(user);
     await waitFor(() => expect(holder.register).toHaveBeenCalled());
     const sent = holder.register.mock.calls[0]?.[0] as { avatarUrl?: string };
     expect(sent.avatarUrl).toMatch(/^data:image\/png;base64,/);
@@ -182,7 +248,7 @@ describe("MT-01 registration wizard", () => {
     expect(holder.register).not.toHaveBeenCalled();
 
     await user.click(screen.getByRole("button", { name: "Remove photo" }));
-    await user.click(screen.getByRole("button", { name: "Create account" }));
+    await chooseRoleAndCreate(user);
     await waitFor(() =>
       expect(holder.register).toHaveBeenCalledWith(
         expect.not.objectContaining({ avatarUrl: expect.anything() }),
@@ -204,7 +270,7 @@ describe("MT-01 registration wizard", () => {
     await user.selectOptions(screen.getByLabelText("Country"), "RW");
     await user.click(screen.getByLabelText(/accept the Terms/));
     await user.click(screen.getByLabelText(/confirm that I meet/));
-    await user.click(screen.getByRole("button", { name: "Create account" }));
+    await chooseRoleAndCreate(user);
     await waitFor(() => expect(holder.register).toHaveBeenCalled());
     const sent = holder.register.mock.calls[0]?.[0] as Record<string, unknown>;
     expect("avatarUrl" in sent).toBe(false);
@@ -223,8 +289,10 @@ describe("MT-01 registration wizard", () => {
     await user.selectOptions(screen.getByLabelText("Country"), "RW");
     await user.click(screen.getByLabelText(/accept the Terms/));
     await user.click(screen.getByLabelText(/confirm that I meet/));
-    await user.click(screen.getByRole("button", { name: "Create account" }));
+    await chooseRoleAndCreate(user);
     expect(await screen.findByRole("heading", { name: "Create your account" })).toBeInTheDocument();
     expect(screen.getByText(/already exists/)).toBeInTheDocument();
+    // The failed submission's dialog is gone; nothing is left half-open (RF-01).
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
 });

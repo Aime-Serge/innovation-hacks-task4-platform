@@ -7,7 +7,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from app.api.deps import ContainerDep, CurrentActor, UserId, enforce_rate_limit
 from app.api.docs import errors
 from app.core.errors import RegistrationDisabled
-from app.domain.enums import Theme
+from app.domain.enums import Role, Theme
 from app.domain.queries import UserQuery
 from app.domain.unset import UNSET
 from app.schemas.common import PageOut
@@ -93,8 +93,9 @@ async def validate_wrong_method() -> None:
     response_model=UserOut,
     summary="Register a user",
     description=(
-        "Create an account and its professional profile in one request (S-A). No token is "
-        "needed. The role is always `developer`; only a lead can change it later. The password "
+        "Create an account and its professional profile in one request (S-A). Role defaults to "
+        "`developer` when omitted; the registrant may set it to `lead` directly. No token is "
+        "needed. The password "
         "must be 12 to 128 characters and not equal to the email or the name. `termsAccepted` "
         "and `ageConfirmed` must be true; the terms version and time are stored, and no birth "
         "date is collected. Company and job title are required when the status is `employed` "
@@ -129,6 +130,7 @@ async def register(
         ),
         theme=payload.preferences.theme if payload.preferences else Theme.SYSTEM,
         avatar_url=payload.avatar_url,
+        role=payload.role if payload.role is not None else Role.DEVELOPER,
     )
     response.headers["Location"] = f"/api/v1/users/{member.user.id}"
     return UserOut.of(member, show_email=True)  # the new account's owner

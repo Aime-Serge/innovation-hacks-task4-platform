@@ -39,11 +39,21 @@ async def test_tc202_duplicate_email_is_409_case_insensitive(env: Env) -> None:
     assert error_code(again) == "EMAIL_ALREADY_EXISTS"
 
 
-async def test_tc203_client_cannot_set_role_id_or_timestamps(env: Env) -> None:
-    for extra in ({"role": "lead"}, {"id": "x"}, {"createdAt": "2020-01-01T00:00:00Z"}):
+async def test_tc203_client_cannot_set_id_or_timestamps(env: Env) -> None:
+    for extra in ({"id": "x"}, {"createdAt": "2020-01-01T00:00:00Z"}):
         response = await env.client.post("/api/v1/users", json={**NEW, **extra})
         assert response.status_code == 422, extra
         assert error_code(response) == "VALIDATION_ERROR"
+
+
+async def test_tc203b_registration_may_set_role_lead(env: Env) -> None:
+    """RF-02: the registrant may choose lead; role omitted still defaults to developer (RF-03,
+    covered by TC-201)."""
+    response = await env.client.post(
+        "/api/v1/users", json={**NEW, "email": "lead-signup@example.com", "role": "lead"}
+    )
+    assert response.status_code == 201
+    assert response.json()["role"] == "lead"
 
 
 async def test_tc204_weak_password_and_bad_email_are_422_with_field_details(env: Env) -> None:

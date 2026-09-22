@@ -5,6 +5,7 @@ import { DashboardView } from "@/features/dashboard/DashboardView";
 import { ActivityFeed } from "@/features/dashboard/ActivityFeed";
 import { DeadlineList } from "@/features/dashboard/DeadlineList";
 import { ProfileView } from "@/features/profile/ProfileView";
+import { authState } from "./mock-auth";
 import { installScenario } from "./mock-services";
 import { renderApp } from "./render";
 import { makeProject, makeTask } from "./helpers";
@@ -32,7 +33,7 @@ const open = (scenario: Scenario) => {
 describe("TC-001 dashboard content (FR-01..04)", () => {
   it("TC-001 shows the h1, four KPIs, deadlines and activity", async () => {
     open("default");
-    expect(screen.getByRole("heading", { level: 1, name: "Dashboard" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 1, name: "My dashboard" })).toBeInTheDocument();
     const kpis = await screen.findByText("Active projects");
     const region = kpis.closest("section") as HTMLElement;
     for (const label of ["Active projects", "Open tasks", "Overdue tasks", "Completion rate"]) {
@@ -143,6 +144,39 @@ describe("TC-003 dashboard lists", () => {
     expect(screen.getByText("Ada completed a task in Alpha")).toBeInTheDocument();
     expect(screen.getByText("Someone created a task in Unknown project")).toBeInTheDocument();
     expect(document.querySelectorAll("time")).toHaveLength(2);
+  });
+});
+
+// RF-04..08: same route and DashboardView for both roles; only labels and the lead-only
+// TeamPanel vary, driven by the session's own role (see docs/role-alignment-contract.md).
+describe("RF-06/RF-07 role-aware dashboard (Developer vs Team Lead pack)", () => {
+  const developer = authState.user;
+
+  afterEach(() => {
+    authState.user = developer;
+  });
+
+  it("RT-06 a developer sees the developer labels and no team panel", async () => {
+    open("default");
+    expect(screen.getByRole("heading", { level: 1, name: "My dashboard" })).toBeInTheDocument();
+    expect(await screen.findByText("Open tasks")).toBeInTheDocument();
+    expect(screen.queryByText("Team open tasks")).not.toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Team" })).not.toBeInTheDocument();
+  });
+
+  it("RT-06/RT-07 a lead sees the team labels and the team panel", async () => {
+    authState.user = developer === null ? null : { ...developer, role: "lead" };
+    open("default");
+    expect(screen.getByRole("heading", { level: 1, name: "Team dashboard" })).toBeInTheDocument();
+    expect(await screen.findByText("Team open tasks")).toBeInTheDocument();
+    expect(screen.getByText("Team overdue tasks")).toBeInTheDocument();
+    expect(screen.getByText("Team completion rate")).toBeInTheDocument();
+    // Active projects is not team-relabelled (pack section 3: unchanged for both roles).
+    expect(screen.getByText("Active projects")).toBeInTheDocument();
+    const team = await screen.findByRole("heading", { name: "Team" });
+    const list = team.closest("section")?.querySelector("ul");
+    expect(list).not.toBeNull();
+    expect(within(list as HTMLElement).getAllByRole("listitem").length).toBeGreaterThan(0);
   });
 });
 

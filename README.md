@@ -20,6 +20,9 @@ Each feature is tied to the requirement of the [Innovation Hacks guide](docs/sta
 | Task 1: user and profile section; Task 4: registration | Two-step registration that captures professional information, own profile page and editor, member profile page | Built and covered by live profile tests |
 | Task 4: assign tasks | People picker showing each member's discipline and company | Built and covered by live profile tests |
 | Task 4: logout; security | Settings (profile, preferences, privacy, account), change password, sign out of all devices | Built; account deletion remains subject to the documented ownership conflict |
+| Task 4: dashboard, "progress tracking"; Task management, "assign" | Role-choice at registration (developer or lead, reusing `users.role`); one `DashboardView` for both, with team-wide KPIs, deadlines and a lead-only `TeamPanel` for a lead, own-scope for a developer, driven by the visibility already enforced server-side (BR-401) | Built |
+
+**Beyond the requirements.** The developer/team-lead dashboard split (row above) reuses the `users.role` column and the existing BR-401 read-scoping end to end — the same route, the same `DashboardView`, the same tokens, for both roles; a lead additionally gets a `TeamPanel` and team-wide KPI labels, sourced from data the dashboard already fetches. See [`docs/role-alignment-contract.md`](docs/role-alignment-contract.md) and [`docs/adr/ADR-618-self-registration-may-set-role-lead-removing-the-guardrail.md`](docs/adr/ADR-618-self-registration-may-set-role-lead-removing-the-guardrail.md) (registration can now set `role=lead` directly; a deliberate, documented policy change from the prior developer-only guardrail).
 
 ## Technology stack
 
