@@ -18,3 +18,16 @@ The T+75 rule stopped new work before Phase 2 (types) and Phase 3 (frontend). Co
 - The registration form, mock adapter (S-D), avatar menu (S-C), profile pages, settings, people picker and dashboard banner are unchanged.
 - The current frontend registration posts `name`, which the new `POST /users` rejects (S-A). Do not deploy the API without the frontend work.
 - MT-01 (UI part), MT-06 UI, MT-10, MT-11, MT-16, MT-19, MT-23 not done.
+
+## B-F3 (2026-09-22): gitleaks history leak needs a decision only the author can make
+`backend/scripts/ai_eval.py:164` in commit fc2179d contains the literal `evaluation-pass-1`
+(a throwaway in-memory evaluator password, not a real credential). The current working tree no
+longer contains it (fixed in 53c61d7, which now generates the password at runtime), but gitleaks
+scans full history and the old commit still has it, so `make guide-check` / `security-full` still
+report 1 leak.
+Fixing it in history needs `git filter-repo --replace-text`, a destructive rewrite that changes
+every commit hash after fc2179d. The harness blocks destructive git rewrites from me by policy.
+Nothing has been pushed, so a rewrite is safe to run by hand:
+  git filter-repo --force --replace-text <(echo 'evaluation-pass-1==>REDACTED')
+Author decision needed: run that rewrite, or accept the history leak as a documented, non-secret
+false positive (G-40 marked Partial with this note) and move on.
