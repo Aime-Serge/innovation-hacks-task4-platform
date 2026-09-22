@@ -16,6 +16,7 @@ export function WelcomeBanner() {
   const me = useMe();
 
   if (!visible || me.data === undefined) return null;
+  const firstName = me.data.givenName ?? me.data.name.split(" ")[0] ?? me.data.name;
 
   return (
     <div
@@ -23,7 +24,7 @@ export function WelcomeBanner() {
       className="mb-6 flex items-center justify-between gap-4 rounded-lg border border-line bg-accent-subtle px-4 py-3"
     >
       <p className="text-sm">
-        {t("auth.welcomeBanner.title", { percent: me.data.completeness.percent })}{" "}
+        {t("auth.welcomeBanner.title", { name: firstName, percent: me.data.completeness.percent })}{" "}
         <Link href="/profile/edit" className="text-accent-fg underline">
           {t("auth.welcomeBanner.action")}
         </Link>

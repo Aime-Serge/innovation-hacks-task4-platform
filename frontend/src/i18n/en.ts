@@ -4,6 +4,7 @@ import { enProfile } from "./en-profile";
 
 const enCore = {
   "app.name": "DevDash",
+  "auth.welcomeGreeting": "Welcome, Developer or Team Lead",
 
   "common.retry": "Retry",
   "common.cancel": "Cancel",
