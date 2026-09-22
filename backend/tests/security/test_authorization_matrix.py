@@ -12,6 +12,7 @@ PUBLIC = {
     ("post", "/api/v1/auth/logout"),
     ("post", "/api/v1/auth/refresh"),
     ("post", "/api/v1/users"),
+    ("post", "/api/v1/users/validate"),
     ("get", "/healthz"),
     ("get", "/readyz"),
 }
@@ -20,6 +21,14 @@ PUBLIC = {
 # extra rule the service layer applies (tested in test_auth_users.py and test_projects_tasks.py).
 MATRIX: dict[tuple[str, str], str] = {
     ("get", "/api/v1/auth/me"): "any",
+    ("get", "/api/v1/me"): "any (own account)",
+    ("patch", "/api/v1/me/profile"): "any (own profile)",
+    ("put", "/api/v1/me/skills"): "any (own profile)",
+    ("put", "/api/v1/me/preferences"): "any (own profile)",
+    ("put", "/api/v1/me/privacy"): "any (own profile)",
+    ("post", "/api/v1/me/password"): "any; needs the current password",
+    ("delete", "/api/v1/me/sessions"): "any (own sessions)",
+    ("post", "/api/v1/me/delete"): "any; needs the password",
     ("get", "/api/v1/users"): "any",
     ("get", "/api/v1/users/{userId}"): "any",
     ("patch", "/api/v1/users/{userId}"): "self or lead; role change lead only",

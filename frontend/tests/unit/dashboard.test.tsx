@@ -127,9 +127,12 @@ describe("TC-003 dashboard lists", () => {
               {
                 id: "u1",
                 name: "Ada",
+                givenName: "Ada",
+                familyName: "Lovelace",
                 email: "a@b.co",
                 role: "lead",
                 preferences: { theme: "system" },
+                profile: null,
               },
             ],
           ])
@@ -143,22 +146,27 @@ describe("TC-003 dashboard lists", () => {
   });
 });
 
-describe("TC-020 profile page (FR-09)", () => {
-  it("TC-020 shows avatar initials, name, email, role and stats", async () => {
+// MF-06, MF-09 (was: email, role and task-derived stats on this page; the owner's view now comes
+// from GET /me and never shows the email inline; see supersession-log.md).
+describe("TC-020 own profile page (MF-06, MF-09)", () => {
+  it("TC-020 shows the header, about, skills, statistics and completeness", async () => {
     installScenario("default");
     renderApp(<ProfileView />);
     expect(screen.getByRole("heading", { level: 1, name: "Profile" })).toBeInTheDocument();
+    expect(await screen.findByText("Backend · Senior")).toBeInTheDocument();
     expect(screen.getAllByText("Aime Serge UKOBIZABA").length).toBeGreaterThan(0);
-    expect(screen.getByText("aime.serge@example.com")).toBeInTheDocument();
-    expect(screen.getByText("Developer")).toBeInTheDocument();
-    expect(await screen.findByText("Assigned")).toBeInTheDocument();
-    expect(screen.getByText("Completion rate")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Statistics" })).toBeInTheDocument();
+    expect(screen.getByText("Projects owned")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Profile completeness" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Edit profile" })).toHaveAttribute(
+      "href",
+      "/profile/edit",
+    );
   });
 
-  it("TC-072 the stats region shows an error with Retry when tasks fail", async () => {
+  it("TC-072 shows an error with Retry when the profile fails to load", async () => {
     installScenario("error");
     renderApp(<ProfileView />);
     expect(await screen.findByRole("button", { name: "Retry" })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "Edit profile" })).toBeInTheDocument();
   });
 });

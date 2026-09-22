@@ -11,7 +11,7 @@ from pydantic import SecretStr, ValidationError
 from sqlalchemy import event
 
 from app.core.config import Settings, load_settings
-from tests.conftest import DEV, LEAD, OTHER, Env, make_settings
+from tests.conftest import DEV, LEAD, OTHER, Env, make_settings, signup
 from tests.db.conftest import Db
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -231,7 +231,7 @@ async def test_tc335_password_hash_is_selected_only_by_the_login_lookup(sql_env:
         )
         await sql_env.client.post(
             "/api/v1/users",
-            json={"name": "New", "email": "new@example.com", "password": "brand-new-password"},
+            json=signup(name="New Person", email="new@example.com", password="brand-new-password"),
         )
         await sql_env.login("new@example.com", "brand-new-password")
         await sql_env.client.delete(f"/api/v1/users/{me['id']}", headers=sql_env.auth(OTHER))

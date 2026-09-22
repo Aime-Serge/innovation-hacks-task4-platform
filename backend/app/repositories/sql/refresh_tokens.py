@@ -73,6 +73,17 @@ class SqlRefreshTokenRepository:
         )
         return int(result.rowcount)
 
+    async def revoke_user_except(
+        self, user_id: UUID, keep_family: UUID | None, at: datetime
+    ) -> int:
+        conditions = [Row.user_id == user_id, Row.revoked_at.is_(None)]
+        if keep_family is not None:
+            conditions.append(Row.family_id != keep_family)
+        result = await common.run(
+            self._session, update(Row).where(*conditions).values(revoked_at=at), "update"
+        )
+        return int(result.rowcount)
+
     async def delete_expired(self, before: datetime) -> int:
         result = await common.run(
             self._session, delete(Row).where(Row.expires_at < before), "delete"

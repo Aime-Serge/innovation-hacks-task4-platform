@@ -1,4 +1,25 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import type { RegisterInput } from "@/services/auth";
+
+// S-A: the shared registration payload every test that creates an account now sends.
+const registerInput: RegisterInput = {
+  givenName: "Ada",
+  familyName: "Lovelace",
+  email: "ada@example.com",
+  password: "password12345",
+  profile: {
+    discipline: "backend",
+    seniority: "mid",
+    employmentStatus: "between_roles",
+    companyName: null,
+    jobTitle: null,
+    country: "RW",
+    city: null,
+    timeZone: "Africa/Kigali",
+  },
+  termsAccepted: true,
+  ageConfirmed: true,
+};
 
 const run = async <T>(promise: Promise<T>): Promise<T> => {
   const settled = promise.then(
@@ -51,14 +72,22 @@ describe("TC-004 mock auth adapter", () => {
 
   it("TC-005 registering creates the account without starting a session, and rejects duplicates", async () => {
     const auth = await fresh();
-    const user = await run(auth.register("Ada", "ada@example.com", "password123"));
-    expect(user.name).toBe("Ada");
+    const user = await run(auth.register(registerInput));
+    expect(user.name).toBe("Ada Lovelace");
+    expect(user.profile?.discipline).toBe("backend");
     expect(document.cookie).not.toContain("mock_session=user");
     expect(await run(auth.getSession())).toBeNull();
-    await expect(run(auth.register("Ada", "ada@example.com", "password123"))).rejects.toMatchObject(
-      { status: 409 },
-    );
-    expect((await run(auth.login("ada@example.com", "password123"))).name).toBe("Ada");
+    await expect(run(auth.register(registerInput))).rejects.toMatchObject({ status: 409 });
+    expect((await run(auth.login("ada@example.com", "password12345"))).name).toBe("Ada Lovelace");
+  });
+
+  it("MF-01 validateRegistration checks one step and creates nothing", async () => {
+    const auth = await fresh();
+    await expect(
+      run(auth.validateRegistration({ step: 1, givenName: "", email: "not-an-email" })),
+    ).rejects.toMatchObject({ status: 422 });
+    await run(auth.validateRegistration({ step: 1, givenName: "Ada", familyName: "Lovelace" }));
+    expect(await run(auth.getSession())).toBeNull();
   });
 
   it("TC-004 forgot and reset password: same reply for unknown emails, single-use token", async () => {

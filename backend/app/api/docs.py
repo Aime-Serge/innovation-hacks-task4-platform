@@ -34,6 +34,11 @@ CATALOGUE: dict[str, tuple[int, str]] = {
     "INTERNAL_ERROR": (500, "Something went wrong on our side."),
 }
 
+# The same code at another status: a wrong current password is 403, not 401 (pack section 5).
+VARIANTS: dict[str, tuple[int, str]] = {
+    "INVALID_CREDENTIALS:403": (403, "The current password is incorrect."),
+}
+
 _TITLES = {
     400: "Malformed request",
     401: "Not authenticated",
@@ -55,9 +60,9 @@ def errors(*codes: str) -> dict[int | str, dict[str, Any]]:
     """Build the `responses` mapping for a route, one entry per HTTP status."""
     grouped: dict[int, dict[str, dict[str, Any]]] = {}
     for code in codes:
-        status, message = CATALOGUE[code]
+        status, message = CATALOGUE[code] if code in CATALOGUE else VARIANTS[code]
         error: dict[str, Any] = {
-            "code": code,
+            "code": code.split(":")[0],
             "message": message,
             "requestId": "8f0c2e4a-3b1d-4f6e-9a57-2d7c1e9b5a10",
         }
@@ -67,7 +72,10 @@ def errors(*codes: str) -> dict[int | str, dict[str, Any]]:
             ]
         if code == "INVALID_STATUS_TRANSITION":
             error["details"] = [{"field": "allowedStatuses", "message": "in_progress"}]
-        grouped.setdefault(status, {})[code] = {"summary": code, "value": {"error": error}}
+        grouped.setdefault(status, {})[code] = {
+            "summary": code.split(":")[0],
+            "value": {"error": error},
+        }
     return {
         status: {
             "model": ErrorResponse,

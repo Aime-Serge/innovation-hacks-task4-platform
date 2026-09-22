@@ -9,7 +9,7 @@ from typing import Any
 import pytest
 
 from app.services.session_service import hash_token
-from tests.conftest import DEV, Env, build_env, error_code
+from tests.conftest import DEV, Env, build_env, error_code, signup
 
 REFRESH = "/api/v1/auth/refresh"
 LOGOUT = "/api/v1/auth/logout"
@@ -111,7 +111,7 @@ async def test_tc406_refreshing_too_often_is_rate_limited(env: Env) -> None:
 
 async def test_tc408_registration_can_be_switched_off() -> None:
     async for env in build_env("empty", registration_enabled=False):
-        payload = {"name": "New", "email": "new@example.com", "password": "a-long-password-1"}
+        payload = signup(name="New Person", email="new@example.com", password="a-long-password-1")
         response = await env.client.post("/api/v1/users", json=payload)
         assert response.status_code == 403
         assert error_code(response) == "REGISTRATION_DISABLED"

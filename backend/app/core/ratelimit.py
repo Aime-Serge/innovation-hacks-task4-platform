@@ -17,13 +17,13 @@ class RateLimiter:
         self._window = window_seconds
         self._hits: defaultdict[str, deque[float]] = defaultdict(deque)
 
-    def check(self, key: str) -> None:
+    def check(self, key: str, attempts: int | None = None) -> None:
         """Record an attempt; raise RateLimited when the window is already full."""
         now = self._clock.now().timestamp()
         hits = self._hits[key]
         while hits and now - hits[0] >= self._window:
             hits.popleft()
-        if len(hits) >= self._attempts:
+        if len(hits) >= (attempts or self._attempts):
             retry_after = max(1, math.ceil(self._window - (now - hits[0])))
             raise RateLimited("Too many attempts. Try again later.", retry_after)
         hits.append(now)

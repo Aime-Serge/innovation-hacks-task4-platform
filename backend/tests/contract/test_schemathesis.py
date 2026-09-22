@@ -96,6 +96,33 @@ def is_positive(case: Any) -> bool:
     return generation is None or "positive" in str(generation.mode).lower()
 
 
+WORK = {"employmentStatus": "employed", "companyName": "Acme", "jobTitle": "Engineer"}
+GOOD_PROFILE = {"discipline": "backend", "seniority": "mid", "country": "RW"} | WORK
+GOOD_ZONE = "Africa/Kigali"
+
+
+def make_semantically_valid(case: Any, body: dict[str, Any]) -> None:
+    """Rules a JSON Schema cannot state (ISO country list, IANA zones, letters-only names, consent
+    true, company for employed people, unique skills) are documented 422s, as an unknown project id
+    is. Give a schema-valid case values that also satisfy them, so it runs end to end."""
+    path = case.path
+    if path in ("/api/v1/users", "/api/v1/users/validate"):
+        body.update(givenName="Ada", familyName="Lovelace", termsAccepted=True, ageConfirmed=True)
+        body["profile"] = {**GOOD_PROFILE, "timeZone": GOOD_ZONE}
+        if path.endswith("validate"):  # a step needs its fields, so send both steps' fields
+            body.update(password="correct-horse-battery", email="check@example.com")
+    elif path == "/api/v1/me/profile":
+        for name in ("givenName", "familyName", "country", "timeZone"):
+            if name in body:
+                body[name] = {"country": "RW", "timeZone": GOOD_ZONE}.get(name, "Ada")
+        if body.get("employmentStatus") in ("employed", "freelance"):
+            body.update(companyName="Acme", jobTitle="Engineer")
+    elif path == "/api/v1/me/preferences":
+        body["timeZone"] = GOOD_ZONE
+    elif path == "/api/v1/me/skills" and isinstance(body.get("skills"), list):
+        body["skills"] = [f"skill {i}" for i, _ in enumerate(body["skills"])]
+
+
 @schema.parametrize()
 def test_tc250_every_operation_conforms_to_its_documented_contract(
     case: Any, live_api: str
@@ -107,4 +134,6 @@ def test_tc250_every_operation_conforms_to_its_documented_contract(
         body["projectId"] = STATE["project"]
     if is_positive(case) and "assigneeId" in body:
         body["assigneeId"] = None
+    if is_positive(case) and case.method in ("POST", "PATCH", "PUT") and body:
+        make_semantically_valid(case, body)
     case.call_and_validate(base_url=live_api)

@@ -26,17 +26,38 @@ for (const size of WIDTHS) {
       await page.goto("/login");
       await violations(page, "login");
       await page.goto("/register");
-      await violations(page, "register");
+      await violations(page, "register step 1");
 
       const stamp = `${size.name}-${Date.now()}`;
-      await page.getByLabel("Name", { exact: true }).fill("Axe Tester");
+      await page.getByLabel("First name", { exact: true }).fill("Axe");
+      await page.getByLabel("Last name", { exact: true }).fill("Tester");
       await page.getByLabel("Email").fill(`axe-${stamp}@example.com`);
       await page.getByLabel("Password", { exact: true }).fill("axe-password-12");
-      await page.getByLabel("Confirm password").fill("axe-password-12");
+      await page.getByRole("button", { name: "Next" }).click();
+      await violations(page, "register step 2");
+      await page.getByLabel("Discipline").selectOption("backend");
+      await page.getByLabel("Seniority").selectOption("mid");
+      await page.getByLabel("Employment status").selectOption("student");
+      await page.getByLabel("Country").selectOption("RW");
+      await page.getByLabel(/Time zone/).fill("UTC");
+      await page.getByLabel(/accept the Terms/).check();
+      await page.getByLabel(/meet the minimum age/).check();
       await page.getByRole("button", { name: "Create account" }).click();
       await expect(page).toHaveURL(/\/$/);
       await expect(page.getByRole("heading", { name: "Dashboard", level: 1 })).toBeVisible();
       await violations(page, "dashboard");
+
+      // MT-19: axe on the new profile and settings screens (MF-06, MF-12).
+      await page.goto("/profile");
+      await violations(page, "own profile");
+      await page.goto("/settings");
+      await violations(page, "settings, profile tab");
+      await page.getByRole("tab", { name: "Account" }).click();
+      await violations(page, "settings, account tab");
+      await page.getByRole("tab", { name: "Preferences" }).click();
+      await violations(page, "settings, preferences tab");
+      await page.getByRole("tab", { name: "Privacy" }).click();
+      await violations(page, "settings, privacy tab");
 
       await page.goto("/projects");
       await page.getByRole("button", { name: "New project" }).first().click();

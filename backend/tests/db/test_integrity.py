@@ -12,6 +12,7 @@ from uuid import uuid4
 import pytest
 
 from tests.db.conftest import Db
+from tests.db.test_profile_constraints import CASES as PROFILE_CASES
 
 
 def utc(day: str) -> datetime:
@@ -99,6 +100,16 @@ USER_CASES = [
     ("role unknown", {"role": "admin"}, "ck_users_role"),
     ("avatar http", {"avatar": "http://example.com/a.png"}, "ck_users_avatar_url"),
     ("avatar too long", {"avatar": "https://e.io/" + "a" * 2050}, "ck_users_avatar_url"),
+    # ADR-426: an uploaded photo is stored inline as base64. Only real image types, only
+    # base64, and only up to the size the client is allowed to send.
+    ("avatar data gif", {"avatar": "data:image/gif;base64,R0lGOD=="}, "ck_users_avatar_url"),
+    ("avatar data html", {"avatar": "data:text/html;base64,PHNjcmlwdD4="}, "ck_users_avatar_url"),
+    ("avatar data not base64", {"avatar": "data:image/png;base64,<>"}, "ck_users_avatar_url"),
+    (
+        "avatar data too long",
+        {"avatar": "data:image/png;base64," + "A" * 700_001},
+        "ck_users_avatar_url",
+    ),
     ("theme unknown", {"theme": "blue"}, "ck_users_theme"),
 ]
 PROJECT_CASES = [
@@ -145,6 +156,21 @@ async def test_tc303_user_constraints_reject_direct_sql(
     app_db: Db, label: str, change: dict[str, Any], name: str
 ) -> None:
     await _expect(app_db, USER, GOOD_USER | change, name, CHECK)
+
+
+@pytest.mark.sql
+async def test_tc303_avatar_accepts_a_link_or_an_uploaded_photo(app_db: Db) -> None:
+    """ADR-426: the rule has to let the two real cases through, not just refuse the rest."""
+    for label, avatar in [
+        ("https link", "https://example.com/ada.png"),
+        ("uploaded png", "data:image/png;base64,iVBORw0KGgo="),
+        ("uploaded jpeg", "data:image/jpeg;base64,/9j/4AAQSkZJRg=="),
+        ("uploaded webp", "data:image/webp;base64,UklGRg=="),
+        ("no photo", None),
+    ]:
+        await app_db.run(
+            USER, **(GOOD_USER | {"avatar": avatar, "email": f"{label.replace(' ', '')}@e.io"})
+        )
 
 
 @pytest.mark.sql
@@ -394,6 +420,14 @@ async def test_nfr307_every_constraint_in_the_catalogue_has_a_bypass_test(admin_
         | {name for *_, name in TASK_CASES}
         | {name for *_, name in REFRESH_CASES}
         | {name for *_, name in AI_CASES}
+        | {name for *_, name in PROFILE_CASES}
+        | {
+            "ck_users_given_name_length",
+            "ck_users_family_name_length",
+            "fk_profiles_user_id_users",
+            "ck_profile_skills_name_length",
+            "fk_profile_skills_user_id_users",
+        }
         | {
             "uq_users_email",
             "ck_activity_type",

@@ -1,13 +1,14 @@
 import { createMockAi } from "./ai";
 import { array } from "zod/mini";
-import { Activity, Project, Task, User, pageOf } from "@/schemas";
+import { Activity, Project, Task, pageOf } from "@/schemas";
 import type { Scenario } from "@/schemas";
 import { applyProjectQuery, applyTaskQuery } from "@/lib/query-logic";
 import { ServiceError } from "@/services/types";
 import type { Services } from "@/services/types";
-import { findById, getAccounts, saveAccounts } from "./accounts";
 import { Behavior, type Latency } from "./behavior";
 import { buildFixtures, type Fixtures } from "./fixtures";
+import { createMeService } from "./me-service";
+import { createUserService } from "./user-service";
 
 export type MockOptions = {
   scenario: Scenario;
@@ -48,6 +49,9 @@ export function createMockServices(options: MockOptions): MockSession {
     },
     get activity() {
       return built().activity;
+    },
+    get privacy() {
+      return built().privacy;
     },
   };
   const behavior = new Behavior(options.scenario, options.latency);
@@ -143,36 +147,13 @@ export function createMockServices(options: MockOptions): MockSession {
     },
   };
 
-  /** Fixture users overlaid with registered accounts (which win on id). */
-  const allUsers = (): User[] => {
-    const accounts = getAccounts().map((a) => a.user);
-    const ids = new Set(accounts.map((u) => u.id));
-    return [...data.users.filter((u) => !ids.has(u.id)), ...accounts];
-  };
-
-  const users: Services["users"] = {
-    async list(signal) {
-      await behavior.wait(signal);
-      behavior.checkList("users");
-      return array(User).parse(allUsers());
-    },
-    async get(id, signal) {
-      await behavior.wait(signal);
-      behavior.checkList("users");
-      const found = allUsers().find((u) => u.id === id);
-      return found === undefined ? null : User.parse(found);
-    },
-    async update(id, patch) {
-      await behavior.wait();
-      const account = findById(id);
-      const target = account?.user ?? data.users.find((u) => u.id === id);
-      if (target === undefined) throw notFound("That user");
-      if (patch.name !== undefined) target.name = patch.name;
-      if (patch.theme !== undefined) target.preferences = { theme: patch.theme };
-      if (account !== undefined) saveAccounts();
-      return User.parse(target);
-    },
-  };
+  const users = createUserService({
+    getActorId: options.getActorId,
+    getFixtureUsers: () => data.users,
+    getPrivacy: () => data.privacy,
+    wait: (signal) => behavior.wait(signal),
+    checkList: () => behavior.checkList("users"),
+  });
 
   const activity: Services["activity"] = {
     async list(limit, signal) {
@@ -182,5 +163,19 @@ export function createMockServices(options: MockOptions): MockSession {
     },
   };
 
-  return { services: { projects, tasks, users, activity, ai: createMockAi() }, snapshot: built };
+  const me = createMeService({
+    getActorId: options.getActorId,
+    getProjects: () => data.projects,
+    getTasks: () => data.tasks,
+    setTasks: (value) => {
+      data.tasks = value;
+    },
+    wait: () => behavior.wait(),
+    checkList: () => behavior.checkList("me"),
+  });
+
+  return {
+    services: { projects, tasks, users, activity, ai: createMockAi(), me },
+    snapshot: built,
+  };
 }

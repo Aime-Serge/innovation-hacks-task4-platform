@@ -25,7 +25,7 @@ export function Header() {
         >
           <Icon name="dashboard" />
         </span>
-        <span className="hidden sm:inline">{t("app.name")}</span>
+        <span className="sr-only sm:not-sr-only">{t("app.name")}</span>
       </Link>
       <div className="flex-1" />
       <Suspense fallback={null}>

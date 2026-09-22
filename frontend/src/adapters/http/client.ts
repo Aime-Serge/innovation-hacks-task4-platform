@@ -37,14 +37,27 @@ async function refreshSession(): Promise<boolean> {
   return refreshing;
 }
 
+type RawDetail = { field?: unknown; message?: unknown };
+
+function readDetails(value: unknown): ServiceError["details"] {
+  if (!Array.isArray(value)) return undefined;
+  const details = (value as RawDetail[])
+    .filter((d) => typeof d.field === "string" && typeof d.message === "string")
+    .map((d) => ({ field: d.field as string, message: d.message as string }));
+  return details.length > 0 ? details : undefined;
+}
+
 async function toError(res: Response): Promise<ServiceError> {
   const retry = Number(res.headers.get("retry-after"));
   const retryAfter = Number.isFinite(retry) && retry > 0 ? retry : undefined;
   try {
-    const body = (await res.json()) as { error?: { code?: unknown; message?: unknown } };
+    const body = (await res.json()) as {
+      error?: { code?: unknown; message?: unknown; details?: unknown };
+    };
     const code = typeof body.error?.code === "string" ? body.error.code : "UNKNOWN";
     const message = typeof body.error?.message === "string" ? body.error.message : res.statusText;
-    return new ServiceError(code, message, res.status, retryAfter);
+    const details = readDetails(body.error?.details);
+    return new ServiceError(code, message, res.status, retryAfter, details);
   } catch {
     return new ServiceError(
       "UNKNOWN",

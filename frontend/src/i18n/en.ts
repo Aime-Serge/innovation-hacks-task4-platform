@@ -1,5 +1,8 @@
-// Single dictionary for every user-facing string (NFR-21).
-export const en = {
+// Single dictionary for every user-facing string (NFR-21). Split across two files to stay
+// under the house line-length rule; en-profile.ts holds the minimal-profile pack's strings.
+import { enProfile } from "./en-profile";
+
+const enCore = {
   "app.name": "DevDash",
 
   "common.retry": "Retry",
@@ -281,3 +284,5 @@ export const en = {
   "task.deleted": "Task deleted.",
   "task.deleteFailed": "Could not delete the task. It was restored.",
 } as const;
+
+export const en = { ...enCore, ...enProfile } as const;

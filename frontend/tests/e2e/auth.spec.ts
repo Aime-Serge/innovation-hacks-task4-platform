@@ -29,25 +29,28 @@ test.describe("TC-001 landing and authentication", () => {
     await expect(page.getByRole("article")).toHaveCount(0);
   });
 
-  test("TC-005 creating an account lands on the login page, not inside the app", async ({
+  // MT-01, MF-01, MF-05 (was: single-step form landing on /login; see supersession-log.md).
+  // Not run in this session (no live stack); kept correct and ready for `npm run test:e2e`.
+  test("TC-005 the two-step wizard signs the person in and shows the welcome banner", async ({
     page,
   }) => {
     const email = `new-${Date.now()}@example.com`;
     await page.goto("/register");
-    await page.getByLabel("Name").fill("New Person");
+    await expect(page.getByRole("heading", { name: "Create your account" })).toBeVisible();
+    await page.getByLabel("First name").fill("New");
+    await page.getByLabel("Last name").fill("Person");
     await page.getByLabel("Email").fill(email);
-    await page.getByLabel("Password", { exact: true }).fill("password123");
-    await page.getByLabel("Confirm password").fill("password123");
+    await page.getByLabel("Password", { exact: true }).fill("password123456");
+    await page.getByRole("button", { name: "Next" }).click();
+    await expect(page.getByRole("heading", { name: "Tell us about your work" })).toBeVisible();
+    await page.getByLabel("Country").selectOption("RW");
+    await page.getByLabel(/accept the Terms/).check();
+    await page.getByLabel(/confirm that I meet/).check();
     await page.getByRole("button", { name: "Create account" }).click();
-    await expect(page).toHaveURL(/\/login\?registered=1/, { timeout: 30_000 });
-    await expect(page.getByText("Account created. Log in to continue.")).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Dashboard" })).toHaveCount(0);
-    await page.getByLabel("Email").fill(email);
-    await page.getByLabel("Password").fill("password123");
-    await page.getByRole("button", { name: "Log in" }).click();
     await expect(page.getByRole("heading", { level: 1, name: "Dashboard" })).toBeVisible({
       timeout: 30_000,
     });
+    await expect(page.getByRole("status").filter({ hasText: "profile is" })).toBeVisible();
   });
 
   test("TC-004 wrong credentials show one plain message and keep the user on login", async ({

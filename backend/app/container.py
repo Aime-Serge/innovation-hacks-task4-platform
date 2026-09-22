@@ -14,6 +14,7 @@ from app.core.security import PasswordHasher, TokenCodec
 from app.repositories.memory import (
     MemoryActivityRepository,
     MemoryAiRequestRepository,
+    MemoryProfileRepository,
     MemoryProjectRepository,
     MemoryRefreshTokenRepository,
     MemoryTaskRepository,
@@ -24,6 +25,7 @@ from app.repositories.sql import Database
 from app.services.activity import ActivityService
 from app.services.auth import AuthService
 from app.services.dashboard import DashboardService
+from app.services.profiles import ProfileService
 from app.services.projects import ProjectService
 from app.services.session_service import SessionService
 from app.services.tasks import TaskService
@@ -43,6 +45,7 @@ class Container:
     sessions: SessionService
     ai: AiService
     users: UserService
+    profiles: ProfileService
     projects: ProjectService
     tasks: TaskService
     activity: ActivityService
@@ -92,6 +95,7 @@ def build_container(
             MemoryActivityRepository(),
             MemoryRefreshTokenRepository(),
             MemoryAiRequestRepository(),
+            MemoryProfileRepository(),
         )
 
         def uow(read_only: bool = False) -> MemoryUnitOfWork:
@@ -121,7 +125,8 @@ def build_container(
         uow=uow,
         auth=auth,
         sessions=SessionService(uow, auth, tokens, clock, ids, settings.refresh_token_ttl_seconds),
-        users=UserService(uow, hasher, clock, ids),
+        users=UserService(uow, hasher, clock, ids, settings.min_age, settings.terms_version),
+        profiles=ProfileService(uow, hasher, clock),
         projects=ProjectService(uow, activity, clock, ids),
         tasks=TaskService(uow, activity, clock, ids),
         ai=AiService(uow, llm, settings, clock, ids),

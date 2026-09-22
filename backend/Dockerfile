@@ -12,6 +12,7 @@ RUN useradd --system --uid 10001 --no-create-home app
 WORKDIR /srv
 COPY --from=build /srv/.venv /srv/.venv
 COPY app ./app
+COPY config ./config
 USER 10001
 EXPOSE 8000
 HEALTHCHECK --interval=15s --timeout=3s --start-period=10s --retries=3 \

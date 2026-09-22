@@ -5,14 +5,32 @@ import type { AuthService } from "@/services/auth";
 export const testUser: User = {
   id: "user-1",
   name: "Aime Serge UKOBIZABA",
+  givenName: "Aime Serge",
+  familyName: "UKOBIZABA",
   email: "aime.serge@example.com",
   role: "developer",
   preferences: { theme: "system" },
+  profile: {
+    discipline: "backend",
+    seniority: "senior",
+    employmentStatus: "employed",
+    companyName: "DevDash Inc.",
+    jobTitle: "Backend Engineer",
+    country: "RW",
+    city: "Kigali",
+    timeZone: "Africa/Kigali",
+    headline: null,
+    displayHeadline: "Senior Backend engineer at DevDash Inc.",
+    about: "I build the services behind DevDash.",
+    links: { github: "https://github.com/aime-serge", linkedin: null, website: null },
+    skills: ["Python", "PostgreSQL"],
+  },
 };
 
 export const auth = {
   getSession: vi.fn(),
   login: vi.fn(),
+  validateRegistration: vi.fn(),
   register: vi.fn(),
   logout: vi.fn(),
   forgotPassword: vi.fn(),

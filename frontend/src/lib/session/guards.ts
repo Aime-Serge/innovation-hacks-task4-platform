@@ -1,7 +1,8 @@
 // Request checks for the server layer (FR-435, TH-408, TH-413).
 
 const SAFE_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
-export const ALLOWED_METHODS = new Set(["GET", "POST", "PATCH", "DELETE"]);
+// PUT (MF-15, MF-16, MB-05: /me/skills, /me/preferences, /me/privacy are whole-value replacements).
+export const ALLOWED_METHODS = new Set(["GET", "POST", "PATCH", "PUT", "DELETE"]);
 // The only API areas the browser may reach through /api/bff (everything else is a 404).
 export const ALLOWED_AREAS = new Set([
   "auth",
@@ -11,6 +12,7 @@ export const ALLOWED_AREAS = new Set([
   "activity",
   "dashboard",
   "ai",
+  "me",
 ]);
 
 /** State-changing calls must come from the site itself: the Origin header equals SITE_URL. */

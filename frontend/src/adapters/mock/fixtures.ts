@@ -9,6 +9,7 @@ import type {
   User,
 } from "@/schemas";
 import { addDays, todayIso } from "@/lib/dates";
+import { USERS } from "./fixtures-users";
 import { createRandom, pick } from "./random";
 
 export type Fixtures = {
@@ -16,38 +17,10 @@ export type Fixtures = {
   projects: Project[];
   tasks: Task[];
   activity: Activity[];
+  // S-D: not part of the public User shape (mirrors the real, server-only privacy row).
+  // Keyed by user id; a member missing here defaults to showing their professional details.
+  privacy: Record<string, boolean>;
 };
-
-const USERS: User[] = [
-  {
-    id: "user-1",
-    name: "Aime Serge UKOBIZABA",
-    email: "aime.serge@example.com",
-    role: "developer",
-    preferences: { theme: "dark" },
-  },
-  {
-    id: "user-2",
-    name: "Amara Diallo",
-    email: "amara.diallo@example.com",
-    role: "lead",
-    preferences: { theme: "dark" },
-  },
-  {
-    id: "user-3",
-    name: "Kwame Mensah",
-    email: "kwame.mensah@example.com",
-    role: "developer",
-    preferences: { theme: "dark" },
-  },
-  {
-    id: "user-4",
-    name: "Sofia Alvarez",
-    email: "sofia.alvarez@example.com",
-    role: "developer",
-    preferences: { theme: "dark" },
-  },
-];
 
 const PROJECTS: { name: string; description: string; status: ProjectStatus; due: number }[] = [
   {
@@ -237,10 +210,19 @@ function applyEdgeText(fixtures: Fixtures): Fixtures {
   return { ...fixtures, projects, tasks };
 }
 
+// MB-02: user-3 (Kwame) has the switch off, so the picker and member page hide his details.
+const PRIVACY: Record<string, boolean> = { "user-3": false };
+
 /** Builds the dataset for a scenario. Dates are relative to `now`. */
 export function buildFixtures(scenario: Scenario, now: Date = new Date()): Fixtures {
   if (scenario === "empty")
-    return { users: USERS.map((u) => ({ ...u })), projects: [], tasks: [], activity: [] };
+    return {
+      users: USERS.map((u) => ({ ...u })),
+      projects: [],
+      tasks: [],
+      activity: [],
+      privacy: {},
+    };
   const today = todayIso(now);
   const projects = makeProjects(scenario, today);
   const tasks = buildTasks(projects, scenario, today);
@@ -249,6 +231,7 @@ export function buildFixtures(scenario: Scenario, now: Date = new Date()): Fixtu
     projects,
     tasks,
     activity: buildActivity(projects, tasks, now),
+    privacy: { ...PRIVACY },
   };
   return scenario === "edge-text" ? applyEdgeText(base) : base;
 }

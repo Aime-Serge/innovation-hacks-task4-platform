@@ -13,7 +13,8 @@ export function contentSecurityPolicy(nonce: string, dev: boolean): string {
     "default-src 'self'",
     `script-src 'self' 'nonce-${nonce}'${dev ? " 'unsafe-eval'" : ""}`,
     `style-src 'self' 'nonce-${nonce}'`,
-    "img-src 'self' data:",
+    // https: is a profile photo pasted as a link (ADR-426); its host cannot be known in advance.
+    "img-src 'self' data: https:",
     "connect-src 'self'", // the browser talks only to this origin (ADR-401, NFR-416)
     "object-src 'none'",
     "frame-ancestors 'none'",

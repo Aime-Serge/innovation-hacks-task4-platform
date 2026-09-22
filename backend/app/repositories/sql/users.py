@@ -1,4 +1,5 @@
 from collections.abc import Sequence
+from datetime import datetime
 from uuid import UUID
 
 from sqlalchemy import ColumnElement, delete, func, insert, or_, select, update
@@ -17,6 +18,8 @@ PUBLIC = (
     UserRow.role,
     UserRow.avatar_url,
     UserRow.theme,
+    UserRow.given_name,
+    UserRow.family_name,
     UserRow.created_at,
     UserRow.updated_at,
 )
@@ -105,3 +108,13 @@ class SqlUserRepository:
             return len(rows)
         counted = select(func.count()).select_from(UserRow).where(UserRow.role == "lead")
         return int((await common.run(self._session, counted, "read")).scalar_one())
+
+    async def set_password_hash(self, user_id: UUID, password_hash: str, at: datetime) -> None:
+        """The only write of the hash after registration (MF-13); `update` never touches it."""
+        await common.run(
+            self._session,
+            update(UserRow)
+            .where(UserRow.id == user_id)
+            .values(password_hash=password_hash, updated_at=at),
+            "update",
+        )

@@ -26,11 +26,12 @@ export function createHttpAuth(): AuthService {
       }
     },
     login: signIn,
-    // FR-401: a successful registration signs the person in.
-    register: async (name, email, password) => {
-      await call("POST", "users", { body: { name, email, password } });
-      return signIn(email, password);
+    // MF-01: one step at a time, creates nothing. A 422 carries per-field details (S-A).
+    validateRegistration: async (check) => {
+      await call("POST", "users/validate", { body: check });
     },
+    // S-A: the account, profile block, consent and age check in one request; no session yet.
+    register: async (input) => parseUser(await callJson("POST", "users", { body: input })),
     logout: async () => {
       await call("POST", "auth/logout");
     },
@@ -38,7 +39,9 @@ export function createHttpAuth(): AuthService {
       if (input.email !== undefined) unsupported("Changing the email address")();
       return parseUser(await callJson("PATCH", `users/${userId}`, { body: { name: input.name } }));
     },
-    // Out of scope for this task (section 2): no password reset, avatar upload or account removal.
+    // Out of scope for this task (section 2): no password reset. Avatar upload, in-session password
+    // change and account deletion moved to MeService (MF-08, MF-13, MF-17), which the settings and
+    // profile screens use instead of this interface.
     forgotPassword: unsupported("Password reset"),
     resetPassword: unsupported("Password reset"),
     changePassword: unsupported("Changing the password"),

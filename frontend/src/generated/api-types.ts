@@ -224,6 +224,166 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * My account and profile
+         * @description The signed-in person's own view: the user, the professional profile, statistics (projects owned, tasks done and open), the completeness percentage with the next suggested step, and the privacy switch. Only the owner sees statistics and completeness.
+         */
+        get: operations["get_me"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/delete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Delete my account
+         * @description Needs the password (`403 INVALID_CREDENTIALS` when wrong). Blocked with `409 USER_OWNS_PROJECTS` while the person owns projects, and with `409 LAST_LEAD` for the last lead. Otherwise tasks assigned to the person become unassigned and the account, profile and sessions are removed. Limited to 5 attempts per minute per client.
+         */
+        post: operations["delete_account"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Change my password
+         * @description Needs the current password (`403 INVALID_CREDENTIALS` when it is wrong, so the client keeps its session). Every session ends except the one whose `refreshToken` is sent; without a token every session ends. Limited to 5 attempts per minute per client.
+         */
+        post: operations["change_password"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/preferences": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Save my preferences
+         * @description Theme (`light`, `dark` or `system`) and time zone, saved per account. The header theme toggle may also keep using `PATCH /users/{userId}`; both write the same setting.
+         */
+        put: operations["set_preferences"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/privacy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Save my privacy switch
+         * @description `showProfessionalDetails` false hides discipline, seniority, company, job title, location, skills and links from other members at once, on the member page, in `GET /users` and in `GET /users/{userId}`. Your own view never changes.
+         */
+        put: operations["set_privacy"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/profile": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Edit my profile
+         * @description Partial update of the names, professional details, headline, about text and links. Send only what changes; `null` clears an optional field. The display name is rebuilt from the given and family names. Company and job title stay required while the status is `employed` or `freelance`. Links are `https`; GitHub and LinkedIn must point to that provider. Text is plain text and is never interpreted as markup.
+         */
+        patch: operations["update_profile"];
+        trace?: never;
+    };
+    "/api/v1/me/sessions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Sign out of all devices
+         * @description Revoke every refresh-token family of the person, including the current one.
+         */
+        delete: operations["revoke_sessions"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/skills": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Replace my skills
+         * @description Replace the whole list, in order. At most 10 skills of 1 to 30 characters each, unique ignoring case. The profile row is locked while the list is replaced, so two requests at once cannot pass the limit.
+         */
+        put: operations["replace_skills"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/projects": {
         parameters: {
             query?: never;
@@ -383,9 +543,29 @@ export interface paths {
         put?: never;
         /**
          * Register a user
-         * @description Create an account. No token is needed. The role is always `developer`; only a lead can change it later. The password must be 12 to 128 characters and not equal to the email. Returns `201` with a `Location` header. Limited to 5 attempts per minute per client and email.
+         * @description Create an account and its professional profile in one request (S-A). No token is needed. The role is always `developer`; only a lead can change it later. The password must be 12 to 128 characters and not equal to the email or the name. `termsAccepted` and `ageConfirmed` must be true; the terms version and time are stored, and no birth date is collected. Company and job title are required when the status is `employed` or `freelance`. Returns `201` with a `Location` header. Limited to 5 attempts per minute per client.
          */
         post: operations["register"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/users/validate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Check one registration step
+         * @description Validate the fields of registration step 1 (account) or step 2 (professional details and consent) and create nothing. Every problem comes back at once as a `422` with a per-field message; a valid step returns `200`. A duplicate email is not reported here: `POST /users` answers `409 EMAIL_ALREADY_EXISTS`. Limited to 30 checks per minute per client.
+         */
+        post: operations["validate_registration"];
         delete?: never;
         options?: never;
         head?: never;
@@ -464,6 +644,11 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** AccountDelete */
+        AccountDelete: {
+            /** Password */
+            password: string;
+        };
         /** ActivityOut */
         ActivityOut: {
             /**
@@ -513,6 +698,26 @@ export interface components {
             /** Summary */
             summary: string;
         };
+        /** CompletenessOut */
+        CompletenessOut: {
+            /**
+             * Next
+             * @description The next suggested step, or null at 100.
+             */
+            next: string | null;
+            /** Percent */
+            percent: number;
+        };
+        /**
+         * Discipline
+         * @enum {string}
+         */
+        Discipline: "backend" | "frontend" | "full_stack" | "mobile" | "devops_cloud" | "data_ai" | "security" | "qa" | "other";
+        /**
+         * EmploymentStatus
+         * @enum {string}
+         */
+        EmploymentStatus: "employed" | "freelance" | "student" | "between_roles";
         /** ErrorBody */
         ErrorBody: {
             /**
@@ -552,6 +757,24 @@ export interface components {
              */
             status: "ok";
         };
+        /** Links */
+        Links: {
+            /** Github */
+            github: string | null;
+            /** Linkedin */
+            linkedin: string | null;
+            /** Website */
+            website: string | null;
+        };
+        /** LinksPatch */
+        LinksPatch: {
+            /** Github */
+            github?: string | null;
+            /** Linkedin */
+            linkedin?: string | null;
+            /** Website */
+            website?: string | null;
+        };
         /** LoginRequest */
         LoginRequest: {
             /**
@@ -564,6 +787,54 @@ export interface components {
              * Format: password
              */
             password: string;
+        };
+        /**
+         * MeOut
+         * @description The signed-in person's own view: adds statistics, completeness and privacy (owner only).
+         */
+        MeOut: {
+            /** Avatarurl */
+            avatarUrl: string | null;
+            completeness: components["schemas"]["CompletenessOut"];
+            /**
+             * Createdat
+             * Format: date-time
+             * @description UTC, ISO 8601, ends in Z.
+             */
+            createdAt: string;
+            /** Email */
+            email: string | null;
+            /** Familyname */
+            familyName: string | null;
+            /**
+             * Givenname
+             * @description Null for accounts made before the minimal profile.
+             */
+            givenName: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Legacyprofile
+             * @description True for accounts made before the minimal profile: prompt to complete it.
+             */
+            legacyProfile: boolean;
+            /** Name */
+            name: string;
+            preferences: components["schemas"]["Preferences"];
+            privacy: components["schemas"]["PrivacyOut"];
+            /** @description Null when the person hides their professional details from other members. */
+            profile: components["schemas"]["ProfileOut"] | null;
+            role: components["schemas"]["Role"];
+            stats: components["schemas"]["StatsOut"];
+            /**
+             * Updatedat
+             * Format: date-time
+             * @description UTC, ISO 8601, ends in Z.
+             */
+            updatedAt: string;
         };
         /** MetaOut */
         MetaOut: {
@@ -660,10 +931,34 @@ export interface components {
              */
             total: number;
         };
+        /** PasswordChange */
+        PasswordChange: {
+            /** Currentpassword */
+            currentPassword: string;
+            /**
+             * Newpassword
+             * @description 12 to 128 characters; not the email or name, and not the current password.
+             */
+            newPassword: string;
+            /**
+             * Refreshtoken
+             * @description The session to keep. Every other session ends; without it, all end.
+             */
+            refreshToken?: string | null;
+        };
         /** Preferences */
         Preferences: {
             /** @default system */
             theme: components["schemas"]["Theme"];
+        };
+        /** PreferencesReplace */
+        PreferencesReplace: {
+            theme: components["schemas"]["Theme"];
+            /**
+             * Timezone
+             * @example Africa/Kigali
+             */
+            timeZone: string;
         };
         /** PrioritizationOut */
         PrioritizationOut: {
@@ -676,6 +971,132 @@ export interface components {
          * @enum {string}
          */
         Priority: "low" | "medium" | "high" | "urgent";
+        /** PrivacyOut */
+        PrivacyOut: {
+            /** Showprofessionaldetails */
+            showProfessionalDetails: boolean;
+        };
+        /** PrivacyReplace */
+        PrivacyReplace: {
+            /**
+             * Showprofessionaldetails
+             * @description Show discipline, seniority, company, job title and location to other members.
+             */
+            showProfessionalDetails: boolean;
+        };
+        /**
+         * ProfileBlock
+         * @description The professional details of registration step 2.
+         */
+        ProfileBlock: {
+            /** City */
+            city?: string | null;
+            /**
+             * Companyname
+             * @description Required when the status is employed or freelance.
+             */
+            companyName?: string | null;
+            /**
+             * Country
+             * @description ISO 3166-1 alpha-2 code, from the list.
+             * @example RW
+             */
+            country: string;
+            discipline: components["schemas"]["Discipline"];
+            employmentStatus: components["schemas"]["EmploymentStatus"];
+            /**
+             * Jobtitle
+             * @description Required when the status is employed or freelance.
+             */
+            jobTitle?: string | null;
+            seniority: components["schemas"]["Seniority"];
+            /**
+             * Timezone
+             * @example Africa/Kigali
+             */
+            timeZone: string;
+        };
+        /**
+         * ProfileBlockDraft
+         * @description The same fields with none required, so the server can name each missing one (step check).
+         */
+        ProfileBlockDraft: {
+            /** City */
+            city?: string | null;
+            /** Companyname */
+            companyName?: string | null;
+            /** Country */
+            country?: string | null;
+            discipline?: components["schemas"]["Discipline"] | null;
+            employmentStatus?: components["schemas"]["EmploymentStatus"] | null;
+            /** Jobtitle */
+            jobTitle?: string | null;
+            seniority?: components["schemas"]["Seniority"] | null;
+            /** Timezone */
+            timeZone?: string | null;
+        };
+        /** ProfileOut */
+        ProfileOut: {
+            /** About */
+            about: string;
+            /** City */
+            city: string | null;
+            /** Companyname */
+            companyName: string | null;
+            /**
+             * Country
+             * @description ISO 3166-1 alpha-2 code; `ZZ` means not set yet.
+             */
+            country: string;
+            discipline: components["schemas"]["Discipline"];
+            /**
+             * Displayheadline
+             * @description The headline to show: the stored one, else composed from the details.
+             */
+            displayHeadline: string | null;
+            employmentStatus: components["schemas"]["EmploymentStatus"];
+            /**
+             * Headline
+             * @description The headline the person wrote, if any.
+             */
+            headline: string | null;
+            /** Jobtitle */
+            jobTitle: string | null;
+            links: components["schemas"]["Links"];
+            seniority: components["schemas"]["Seniority"];
+            /** Skills */
+            skills: string[];
+            /** Timezone */
+            timeZone: string;
+        };
+        /**
+         * ProfileUpdate
+         * @description PATCH /me/profile: send only what changes. A null clears an optional field.
+         */
+        ProfileUpdate: {
+            /** About */
+            about?: string;
+            /** City */
+            city?: string | null;
+            /** Companyname */
+            companyName?: string | null;
+            /** Country */
+            country?: string;
+            discipline?: components["schemas"]["Discipline"];
+            employmentStatus?: components["schemas"]["EmploymentStatus"];
+            /** Familyname */
+            familyName?: string;
+            /** Givenname */
+            givenName?: string;
+            /** Headline */
+            headline?: string | null;
+            /** Jobtitle */
+            jobTitle?: string | null;
+            links?: components["schemas"]["LinksPatch"];
+            seniority?: components["schemas"]["Seniority"];
+            /** Timezone */
+            timeZone?: string;
+        };
         /** ProgressOut */
         ProgressOut: {
             /** Donetasks */
@@ -791,10 +1212,56 @@ export interface components {
             refreshToken: string;
         };
         /**
+         * RegistrationCheck
+         * @description POST /users/validate: one step's fields, nothing created. Missing fields are named.
+         */
+        RegistrationCheck: {
+            /** Ageconfirmed */
+            ageConfirmed?: boolean | null;
+            /** Email */
+            email?: string | null;
+            /** Familyname */
+            familyName?: string | null;
+            /** Givenname */
+            givenName?: string | null;
+            /** Password */
+            password?: string | null;
+            profile?: components["schemas"]["ProfileBlockDraft"] | null;
+            /**
+             * Step
+             * @enum {integer}
+             */
+            step: 1 | 2;
+            /** Termsaccepted */
+            termsAccepted?: boolean | null;
+        };
+        /**
          * Role
          * @enum {string}
          */
         Role: "developer" | "lead";
+        /**
+         * Seniority
+         * @enum {string}
+         */
+        Seniority: "student_intern" | "junior" | "mid" | "senior" | "lead_or_above";
+        /** SkillsReplace */
+        SkillsReplace: {
+            /**
+             * Skills
+             * @description At most 10, unique ignoring case.
+             */
+            skills: string[];
+        };
+        /** StatsOut */
+        StatsOut: {
+            /** Projectsowned */
+            projectsOwned: number;
+            /** Tasksdone */
+            tasksDone: number;
+            /** Tasksopen */
+            tasksOpen: number;
+        };
         /** StatusChange */
         StatusChange: {
             /** @example in_progress */
@@ -965,8 +1432,16 @@ export interface components {
              */
             tokenType: "bearer";
         };
-        /** UserCreate */
+        /**
+         * UserCreate
+         * @description Registration (S-A): the account, the professional block, consent and the age check.
+         */
         UserCreate: {
+            /**
+             * Ageconfirmed
+             * @description Must be true: the person meets the minimum age.
+             */
+            ageConfirmed: boolean;
             /** Avatarurl */
             avatarUrl?: string | null;
             /**
@@ -975,16 +1450,27 @@ export interface components {
              */
             email: string;
             /**
-             * Name
-             * @example Ada Lovelace
+             * Familyname
+             * @example Lovelace
              */
-            name: string;
+            familyName: string;
+            /**
+             * Givenname
+             * @example Ada
+             */
+            givenName: string;
             /**
              * Password
-             * @description 12 to 128 characters, not equal to the email.
+             * @description 12 to 128 characters, not the email or the name.
              */
             password: string;
             preferences?: components["schemas"]["Preferences"] | null;
+            profile: components["schemas"]["ProfileBlock"];
+            /**
+             * Termsaccepted
+             * @description Must be true; the terms version and time are stored.
+             */
+            termsAccepted: boolean;
         };
         /** UserOut */
         UserOut: {
@@ -998,6 +1484,13 @@ export interface components {
             createdAt: string;
             /** Email */
             email: string | null;
+            /** Familyname */
+            familyName: string | null;
+            /**
+             * Givenname
+             * @description Null for accounts made before the minimal profile.
+             */
+            givenName: string | null;
             /**
              * Id
              * Format: uuid
@@ -1006,6 +1499,8 @@ export interface components {
             /** Name */
             name: string;
             preferences: components["schemas"]["Preferences"];
+            /** @description Null when the person hides their professional details from other members. */
+            profile: components["schemas"]["ProfileOut"] | null;
             role: components["schemas"]["Role"];
             /**
              * Updatedat
@@ -1023,6 +1518,14 @@ export interface components {
             preferences?: components["schemas"]["Preferences"];
             /** @description Only a lead may change a role. */
             role?: components["schemas"]["Role"];
+        };
+        /** ValidationOk */
+        ValidationOk: {
+            /**
+             * Valid
+             * @description Always true: a failure is a 422 with per-field details.
+             */
+            valid: boolean;
         };
     };
     responses: never;
@@ -1728,6 +2231,652 @@ export interface operations {
             };
             /** @description Not authenticated */
             401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unexpected error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    get_me: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MeOut"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unexpected error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    delete_account: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AccountDelete"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Malformed request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict with the current state */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Payload too large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unsupported media type */
+            415: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Rate limited */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unexpected error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    change_password: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PasswordChange"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Malformed request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Payload too large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unsupported media type */
+            415: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Rate limited */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unexpected error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    set_preferences: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PreferencesReplace"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MeOut"];
+                };
+            };
+            /** @description Malformed request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Payload too large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unsupported media type */
+            415: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unexpected error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    set_privacy: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PrivacyReplace"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MeOut"];
+                };
+            };
+            /** @description Malformed request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Payload too large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unsupported media type */
+            415: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unexpected error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    update_profile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProfileUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MeOut"];
+                };
+            };
+            /** @description Malformed request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Payload too large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unsupported media type */
+            415: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unexpected error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    revoke_sessions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unexpected error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    replace_skills: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SkillsReplace"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MeOut"];
+                };
+            };
+            /** @description Malformed request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Payload too large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unsupported media type */
+            415: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation error */
+            422: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2778,6 +3927,93 @@ export interface operations {
             };
             /** @description Conflict with the current state */
             409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Payload too large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unsupported media type */
+            415: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Rate limited */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unexpected error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    validate_registration: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RegistrationCheck"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationOk"];
+                };
+            };
+            /** @description Malformed request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };

@@ -82,6 +82,8 @@
   --sidebar-width: 256px;
   --header-height: 4rem;
   --content-max: 1280px;
+  /* The sidebar's own height: full dynamic viewport height below the sticky header. */
+  --below-header-height: calc(100dvh - var(--header-height));
   color-scheme: light;
 }
 

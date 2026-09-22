@@ -26,3 +26,8 @@ export const useRouter = () => ({
   prefetch: vi.fn(),
   back: vi.fn(),
 });
+
+// MF-07: mirrors Next's real notFound(), which throws to be caught by the framework boundary.
+export const notFound = (): never => {
+  throw new Error("NEXT_NOT_FOUND");
+};

@@ -3,7 +3,7 @@
 from typing import Any
 from uuid import uuid4
 
-from tests.conftest import DEV, LEAD, OTHER, Env, error_code, make_project, make_task
+from tests.conftest import DEV, LEAD, OTHER, Env, error_code, make_project, make_task, signup
 
 
 async def status_to(env: Env, task_id: str, status: str, who: str = DEV) -> Any:
@@ -180,7 +180,7 @@ async def test_tc225_assignee_edits_task_but_stranger_cannot(env: Env) -> None:
     ).status_code == 200
     third = await env.client.post(
         "/api/v1/users",
-        json={"name": "Third", "email": "third@example.com", "password": "third-password-1"},
+        json=signup(name="Third Person", email="third@example.com", password="third-password-1"),
     )
     assert third.status_code == 201
     token = (await env.login("third@example.com", "third-password-1")).json()["accessToken"]

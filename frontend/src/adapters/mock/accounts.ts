@@ -10,6 +10,9 @@ export type Account = {
   password: string;
   resetToken: string | null;
   resetExpiresAt: number | null;
+  // Server-only fields (S-D), mirrored here since accounts (unlike fixtures) persist per browser.
+  showProfessionalDetails: boolean;
+  legacyProfile: boolean;
 };
 
 const STORAGE_KEY = "devdash_mock_accounts";
@@ -20,13 +23,33 @@ function seed(): Account[] {
       user: {
         id: "user-1",
         name: "Aime Serge UKOBIZABA",
+        givenName: "Aime Serge",
+        familyName: "UKOBIZABA",
         email: "aime.serge@example.com",
         role: "developer",
         preferences: { theme: "dark" },
+        createdAt: "2029-11-01T09:00:00.000Z",
+        profile: {
+          discipline: "backend",
+          seniority: "senior",
+          employmentStatus: "employed",
+          companyName: "DevDash Inc.",
+          jobTitle: "Backend Engineer",
+          country: "RW",
+          city: "Kigali",
+          timeZone: "Africa/Kigali",
+          headline: null,
+          displayHeadline: "Senior Backend engineer at DevDash Inc.",
+          about: "I build the services behind DevDash and keep the API contract honest.",
+          links: { github: "https://github.com/aime-serge", linkedin: null, website: null },
+          skills: ["Python", "PostgreSQL", "FastAPI"],
+        },
       },
       password: "password123",
       resetToken: null,
       resetExpiresAt: null,
+      showProfessionalDetails: true,
+      legacyProfile: false,
     },
   ];
 }

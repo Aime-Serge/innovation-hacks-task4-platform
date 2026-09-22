@@ -1,7 +1,7 @@
 import type { Scenario } from "@/schemas";
 import { ServiceError } from "@/services/types";
 
-export type Resource = "projects" | "tasks" | "users" | "activity";
+export type Resource = "projects" | "tasks" | "users" | "activity" | "me";
 export type Latency = { min: number; max: number };
 
 export const DEFAULT_LATENCY: Latency = { min: 150, max: 400 };

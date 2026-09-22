@@ -30,6 +30,13 @@ class InvalidCredentials(AppError):
     status_code = 401
 
 
+class CurrentPasswordWrong(AppError):
+    """403, not 401, so a client never mistakes it for an expired session (pack section 5)."""
+
+    code = "INVALID_CREDENTIALS"
+    status_code = 403
+
+
 class RefreshTokenInvalid(AppError):
     code = "REFRESH_TOKEN_INVALID"
     status_code = 401

@@ -15,6 +15,7 @@ import argparse
 import asyncio
 import csv
 import os
+import secrets
 import statistics
 import sys
 import time
@@ -28,9 +29,17 @@ from pydantic import SecretStr
 from app.container import build_container
 from app.core.config import Settings
 from app.core.errors import AppError
-from app.domain.enums import Priority, ProjectStatus, Role
+from app.domain.enums import (
+    Discipline,
+    EmploymentStatus,
+    Priority,
+    ProjectStatus,
+    Role,
+    Seniority,
+)
 from app.services.authz import Actor
 from app.services.tasks import NewTask
+from app.services.users import Registration, RegistrationProfile
 
 ROOT = Path(__file__).resolve().parents[2]
 DOC = ROOT / "docs/ai-evaluation.md"
@@ -149,9 +158,26 @@ async def evaluate(provider: str, runs: int, count: int) -> tuple[list[Run], Set
     )
     container = build_container(settings)
     lead = await container.users.register(
-        "Evaluator", "evaluator@example.com", "evaluation-pass-1", role=Role.LEAD
+        Registration(
+            given_name="Evaluator",
+            family_name="Runner",
+            email="evaluator@example.com",
+            # Generated fresh each run: this account lives only in this process's memory
+            # repository and is discarded when the script exits, so nothing needs it to be stable.
+            password=secrets.token_urlsafe(18),
+            profile=RegistrationProfile(
+                discipline=Discipline.OTHER,
+                seniority=Seniority.MID,
+                employment_status=EmploymentStatus.STUDENT,
+                country="RW",
+                time_zone="UTC",
+            ),
+            terms_accepted=True,
+            age_confirmed=True,
+        ),
+        role=Role.LEAD,
     )
-    actor = Actor(lead.id, Role.LEAD)
+    actor = Actor(lead.user.id, Role.LEAD)
     projects = {}
     for sample in SAMPLES:
         view = await container.projects.create(

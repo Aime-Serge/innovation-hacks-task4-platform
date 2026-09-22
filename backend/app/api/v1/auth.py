@@ -69,8 +69,9 @@ async def login(payload: LoginRequest, request: Request, container: ContainerDep
     description="Return the user the token belongs to. Useful to check a token is still valid.",
     responses=errors("UNAUTHENTICATED", "INTERNAL_ERROR"),
 )
-async def me(user: CurrentUser) -> UserOut:
-    return UserOut.of(user, show_email=True)  # the caller's own profile
+async def me(user: CurrentUser, container: ContainerDep) -> UserOut:
+    member = await container.users.get_member(user.id, user.id)
+    return UserOut.of(member, show_email=True)  # the caller's own profile
 
 
 @router.post(

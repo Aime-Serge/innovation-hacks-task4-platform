@@ -9,7 +9,7 @@ from typing import Any
 
 import pytest
 
-from tests.conftest import DEV, LEAD, OTHER, Env, make_project, make_task
+from tests.conftest import DEV, LEAD, OTHER, Env, make_project, make_task, signup
 
 ASSIGNEE = "assignee@example.com"
 PASSWORD = "assignee-password-1"
@@ -58,7 +58,7 @@ async def world(env: Env) -> dict[str, Any]:
     """A project owned by DEV with one task assigned to ASSIGNEE; OTHER is the stranger."""
     created = await env.client.post(
         "/api/v1/users",
-        json={"name": "Assignee", "email": ASSIGNEE, "password": PASSWORD},
+        json=signup(name="Assignee Person", email=ASSIGNEE, password=PASSWORD),
     )
     assert created.status_code == 201
     env.tokens[ASSIGNEE] = (await env.login(ASSIGNEE, PASSWORD)).json()["accessToken"]

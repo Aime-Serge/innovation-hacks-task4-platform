@@ -50,6 +50,30 @@ HttpsUrl = Annotated[
     str, StringConstraints(max_length=2048, pattern=_HTTPS_PATTERN), AfterValidator(_https_only)
 ]
 
+# An avatar is either a link to an image someone else hosts, or the image itself inline as a
+# base64 `data:` URL. There is no object storage in this release (ADR-426), so an uploaded photo
+# is stored as its own bytes. The cap is the 500 KB the client enforces on the file, plus the
+# ~4/3 base64 inflation and the header, rounded up: anything larger is refused before it reaches
+# the database, whose own constraint states the same rule.
+AVATAR_DATA_MAX = 700_000
+_AVATAR_DATA_PATTERN = r"^data:image/(png|jpeg|webp);base64,[A-Za-z0-9+/]+={0,2}$"
+_AVATAR_PATTERN = rf"(?:{_HTTPS_PATTERN})|(?:{_AVATAR_DATA_PATTERN})"
+
+
+def _avatar_source(value: str) -> str:
+    if value.startswith("data:"):
+        if len(value) > AVATAR_DATA_MAX:
+            raise ValueError("The image is too large; use one of 500 KB or less.")
+        return value
+    return _https_only(value)
+
+
+AvatarUrl = Annotated[
+    str,
+    StringConstraints(max_length=AVATAR_DATA_MAX, pattern=_AVATAR_PATTERN),
+    AfterValidator(_avatar_source),
+]
+
 # Whitespace is spelled out as a character class: `\\s` means different things to the Rust regex
 # engine and to the ECMA engines that read the schema; a fuzzer found addresses they disagree on.
 # A pragmatic address check, stated identically in the schema and the validator (ADR-222): the

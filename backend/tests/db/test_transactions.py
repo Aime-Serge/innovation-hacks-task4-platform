@@ -10,7 +10,7 @@ from typing import Any
 import pytest
 
 from app.core.errors import EmailAlreadyExists
-from tests.conftest import DEV, LEAD, OTHER, Env, error_code, make_project, make_task
+from tests.conftest import DEV, LEAD, OTHER, Env, error_code, make_project, make_task, signup
 from tests.db.conftest import Db
 
 RUNS = 200
@@ -222,7 +222,7 @@ async def test_tc353_task_creation_racing_project_deletion_stays_valid(sql_env: 
 async def test_tc302_twenty_simultaneous_registrations_of_one_email_create_one_account(
     sql_env: Env,
 ) -> None:
-    body = {"name": "Ada", "email": "race@example.com", "password": "correct-horse-battery"}
+    body = signup(email="race@example.com")
     responses = await asyncio.gather(
         *(sql_env.client.post("/api/v1/users", json=body) for _ in range(20))
     )

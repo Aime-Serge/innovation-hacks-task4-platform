@@ -3,14 +3,17 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServices } from "@/providers/ServicesProvider";
 import { reportError } from "@/lib/report-error";
+import type { PasswordChangeInput } from "@/services/types";
 import {
   emptyTaskQuery,
   type NewProject,
   type NewTask,
+  type ProfilePatch,
   type ProjectQuery,
   type Task,
   type TaskQuery,
   type TaskStatus,
+  type Theme,
 } from "@/schemas";
 
 /** Every read goes through here so failures are reported once (NFR-20). */
@@ -27,6 +30,9 @@ export const keys = {
   project: (id: string) => ["project", id] as const,
   users: ["users"] as const,
   activity: (limit: number) => ["activity", limit] as const,
+  me: ["me"] as const,
+  member: (id: string) => ["member", id] as const,
+  peopleSearch: (q: string) => ["people-search", q] as const,
 };
 
 export function useTasks(query: TaskQuery) {
@@ -183,4 +189,79 @@ export function useDeleteProject() {
       }
     },
   });
+}
+
+// MF-06, MF-08, MF-12: the signed-in person's own view and its writes.
+
+export function useMe() {
+  const { me } = useServices();
+  return useQuery({
+    queryKey: keys.me,
+    queryFn: ({ signal }) => reported("me.get", () => me.get(signal)),
+  });
+}
+
+/** MF-07: another member's page; null id resolves to "not found" (never a leaked profile). */
+export function useMember(id: string) {
+  const { users } = useServices();
+  return useQuery({
+    queryKey: keys.member(id),
+    queryFn: ({ signal }) => reported("users.get", () => users.get(id, signal)),
+  });
+}
+
+/** MF-11: the people picker. Disabled below the two-character minimum (section 4). */
+export function usePeopleSearch(query: string) {
+  const { users } = useServices();
+  const trimmed = query.trim();
+  return useQuery({
+    queryKey: keys.peopleSearch(trimmed),
+    queryFn: ({ signal }) => reported("users.search", () => users.search(trimmed, signal)),
+    enabled: trimmed.length >= 2,
+    placeholderData: keepPreviousData,
+  });
+}
+
+function useMeMutation<Input>(mutationFn: (input: Input) => Promise<unknown>) {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn,
+    onSuccess: (value) => client.setQueryData(keys.me, value),
+    onError: (error) => reportError(error, "me.save"),
+  });
+}
+
+export function useUpdateProfile() {
+  const { me } = useServices();
+  return useMeMutation((patch: ProfilePatch) => me.updateProfile(patch));
+}
+
+export function useReplaceSkills() {
+  const { me } = useServices();
+  return useMeMutation((skills: string[]) => me.replaceSkills(skills));
+}
+
+export function useUpdatePreferences() {
+  const { me } = useServices();
+  return useMeMutation((input: { theme: Theme; timeZone: string }) => me.updatePreferences(input));
+}
+
+export function useUpdatePrivacy() {
+  const { me } = useServices();
+  return useMeMutation((value: boolean) => me.updatePrivacy(value));
+}
+
+export function useChangePassword() {
+  const { me } = useServices();
+  return useMutation({ mutationFn: (input: PasswordChangeInput) => me.changePassword(input) });
+}
+
+export function useSignOutAllDevices() {
+  const { me } = useServices();
+  return useMutation({ mutationFn: () => me.signOutAllDevices() });
+}
+
+export function useDeleteAccount() {
+  const { me } = useServices();
+  return useMutation({ mutationFn: (password: string) => me.deleteAccount(password) });
 }

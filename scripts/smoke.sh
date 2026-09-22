@@ -21,19 +21,36 @@ EMAIL="smoke-$(date +%s)-$RANDOM@example.com"; PASS="smoke-Pass-$RANDOM-$RANDOM"
 
 step "login page renders"            200 "$SITE_URL/login"
 step "protected page redirects"      307 -o /dev/null --max-redirs 0 "$SITE_URL/projects"
-step "register"                      201 -X POST "$B/users" -H "$O" -H "$C" -d "{\"name\":\"Smoke\",\"email\":\"$EMAIL\",\"password\":\"$PASS\"}"
+# NEEDS THE NEW ENDPOINTS (feat/minimal-profile, pack section 5, supersession S-A): registration now
+# carries the profile block, consent and age confirmation. The field names follow the pack's user
+# representation; confirm them against backend/docs/openapi.json once the backend is merged.
+REG="{\"givenName\":\"Smoke\",\"familyName\":\"Test\",\"email\":\"$EMAIL\",\"password\":\"$PASS\",\"profile\":{\"discipline\":\"backend\",\"seniority\":\"mid\",\"employmentStatus\":\"employed\",\"companyName\":\"Smoke Co\",\"jobTitle\":\"Engineer\",\"country\":\"GB\",\"timeZone\":\"UTC\"},\"termsAccepted\":true,\"ageConfirmed\":true}"
+step "validate step 2 (creates nothing)" 200 -X POST "$B/users/validate" -H "$O" -H "$C" -d "$REG"
+step "register with profile"         201 -X POST "$B/users" -H "$O" -H "$C" -d "$REG"
 UID_="$(field "['id']" 2>/dev/null)"
 step "log in"                        200 -c "$J" -X POST "$B/auth/login" -H "$O" -H "$C" -d "{\"email\":\"$EMAIL\",\"password\":\"$PASS\"}"
 step "who am I"                      200 -b "$J" "$B/auth/me"
+# NEEDS THE NEW ENDPOINTS: GET /me, PATCH /me/profile, the extended GET /users (professional summary).
+step "read own profile"              200 -b "$J" "$B/me"
+step "edit profile"                  200 -b "$J" -X PATCH "$B/me/profile" -H "$O" -H "$C" -d '{"headline":"Smoke test headline","about":"Created by scripts/smoke.sh"}'
+step "people picker search"          200 -b "$J" "$B/users?q=Smoke&pageSize=20"
+PICK="$(field "['items'][0]['id']" 2>/dev/null)"; PICK="${PICK:-$UID_}"   # the member chosen in the picker
 step "create project"                201 -b "$J" -X POST "$B/projects" -H "$O" -H "$C" -d '{"name":"Smoke project"}'
 PID="$(field "['id']" 2>/dev/null)"
-step "create and assign task"        201 -b "$J" -X POST "$B/tasks" -H "$O" -H "$C" -d "{\"projectId\":\"$PID\",\"title\":\"Smoke task\",\"assigneeId\":\"$UID_\"}"
+step "assign task (picker choice)"    201 -b "$J" -X POST "$B/tasks" -H "$O" -H "$C" -d "{\"projectId\":\"$PID\",\"title\":\"Smoke task\",\"assigneeId\":\"$PICK\"}"
 TID="$(field "['id']" 2>/dev/null)"
 step "change status"                 200 -b "$J" -X PATCH "$B/tasks/$TID/status" -H "$O" -H "$C" -d '{"status":"in_progress"}'
 step "dashboard"                     200 -b "$J" "$B/dashboard/summary"
 step "AI status"                     200 -b "$J" "$B/ai/status"
 step "delete task"                   204 -b "$J" -X DELETE "$B/tasks/$TID" -H "$O"
 step "delete project"                204 -b "$J" -X DELETE "$B/projects/$PID" -H "$O"
+# NEEDS THE NEW ENDPOINTS: POST /me/password (204; a wrong current password is 403 INVALID_CREDENTIALS).
+# The site's server layer supplies the refresh token so this session survives (ADR-610); after the
+# change the old password must no longer work, so we log in again with the new one.
+NEWPASS="smoke-New-$RANDOM-$RANDOM"
+step "wrong current password"        403 -b "$J" -X POST "$B/me/password" -H "$O" -H "$C" -d "{\"currentPassword\":\"not-the-password-123\",\"newPassword\":\"$NEWPASS\"}"
+step "change password"               204 -b "$J" -c "$J" -X POST "$B/me/password" -H "$O" -H "$C" -d "{\"currentPassword\":\"$PASS\",\"newPassword\":\"$NEWPASS\"}"
+step "log in with the new password"  200 -c "$J" -X POST "$B/auth/login" -H "$O" -H "$C" -d "{\"email\":\"$EMAIL\",\"password\":\"$NEWPASS\"}"
 step "refresh session"               204 -b "$J" -c "$J" -X POST "$B/auth/refresh" -H "$O"
 step "log out"                       204 -b "$J" -c "$J" -X POST "$B/auth/logout" -H "$O"
 step "after logout: rejected"        401 -b "$J" "$B/auth/me"

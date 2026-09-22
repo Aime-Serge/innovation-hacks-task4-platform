@@ -9,7 +9,27 @@ import {
   type NewTask,
   type Task,
 } from "@/schemas";
+import type { RegisterInput } from "@/services/auth";
 import { ServiceError } from "@/services/types";
+
+const registerInput: RegisterInput = {
+  givenName: "Ada",
+  familyName: "Lovelace",
+  email: "a@b.co",
+  password: "long-password-1",
+  profile: {
+    discipline: "backend",
+    seniority: "mid",
+    employmentStatus: "between_roles",
+    companyName: null,
+    jobTitle: null,
+    country: "RW",
+    city: null,
+    timeZone: "Africa/Kigali",
+  },
+  termsAccepted: true,
+  ageConfirmed: true,
+};
 
 const P1 = "11111111-1111-4111-8111-111111111111";
 const project = {
@@ -33,9 +53,12 @@ const task: Task = {
 const user = {
   id: "u1",
   name: "Ada",
+  givenName: "Ada",
+  familyName: "Lovelace",
   email: null,
   role: "developer",
   preferences: { theme: "system" },
+  profile: null,
 };
 const newProject: NewProject = {
   name: "Atlas",
@@ -378,17 +401,16 @@ describe("TC-401 to TC-403 auth through the server layer", () => {
     queue.push(json(500, envelope("INTERNAL_ERROR")));
     await expect(auth.getSession()).rejects.toMatchObject({ status: 500 });
   });
-  it("registers and then signs in (FR-401)", async () => {
-    queue.push(json(201, user), json(200, { user }));
-    await auth.register("Ada", "a@b.co", "long-password-1");
-    expect(seen.map((s) => `${s.method} ${s.url}`)).toEqual([
-      "POST /api/bff/users",
-      "POST /api/bff/auth/login",
-    ]);
+  // S-A: register() now only creates the account (POST /users with the profile block); the
+  // wizard signs in afterwards with its own POST /auth/login call. See supersession-log.md.
+  it("registers without starting a session (S-A)", async () => {
+    queue.push(json(201, user));
+    await auth.register(registerInput);
+    expect(seen.map((s) => `${s.method} ${s.url}`)).toEqual(["POST /api/bff/users"]);
   });
   it("shows a duplicate email as a 409 to the form", async () => {
     queue.push(json(409, envelope("EMAIL_ALREADY_EXISTS")));
-    await expect(auth.register("Ada", "a@b.co", "long-password-1")).rejects.toMatchObject({
+    await expect(auth.register(registerInput)).rejects.toMatchObject({
       status: 409,
     });
   });

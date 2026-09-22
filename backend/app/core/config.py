@@ -84,6 +84,10 @@ class Settings(BaseSettings):
     ai_per_minute_limit: int = Field(default=5, ge=1)
     ai_global_daily_limit: int = Field(default=500, ge=1)
 
+    # Minimal profile (MF-03). Both are non-secret; the terms version is stored with each consent.
+    min_age: int = Field(default=16, ge=13, le=99)
+    terms_version: str = Field(default="2026-09", min_length=1, max_length=40)
+
     @field_validator("secret_key")
     @classmethod
     def _secret_is_long_enough(cls, value: SecretStr) -> SecretStr:

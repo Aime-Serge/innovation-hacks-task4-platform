@@ -39,3 +39,46 @@ class ActivityType(StrEnum):
     CREATED = "created"
     STATUS_CHANGED = "status_changed"
     COMPLETED = "completed"
+
+
+class Discipline(StrEnum):
+    BACKEND = "backend"
+    FRONTEND = "frontend"
+    FULL_STACK = "full_stack"
+    MOBILE = "mobile"
+    DEVOPS_CLOUD = "devops_cloud"
+    DATA_AI = "data_ai"
+    SECURITY = "security"
+    QA = "qa"
+    OTHER = "other"
+
+
+class Seniority(StrEnum):
+    STUDENT_INTERN = "student_intern"
+    JUNIOR = "junior"
+    MID = "mid"
+    SENIOR = "senior"
+    LEAD_OR_ABOVE = "lead_or_above"
+
+
+class EmploymentStatus(StrEnum):
+    EMPLOYED = "employed"
+    FREELANCE = "freelance"
+    STUDENT = "student"
+    BETWEEN_ROLES = "between_roles"
+
+
+def _agree_with_the_lists() -> None:
+    """Fail at import when an enum and `profile_lists.json` disagree (ADR-607)."""
+    from app.domain import lists
+
+    for enum, values in (
+        (Discipline, lists.DISCIPLINES),
+        (Seniority, lists.SENIORITIES),
+        (EmploymentStatus, lists.EMPLOYMENT_STATUSES),
+    ):
+        if tuple(member.value for member in enum) != values:
+            raise RuntimeError(f"{enum.__name__} does not match config/profile_lists.json")
+
+
+_agree_with_the_lists()

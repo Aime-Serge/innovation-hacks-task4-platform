@@ -17,6 +17,7 @@
     "audit": "npm audit --audit-level=high && jiti scripts/secret-scan.ts",
     "gate": "npm run check:api && npm run typecheck && npm run lint && npm run check:no-js && npm run test && npm run test:e2e && npm run test:a11y && npm run lighthouse && npm run audit && npm run build",
     "generate:api": "openapi-typescript ../backend/docs/openapi.json -o src/generated/api-types.ts",
+    "generate:lists": "jiti scripts/generate-lists.ts",
     "check:api": "jiti scripts/check-api-types.ts",
     "scan:bundle": "jiti scripts/bundle-scan.ts"
   },

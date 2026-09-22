@@ -3,9 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ForgotPasswordForm } from "@/features/auth/ForgotPasswordForm";
 import { LoginForm } from "@/features/auth/LoginForm";
-import { RegisterForm } from "@/features/auth/RegisterForm";
 import { ResetPasswordForm } from "@/features/auth/ResetPasswordForm";
-import { ProfileForm } from "@/features/profile/ProfileForm";
 import { AppShell } from "@/layout/AppShell";
 import { MobileNav } from "@/layout/MobileNav";
 import { NavLinks } from "@/layout/NavLinks";
@@ -109,15 +107,19 @@ describe("TC-010 navigation (FR-05..08)", () => {
     expect(screen.queryByRole("dialog")).toBeNull();
   });
 
-  it("TC-008 the account menu shows the user, links to their pages and logs out", async () => {
+  // MF-18, S-C (was: asserted the email showed in the header; the pack now hides it on shared
+  // screens). See supersession-log.md.
+  it("TC-008 the account menu shows the headline, never the email, and links to Settings", async () => {
     render(<UserMenu />);
     await userEvent.click(
       screen.getByRole("button", { name: "Account menu for Aime Serge UKOBIZABA" }),
     );
-    expect(await screen.findByText(testUser.email ?? "")).toBeInTheDocument();
+    expect(await screen.findByText(testUser.profile?.displayHeadline ?? "")).toBeInTheDocument();
+    expect(screen.queryByText(testUser.email ?? "")).not.toBeInTheDocument();
     expect(screen.getByRole("menuitem", { name: "Profile" })).toHaveAttribute("href", "/profile");
     expect(screen.getByRole("menuitem", { name: "Projects" })).toHaveAttribute("href", "/projects");
     expect(screen.getByRole("menuitem", { name: "Tasks" })).toHaveAttribute("href", "/tasks");
+    expect(screen.getByRole("menuitem", { name: "Settings" })).toHaveAttribute("href", "/settings");
     await userEvent.click(screen.getByRole("menuitem", { name: "Log out" }));
     expect(authState.logout).toHaveBeenCalled();
   });
@@ -174,110 +176,13 @@ describe("TC-010 navigation (FR-05..08)", () => {
   });
 });
 
-describe("TC-021 profile form (FR-10)", () => {
-  it("TC-021 Save is disabled until the name changes and is valid", async () => {
-    renderApp(<ProfileForm user={testUser} />);
-    const save = screen.getByRole("button", { name: "Save" });
-    expect(save).toBeDisabled();
-    const name = screen.getByLabelText("Name");
-    await userEvent.clear(name);
-    expect(save).toBeDisabled();
-    expect(name).toHaveAccessibleDescription("Enter your name.");
-    expect(name).toHaveAttribute("aria-invalid", "true");
-    await userEvent.type(name, "Ada");
-    expect(save).toBeEnabled();
-    expect(name).not.toHaveAttribute("aria-invalid");
-  });
+// MF-08: the old single-field ProfileForm is superseded by the profile editor
+// (MF-08, see supersession-log.md); its coverage moved to tests/unit/profile-editor.test.tsx.
 
-  it("TC-021 rejects names over 80 characters with a message", async () => {
-    renderApp(<ProfileForm user={testUser} />);
-    await userEvent.clear(screen.getByLabelText("Name"));
-    await userEvent.type(screen.getByLabelText("Name"), "x".repeat(81));
-    expect(screen.getByLabelText("Name")).toHaveAccessibleDescription(
-      "Use 80 characters or fewer.",
-    );
-  });
-
-  it("TC-021 saving updates the profile and confirms with a toast", async () => {
-    auth.updateProfile.mockResolvedValue({ ...testUser, name: "Ada" });
-    renderApp(<ProfileForm user={testUser} />);
-    await userEvent.clear(screen.getByLabelText("Name"));
-    await userEvent.type(screen.getByLabelText("Name"), "  Ada  ");
-    await userEvent.click(screen.getByRole("button", { name: "Save" }));
-    expect(auth.updateProfile).toHaveBeenCalledWith("user-1", { name: "Ada" });
-    expect(authState.setUser).toHaveBeenCalled();
-    expect(await screen.findByText("Profile saved.")).toBeInTheDocument();
-  });
-
-  it("TC-021 a failed save shows a plain error and never the raw failure", async () => {
-    setErrorReporter(() => undefined);
-    auth.updateProfile.mockRejectedValue(new Error("db exploded at line 42"));
-    renderApp(<ProfileForm user={testUser} />);
-    await userEvent.type(screen.getByLabelText("Name"), "x");
-    await userEvent.click(screen.getByRole("button", { name: "Save" }));
-    expect(
-      await screen.findByText("We could not save your changes. Please try again."),
-    ).toBeInTheDocument();
-    expect(screen.queryByText(/exploded/)).toBeNull();
-  });
-
-  it("TC-009 the theme select applies the chosen theme", async () => {
-    renderApp(<ProfileForm user={testUser} />);
-    await userEvent.selectOptions(screen.getByLabelText("Theme"), "dark");
-    expect(themeState.setTheme).toHaveBeenCalledWith("dark");
-  });
-});
-
-describe("TC-005 auth forms (register redirects to login)", () => {
-  it("TC-005 registering creates the account and sends the user to the login page, not the app", async () => {
-    auth.register.mockResolvedValue(testUser);
-    render(<RegisterForm />);
-    await userEvent.type(screen.getByLabelText("Name"), " Ada ");
-    await userEvent.type(screen.getByLabelText("Email"), "ada@example.com");
-    await userEvent.type(screen.getByLabelText("Password"), "password123");
-    await userEvent.type(screen.getByLabelText("Confirm password"), "password123");
-    await userEvent.click(screen.getByRole("button", { name: "Create account" }));
-    await waitFor(() => expect(hardNavigate).toHaveBeenCalledWith("/login?registered=1"));
-    expect(auth.register).toHaveBeenCalledWith("Ada", "ada@example.com", "password123");
-    expect(authState.login).not.toHaveBeenCalled();
-  });
-
-  it("TC-005 short and mismatched passwords are rejected before any request", async () => {
-    render(<RegisterForm />);
-    await userEvent.type(screen.getByLabelText("Password"), "short");
-    await userEvent.click(screen.getByRole("button", { name: "Create account" }));
-    expect(screen.getByLabelText("Password")).toHaveAccessibleDescription(
-      "Use at least 8 characters.",
-    );
-    await userEvent.clear(screen.getByLabelText("Password"));
-    await userEvent.type(screen.getByLabelText("Password"), "password123");
-    await userEvent.type(screen.getByLabelText("Confirm password"), "different1");
-    await userEvent.click(screen.getByRole("button", { name: "Create account" }));
-    expect(screen.getByLabelText("Password")).toHaveAccessibleDescription(
-      "The passwords do not match.",
-    );
-    expect(auth.register).not.toHaveBeenCalled();
-  });
-
-  it("TC-005 a taken email names the fix, any other failure stays generic", async () => {
-    auth.register.mockRejectedValueOnce(new ServiceError("conflict", "x", 409));
-    render(<RegisterForm />);
-    const fill = async () => {
-      await userEvent.type(screen.getByLabelText("Name"), "Ada");
-      await userEvent.type(screen.getByLabelText("Email"), "a@b.co");
-      await userEvent.type(screen.getByLabelText("Password"), "password123");
-      await userEvent.type(screen.getByLabelText("Confirm password"), "password123");
-      await userEvent.click(screen.getByRole("button", { name: "Create account" }));
-    };
-    await fill();
-    expect(await screen.findByText(/already exists/)).toBeInTheDocument();
-    auth.register.mockRejectedValueOnce(new Error("boom"));
-    await userEvent.click(screen.getByRole("button", { name: "Create account" }));
-    expect(await screen.findByRole("alert")).toHaveTextContent(
-      "Something went wrong. Please try again.",
-    );
-  });
-
+// MF-01, S-A: the single-step RegisterForm is superseded by the two-step wizard.
+// The old redirect-to-login and single register(name,email,password) call are gone; see
+// supersession-log.md. Full wizard coverage lives in tests/unit/register-wizard.test.tsx.
+describe("TC-005 auth forms (login, forgot and reset password)", () => {
   it("TC-004 login sends the user to the requested page, never an external one", async () => {
     authState.login.mockResolvedValue();
     nav.search = new URLSearchParams("next=%2Ftasks");
