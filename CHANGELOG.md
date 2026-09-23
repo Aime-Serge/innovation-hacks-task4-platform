@@ -1,6 +1,15 @@
 # Changelog
 
-Format: one section per proposed release. No tag has been created; dates are added when a release is cut.
+Format: one section per proposed release. Dates are added when a release is cut; entries below reflect real tags and commits only.
+
+## task-3-baseline - 2026-09-21
+
+Tag `task-3-baseline` marks `0d92ffca770fdba57636be848c7ee2c29e8e272a`
+("feat(web): import the Task 1 frontend as frontend/"), the point at which
+the Task 1 frontend was imported into this monorepo alongside the Task 3
+backend. It predates the Task 4 platform work (auth, AI features, minimal
+profile) recorded below; no `v1.0.0`/`v1.1.0` tag has been cut yet for that
+work — see `docs/reports/summary.md` for the tagging recommendation.
 
 ## [Unreleased] - proposed v1.1.0 (branch feat/minimal-profile)
 

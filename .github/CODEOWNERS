@@ -1,0 +1,11 @@
+# Code owners for review assignment.
+# This is currently a single-author project; @Aime-Serge owns everything by
+# default. Update this file if/when additional maintainers join.
+
+*                   @Aime-Serge
+
+/frontend/          @Aime-Serge
+/backend/           @Aime-Serge
+/docs/adr/          @Aime-Serge
+/docs/standards/    @Aime-Serge
+/.github/           @Aime-Serge
