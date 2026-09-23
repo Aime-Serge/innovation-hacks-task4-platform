@@ -44,3 +44,6 @@ Decisions 401 to 417 come from the pack. 601 to 608 come from the Minimal Profil
 | [ADR-614](ADR-614-self-service-account-deletion-is-added-beside-the-lead-only-delete.md) | Self-service account deletion is added beside the lead-only delete |
 | [ADR-615](ADR-615-follow-the-repository-layout-not-the-pack-s-paths.md) | Follow the repository layout, not the pack's paths |
 | [ADR-616](ADR-616-the-self-review-sheet-uses-the-guide-s-rubric-directly.md) | The self-review sheet uses the guide's rubric directly |
+| [ADR-617](ADR-617-profile-api-details-hidden-profile-legacy-scoring-and-route-guar.md) | Profile API details: hidden profile, legacy scoring, list parity and a route guard |
+| [ADR-618](ADR-618-self-registration-may-set-role-lead-removing-the-guardrail.md) | Self-registration may set role=lead, removing the prior anti-escalation guardrail |
+| [ADR-619](ADR-619-registration-no-longer-signs-the-person-in.md) | Registration no longer signs the person in; it sends them to log in |
