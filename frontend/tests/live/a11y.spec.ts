@@ -43,7 +43,7 @@ for (const size of WIDTHS) {
       await page.getByLabel(/accept the Terms/).check();
       await page.getByLabel(/meet the minimum age/).check();
       await page.getByRole("button", { name: "Create account" }).click();
-      await expect(page).toHaveURL(/\/$/);
+      await expect(page).toHaveURL(/\/dashboard$/);
       await expect(page.getByRole("heading", { name: "Dashboard", level: 1 })).toBeVisible();
       await violations(page, "dashboard");
 

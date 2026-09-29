@@ -1,11 +1,12 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { dataSource } from "@/lib/data-source";
-import { cookieNames } from "@/lib/session/cookies";
+import { DASHBOARD_PATH } from "@/lib/navigation";
+import { sessionMarkerName } from "@/lib/session/marker";
 
-// Redirect away from these if a mock session already exists.
+// Redirect away from these if a session already exists.
 const AUTH_ENTRY_PATHS = ["/login", "/register"];
-// Never require a session, and never redirect away regardless of one.
-const ALWAYS_PUBLIC_PATHS = ["/forgot-password", "/reset-password"];
+// Never require a session, and never redirect away regardless of one: "/" is the welcome page,
+// which every visitor sees first (it offers the dashboard to someone already signed in).
+const ALWAYS_PUBLIC_PATHS = ["/", "/forgot-password", "/reset-password"];
 
 /** NFR-16: a fresh nonce per request, so script-src needs no 'unsafe-inline'. */
 export function contentSecurityPolicy(nonce: string, dev: boolean): string {
@@ -34,17 +35,14 @@ export function proxy(request: NextRequest) {
   const isAuthEntry = AUTH_ENTRY_PATHS.includes(pathname);
   const isPublic = isAuthEntry || ALWAYS_PUBLIC_PATHS.includes(pathname);
   // The marker holds no token: it only says a session exists (ADR-425). The API still checks it.
-  const hasSession =
-    dataSource() === "mock"
-      ? request.cookies.has("mock_session")
-      : request.cookies.has(cookieNames(process.env["ALLOW_INSECURE_COOKIES"] === "true").marker);
+  const hasSession = request.cookies.has(sessionMarkerName());
 
   if (!isPublic && !hasSession) {
     const url = new URL("/login", request.url);
     url.searchParams.set("next", pathname);
     return NextResponse.redirect(url);
   }
-  if (isAuthEntry && hasSession) return NextResponse.redirect(new URL("/", request.url));
+  if (isAuthEntry && hasSession) return NextResponse.redirect(new URL(DASHBOARD_PATH, request.url));
 
   const nonce = Buffer.from(crypto.randomUUID()).toString("base64");
   const csp = contentSecurityPolicy(nonce, process.env.NODE_ENV === "development");

@@ -7,7 +7,7 @@ export const metadata: Metadata = { title: "Log in" };
 
 export default function Page() {
   return (
-    <AuthCard title={t("auth.login")}>
+    <AuthCard title={t("auth.welcomeBack")} lead={t("auth.welcomeBackLead")}>
       <LoginForm />
     </AuthCard>
   );

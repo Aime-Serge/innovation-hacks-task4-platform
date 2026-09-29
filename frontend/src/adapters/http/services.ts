@@ -130,13 +130,10 @@ const me: MeService = {
 
 const activity: ActivityService = {
   list: async (limit, signal) => {
+    // One page by design: the API takes only `limit` (at most 50) and refuses page/pageSize.
     const query = new URLSearchParams({ limit: String(Math.min(Math.max(limit, 1), 50)) });
-    const page = await readAll(
-      (p) => callJson("GET", "activity", { query: p, signal }),
-      query,
-      parseActivity,
-    );
-    return page.items;
+    const raw = await callJson<{ items: unknown[] }>("GET", "activity", { query, signal });
+    return raw.items.map(parseActivity);
   },
 };
 

@@ -40,7 +40,7 @@ for (const viewport of VIEWPORTS) {
       await page.getByLabel(/accept the Terms/).check();
       await page.getByLabel(/meet the minimum age/).check();
       await page.getByRole("button", { name: "Create account" }).click();
-      await expect(page).toHaveURL(/\/$/);
+      await expect(page).toHaveURL(/\/dashboard$/);
 
       // No token is readable by page scripts (NFR-409).
       expect(await page.evaluate(() => document.cookie)).not.toMatch(/ih_at|ih_rt|token/i);

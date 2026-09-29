@@ -2,6 +2,31 @@ import { expect, test } from "@playwright/test";
 import { signIn } from "./helpers";
 
 test.describe("TC-001 landing and authentication", () => {
+  test("TC-001 the site opens on the welcome page, which leads to login", async ({ page }) => {
+    await page.goto("/");
+    await expect(page).toHaveURL(/localhost:3100\/$/);
+    await expect(page.getByRole("heading", { level: 1, name: "Welcome to DevDash" })).toBeVisible();
+    await expect(page.getByRole("main").getByRole("link", { name: "Join Us" })).toBeVisible();
+    await page.getByRole("banner").getByRole("link", { name: "Log in" }).click();
+    await expect(page).toHaveURL(/\/login$/);
+    await expect(page.getByRole("heading", { level: 1, name: "Welcome back" })).toBeVisible();
+    await page.getByLabel("Email").fill("aime.serge@example.com");
+    await page.getByLabel("Password").fill("password123");
+    await page.getByRole("button", { name: "Log in" }).click();
+    await expect(page).toHaveURL(/\/dashboard$/, { timeout: 30_000 });
+  });
+
+  test("TC-004 a signed-in visitor still sees the welcome page, offering the dashboard", async ({
+    page,
+    context,
+  }) => {
+    await signIn(context);
+    await page.goto("/");
+    await expect(page).toHaveURL(/localhost:3100\/$/);
+    await page.getByRole("main").getByRole("link", { name: "Go to your dashboard" }).click();
+    await expect(page).toHaveURL(/\/dashboard$/);
+  });
+
   test("TC-001 an anonymous visitor is sent to login and back to the page they wanted", async ({
     page,
   }) => {
@@ -14,12 +39,12 @@ test.describe("TC-001 landing and authentication", () => {
     await expect(page.getByRole("heading", { level: 1, name: "Tasks" })).toBeVisible();
   });
 
-  test("TC-001 / opens the dashboard with four KPIs, deadlines and activity", async ({
+  test("TC-001 /dashboard opens the dashboard with four KPIs, deadlines and activity", async ({
     page,
     context,
   }) => {
     await signIn(context);
-    await page.goto("/");
+    await page.goto("/dashboard");
     await expect(page.getByRole("heading", { level: 1, name: "Dashboard" })).toBeVisible();
     for (const label of ["Active projects", "Open tasks", "Overdue tasks", "Completion rate"]) {
       await expect(page.getByText(label, { exact: true })).toBeVisible();
@@ -70,7 +95,7 @@ test.describe("TC-001 landing and authentication", () => {
   }) => {
     await signIn(context);
     await page.goto("/login");
-    await expect(page).toHaveURL(/localhost:3100\/$/);
+    await expect(page).toHaveURL(/localhost:3100\/dashboard$/);
     await page.getByRole("button", { name: /Account menu/ }).click();
     await page.getByRole("menuitem", { name: "Log out" }).click();
     await expect(page).toHaveURL(/\/login/, { timeout: 30_000 });
@@ -90,6 +115,6 @@ test.describe("TC-001 landing and authentication", () => {
     await page.getByLabel("Email").fill("aime.serge@example.com");
     await page.getByLabel("Password").fill("password123");
     await page.getByRole("button", { name: "Log in" }).click();
-    await expect(page).toHaveURL(/localhost:3100\/$/, { timeout: 30_000 });
+    await expect(page).toHaveURL(/localhost:3100\/dashboard$/, { timeout: 30_000 });
   });
 });

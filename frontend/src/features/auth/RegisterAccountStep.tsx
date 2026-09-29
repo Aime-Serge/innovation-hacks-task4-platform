@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { t } from "@/i18n";
 import { Button } from "@/ui/Button";
 import { FormField } from "@/ui/FormField";
+import { Icon } from "@/ui/Icon";
 import { Input } from "@/ui/Input";
 import type { Account, AccountErrors } from "./registration-form";
 
@@ -90,9 +91,10 @@ export function RegisterAccountStep({
       </FormField>
       <FormField id="reg-password" label={t("auth.password")} error={errors.password}>
         {(c) => (
-          <div className="flex gap-2">
+          <div className="relative">
             <Input
               {...c}
+              className="pr-11"
               name="password"
               type={showPassword ? "text" : "password"}
               autoComplete="new-password"
@@ -101,9 +103,16 @@ export function RegisterAccountStep({
               onChange={(e) => onChange({ ...account, password: e.target.value })}
               onBlur={() => onBlurField("password")}
             />
-            <Button type="button" onClick={() => setShowPassword((v) => !v)}>
-              {showPassword ? t("auth.hidePassword") : t("auth.showPassword")}
-            </Button>
+            {/* The icon changes with the state; the name says what a press will do. */}
+            <button
+              type="button"
+              onClick={() => setShowPassword((v) => !v)}
+              aria-label={showPassword ? t("auth.hidePassword") : t("auth.showPassword")}
+              title={showPassword ? t("auth.hidePassword") : t("auth.showPassword")}
+              className="touch-target absolute inset-y-0 right-0 flex w-10 items-center justify-center rounded-r-md text-muted hover:text-fg"
+            >
+              <Icon name={showPassword ? "eyeOff" : "eye"} className="size-5" />
+            </button>
           </div>
         )}
       </FormField>

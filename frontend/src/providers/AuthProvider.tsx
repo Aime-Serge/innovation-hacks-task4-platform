@@ -32,7 +32,7 @@ type AuthValue = {
 
 const AuthContext = createContext<AuthValue | null>(null);
 const ENTRY_PATHS = ["/login", "/register"];
-const PUBLIC_PATHS = [...ENTRY_PATHS, "/forgot-password", "/reset-password"];
+const PUBLIC_PATHS = ["/", ...ENTRY_PATHS, "/forgot-password", "/reset-password"];
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const auth = useMemo(

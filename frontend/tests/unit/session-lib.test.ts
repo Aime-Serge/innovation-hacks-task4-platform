@@ -73,22 +73,21 @@ describe("TC-450 settings", () => {
 });
 
 describe("TC-451 cookies", () => {
-  it("sets the three cookies with the section 9 attributes", () => {
+  it("sets the three cookies with the section 9 attributes, ending with the browser session", () => {
     const [access, refresh, marker] = sessionCookies(tokens, false).map(serializeCookie);
-    expect(access).toBe(
-      "__Host-ih_at=a-token; Path=/; Max-Age=900; HttpOnly; SameSite=Lax; Secure",
-    );
+    expect(access).toBe("__Host-ih_at=a-token; Path=/; HttpOnly; SameSite=Lax; Secure");
     expect(refresh).toBe(
-      "__Secure-ih_rt=r-token; Path=/api/bff/auth; Max-Age=604800; HttpOnly; SameSite=Strict; Secure",
+      "__Secure-ih_rt=r-token; Path=/api/bff/auth; HttpOnly; SameSite=Strict; Secure",
     );
     expect(marker).toContain("__Host-ih_s=1");
     expect(marker).not.toContain("token");
+    expect(marker).not.toContain("Max-Age"); // closing the browser signs out
   });
   it("relaxes only the prefixes and Secure over plain HTTP", () => {
     const names = cookieNames(true);
     expect(names).toEqual({ access: "ih_at", refresh: "ih_rt", marker: "ih_s" });
     const [access] = sessionCookies(tokens, true).map(serializeCookie);
-    expect(access).toBe("ih_at=a-token; Path=/; Max-Age=900; HttpOnly; SameSite=Lax");
+    expect(access).toBe("ih_at=a-token; Path=/; HttpOnly; SameSite=Lax");
   });
   it("clears every cookie on the same paths", () => {
     const cleared = clearedCookies(false).map(serializeCookie);

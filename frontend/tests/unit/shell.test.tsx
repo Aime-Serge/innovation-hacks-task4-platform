@@ -51,8 +51,8 @@ describe("TC-010 navigation (FR-05..08)", () => {
     expect(screen.getAllByRole("link")).toHaveLength(4);
   });
 
-  it("TC-010 the dashboard link is current only on /", () => {
-    nav.pathname = "/";
+  it("TC-010 the dashboard link is current only on /dashboard", () => {
+    nav.pathname = "/dashboard";
     render(<NavLinks />);
     expect(screen.getByRole("link", { name: "Dashboard" })).toHaveAttribute("aria-current", "page");
     expect(screen.getByRole("link", { name: "Tasks" })).not.toHaveAttribute("aria-current");
@@ -198,7 +198,7 @@ describe("TC-005 auth forms (login, forgot and reset password)", () => {
     await userEvent.type(screen.getByLabelText("Email"), "a@b.co");
     await userEvent.type(screen.getByLabelText("Password"), "password123");
     await userEvent.click(screen.getByRole("button", { name: "Log in" }));
-    await waitFor(() => expect(hardNavigate).toHaveBeenCalledWith("/"));
+    await waitFor(() => expect(hardNavigate).toHaveBeenCalledWith("/dashboard"));
   });
 
   it("TC-004 the login page confirms a new account and shows credential errors", async () => {

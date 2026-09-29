@@ -2,7 +2,7 @@ import { vi } from "vitest";
 
 // A controllable stand-in for next/navigation, installed for every test.
 export const nav = {
-  pathname: "/",
+  pathname: "/dashboard",
   search: new URLSearchParams(),
   replace: vi.fn<(href: string) => void>(),
   push: vi.fn<(href: string) => void>(),
@@ -11,7 +11,7 @@ export const nav = {
 };
 
 export const resetNav = (): void => {
-  nav.pathname = "/";
+  nav.pathname = "/dashboard";
   nav.search = new URLSearchParams();
   nav.replace.mockReset();
   nav.push.mockReset();

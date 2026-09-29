@@ -4,7 +4,14 @@ import { signIn, visit } from "./helpers";
 
 // NFR-04: 170 KB or less of JavaScript on first load per route, gzip.
 const BUDGET_BYTES = 170 * 1024;
-const ROUTES = ["/", "/projects", "/projects/project-1", "/tasks", "/profile", "/login"] as const;
+const ROUTES = [
+  "/dashboard",
+  "/projects",
+  "/projects/project-1",
+  "/tasks",
+  "/profile",
+  "/login",
+] as const;
 
 test.describe("TC-090 JavaScript budget (NFR-04)", () => {
   test.skip(({ browserName }) => browserName !== "chromium", "measured once, in Chromium");

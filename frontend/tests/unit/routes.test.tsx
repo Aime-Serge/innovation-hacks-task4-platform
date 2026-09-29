@@ -23,7 +23,10 @@ describe("TC-072 route-level states (NFR-19)", () => {
   it("TC-072 unknown routes get a not-found page with a way home", () => {
     render(<NotFound />);
     expect(screen.getByRole("heading", { level: 1, name: "Page not found" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Back to dashboard" })).toHaveAttribute("href", "/");
+    expect(screen.getByRole("link", { name: "Back to dashboard" })).toHaveAttribute(
+      "href",
+      "/dashboard",
+    );
   });
 
   it("TC-070 the route loading state is marked busy", () => {

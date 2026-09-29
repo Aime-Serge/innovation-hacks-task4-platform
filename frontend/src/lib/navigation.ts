@@ -1,11 +1,15 @@
+/** Where a signed-in person lands. "/" is the public welcome page. */
+export const DASHBOARD_PATH = "/dashboard";
+
 /**
  * Only same-origin, absolute-path redirect targets are allowed. router.push
  * and location.assign both follow a full URL to another site, so an
  * unvalidated ?next= would be an open redirect.
  */
 export function safeInternalPath(next: string | null | undefined): string {
-  if (!next) return "/";
-  if (!next.startsWith("/") || next.startsWith("//") || next.startsWith("/\\")) return "/";
+  if (!next || next === "/") return DASHBOARD_PATH;
+  if (!next.startsWith("/") || next.startsWith("//") || next.startsWith("/\\"))
+    return DASHBOARD_PATH;
   return next;
 }
 
@@ -13,7 +17,7 @@ export function safeInternalPath(next: string | null | undefined): string {
  * Full page load, used after any auth state change (login, register,
  * logout, account deletion). A client-side router.push isn't enough:
  * production builds prefetch links in the background, and while logged
- * out the route guard answers the prefetch of "/" with a redirect to
+ * out the route guard answers the prefetch of the dashboard with a redirect to
  * /login — which the router caches and then replays after login, bouncing
  * the user straight back to the login page. A real navigation bypasses
  * that cache (and, on logout, also drops any cached authenticated pages).

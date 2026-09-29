@@ -4,7 +4,7 @@ import { hasHorizontalScroll, settled, signIn, visit } from "./helpers";
 test.beforeEach(async ({ context }) => signIn(context));
 
 const WIDTHS = [360, 768, 1280, 2560] as const;
-const ROUTES = ["/", "/projects", "/projects/project-1", "/tasks", "/profile"] as const;
+const ROUTES = ["/dashboard", "/projects", "/projects/project-1", "/tasks", "/profile"] as const;
 
 test.describe("TC-060 no horizontal scroll (FR-23, NFR-09)", () => {
   for (const width of WIDTHS) {

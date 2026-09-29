@@ -1,157 +1,210 @@
-# AI-Powered Project & Task Management Platform
+# Innovation Hacks Task 4 — AI Project & Task Management Platform
 
-Task 4 (capstone) of the Innovation Hacks Full Stack Development Internship: the Task 1 frontend, the Task 2 API and the Task 3 PostgreSQL layer in one application, with three AI features that only ever suggest. It is built to the Task 4 Engineering Standards Pack in [`docs/standards/`](docs/standards/).
+Task 4 combines the Task 1 dashboard, Task 2 REST API and Task 3 PostgreSQL persistence into a full-stack project and task management platform. Members can register, manage work, view dashboards, and ask AI for task suggestions, prioritisation and project summaries. AI output is advisory: a person reviews and confirms changes before they are saved.
 
-A person registers, signs in, manages projects and tasks, and can ask an AI provider to generate tasks, rank priorities or summarise a project. The AI never changes anything by itself: the person reviews, edits and confirms, and confirmed changes go through the same endpoints as manual ones.
+[![CI](https://github.com/Aime-Serge/innovation-hacks-task4-platform/actions/workflows/ci.yml/badge.svg)](https://github.com/Aime-Serge/innovation-hacks-task4-platform/actions/workflows/ci.yml) [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-## Features
+**Live demo:** pending verification · **Demo video:** pending recording · **LinkedIn post:** pending publication
 
-Each feature is tied to the requirement of the [Innovation Hacks guide](docs/standards/innovation-hacks-guide.pdf) it serves; the row-by-row check is in [`docs/guide-compliance.md`](docs/guide-compliance.md).
+![Task 4 dashboard with synthetic project and task data](docs/screenshots/task-4/03-dashboard-desktop.png)
 
-| Guide requirement | Feature | State |
-|---|---|---|
-| Task 1: dashboard, navigation, project and task cards, progress, search and filter, responsive, loading and empty states | Next.js dashboard, sidebar and drawer navigation, cards, progress bars, filters kept in the URL, skeleton, empty and error states | Built (Tasks 1 and 4) |
-| Task 2: users, projects, tasks, status workflow, one error envelope, validation, status codes | FastAPI REST API with an enforced status workflow, validated writes and documented OpenAPI | Built |
-| Task 3: persistent users, projects and tasks, database-level validation, relationships, secure configuration | PostgreSQL 16, named constraints, foreign keys, three database roles, environment-only credentials | Built |
-| Task 4: registration, login, logout, protected routes | Sign-in with rotating refresh tokens in `HttpOnly` cookies, route guard, logout | Built |
-| Task 4: dashboard statistics and recent activity | Dashboard summary and activity feed | Built |
-| Task 4: project management, task management, assign, priority, due dates | Project and task CRUD, assignment, priority, due dates, search and filter | Built |
-| Task 4: at least one AI feature | AI task generation, prioritisation and project summary; the AI only suggests | Built; live evaluation not yet run ([`docs/ai-evaluation.md`](docs/ai-evaluation.md)) |
-| Task 1: user and profile section; Task 4: registration | Two-step registration that captures professional information, own profile page and editor, member profile page | Built and covered by live profile tests |
-| Task 4: assign tasks | People picker showing each member's discipline and company | Built and covered by live profile tests |
-| Task 4: logout; security | Settings (profile, preferences, privacy, account), change password, sign out of all devices | Built; account deletion remains subject to the documented ownership conflict |
-| Task 4: dashboard, "progress tracking"; Task management, "assign" | Role-choice at registration (developer or lead, reusing `users.role`); one `DashboardView` for both, with team-wide KPIs, deadlines and a lead-only `TeamPanel` for a lead, own-scope for a developer, driven by the visibility already enforced server-side (BR-401) | Built |
+## What the platform does
 
-**Beyond the requirements.** The developer/team-lead dashboard split (row above) reuses the `users.role` column and the existing BR-401 read-scoping end to end — the same route, the same `DashboardView`, the same tokens, for both roles; a lead additionally gets a `TeamPanel` and team-wide KPI labels, sourced from data the dashboard already fetches. See [`docs/role-alignment-contract.md`](docs/role-alignment-contract.md) and [`docs/adr/ADR-618-self-registration-may-set-role-lead-removing-the-guardrail.md`](docs/adr/ADR-618-self-registration-may-set-role-lead-removing-the-guardrail.md) (registration can now set `role=lead` directly; a deliberate, documented policy change from the prior developer-only guardrail).
+- **Identity and sessions:** two-step account registration, login and logout; session tokens are kept in HttpOnly cookies by the Next.js server layer. Refresh tokens rotate and can be revoked.
+- **Project workflow:** create and manage projects, open project details, track task completion and view project progress.
+- **Task workflow:** create, edit, assign and update tasks; filter and search work; use the member picker to choose an assignee.
+- **Dashboard:** see project and task statistics, team context and recent activity. Visibility follows the API's ownership and lead rules.
+- **Profiles and settings:** manage professional profile details, view member profiles, set preferences and privacy options, change password and manage sessions.
+- **AI assistance:** request task suggestions, priority ranking or a project summary. The AI receives minimised project context, has no tools and cannot write business data. The user reviews and confirms any suggested tasks.
+- **Responsive interface:** layouts adapt from desktop to mobile, including navigation and task assignment controls.
+
+Feature-to-guide traceability is in [`docs/guide-compliance.md`](docs/guide-compliance.md); known supersessions and blockers are recorded in [`docs/supersession-log.md`](docs/supersession-log.md) and [`docs/blockers.md`](docs/blockers.md).
+
+## Beyond the guide requirements
+
+- The same service boundary supports a deterministic fake AI provider for tests and local demos, while a live provider can be configured separately ([AI design and evaluation record](docs/ai-evaluation.md)).
+- The Next.js server layer keeps access credentials in HttpOnly cookies and applies origin checks before forwarding writes ([ADR index](docs/adr/README.md)).
+- Task 4 includes the minimal professional profile release: profile visibility, controlled lists and account/session settings ([release notes](docs/submission/release-notes.md)).
 
 ## Technology stack
 
-Next.js and TypeScript (frontend, on Vercel); FastAPI, SQLAlchemy 2 async and Alembic on Python 3.12 (API, on Render); PostgreSQL 16; Gemini as the live AI provider with a deterministic fake for tests; Playwright, Vitest, pytest and schemathesis for tests; gitleaks, `npm audit` and `pip-audit` for security checks; Docker Compose for the local stack. Exact versions are in `frontend/package.json` and `backend/pyproject.toml`.
+| Layer        | Technology                                             | Version / purpose                                                         |
+| ------------ | ------------------------------------------------------ | ------------------------------------------------------------------------- |
+| Web          | Next.js, React, TypeScript                             | Versions pinned in `frontend/package-lock.json`; App Router, strict types |
+| UI           | Tailwind CSS, Radix UI                                 | Responsive accessible components                                          |
+| API          | FastAPI, Pydantic                                      | Python 3.12; async REST API and OpenAPI                                   |
+| Persistence  | PostgreSQL, SQLAlchemy, Alembic                        | PostgreSQL 16; async ORM and explicit migrations                          |
+| AI           | Gemini provider behind `LLMClient`; deterministic fake | Live provider requires separately configured secret                       |
+| Verification | Vitest, Playwright, pytest, Schemathesis               | Unit, browser, API and contract checks                                    |
+| Delivery     | Docker Compose, GitHub Actions, Vercel, Render         | Local stack, CI and deployment targets                                    |
+
+## Screenshots
+
+These captures use synthetic example accounts and data. Automated UI captures are regenerated with `make screenshots` from a running local stack. Desktop is 1440×900 and mobile is 390×844.
+
+### Sign-in and registration
+
+| Login                                                                | Registration                                                                   |
+| -------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
+| ![Login page, desktop](docs/screenshots/task-4/01-login-desktop.png) | ![Registration page, desktop](docs/screenshots/task-4/02-register-desktop.png) |
+| ![Login page, mobile](docs/screenshots/task-4/01-login-mobile.png)   | ![Registration page, mobile](docs/screenshots/task-4/02-register-mobile.png)   |
+
+### Dashboard and work management
+
+| Dashboard                                                               | Projects                                                              | Tasks                                                           |
+| ----------------------------------------------------------------------- | --------------------------------------------------------------------- | --------------------------------------------------------------- |
+| ![Dashboard, desktop](docs/screenshots/task-4/03-dashboard-desktop.png) | ![Projects, desktop](docs/screenshots/task-4/04-projects-desktop.png) | ![Tasks, desktop](docs/screenshots/task-4/05-tasks-desktop.png) |
+| ![Dashboard, mobile](docs/screenshots/task-4/03-dashboard-mobile.png)   | ![Projects, mobile](docs/screenshots/task-4/04-projects-mobile.png)   | ![Tasks, mobile](docs/screenshots/task-4/05-tasks-mobile.png)   |
+
+### Profiles, settings and assignment
+
+| My profile                                                              | Settings                                                              | Member profile                                                                    | Assign task                                                                                 |
+| ----------------------------------------------------------------------- | --------------------------------------------------------------------- | --------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| ![Own profile, desktop](docs/screenshots/task-4/06-profile-desktop.png) | ![Settings, desktop](docs/screenshots/task-4/07-settings-desktop.png) | ![Member profile, desktop](docs/screenshots/task-4/08-member-profile-desktop.png) | ![Task assignee picker, desktop](docs/screenshots/task-4/09-task-assign-picker-desktop.png) |
+| ![Own profile, mobile](docs/screenshots/task-4/06-profile-mobile.png)   | ![Settings, mobile](docs/screenshots/task-4/07-settings-mobile.png)   | ![Member profile, mobile](docs/screenshots/task-4/08-member-profile-mobile.png)   | ![Task assignee picker, mobile](docs/screenshots/task-4/09-task-assign-picker-mobile.png)   |
+
+### Project detail and AI assistance (local deterministic provider)
+
+| Project detail                                                                                             | Generation before suggestions                                                                                                   | Generation results                                                                                                             |
+| ---------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| ![Project detail with task progress and AI actions](docs/screenshots/task-4/10-project-detail-desktop.png) | ![AI task generation privacy notice before requesting suggestions](docs/screenshots/task-4/11-ai-generation-before-desktop.png) | ![Generated task suggestions pending user review and confirmation](docs/screenshots/task-4/12-ai-generation-after-desktop.png) |
+
+| Suggested priorities                                                                                                                  | Project summary                                                                                             |
+| ------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| ![AI priority suggestions with current and recommended priorities, desktop](docs/screenshots/task-4/13-ai-prioritisation-desktop.png) | ![AI project summary with risks and next steps, desktop](docs/screenshots/task-4/14-ai-summary-desktop.png) |
+
+| Generation before suggestions, mobile                                                                    | Generation results, mobile                                                                                             | Suggested priorities, mobile                                                                | Project summary, mobile                                                         | Quota reached, mobile                                                        |
+| -------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| ![AI task generation privacy notice, mobile](docs/screenshots/task-4/11-ai-generation-before-mobile.png) | ![Generated task suggestions awaiting confirmation, mobile](docs/screenshots/task-4/12-ai-generation-after-mobile.png) | ![AI priority suggestions, mobile](docs/screenshots/task-4/13-ai-prioritisation-mobile.png) | ![AI project summary, mobile](docs/screenshots/task-4/14-ai-summary-mobile.png) | ![AI quota response, mobile](docs/screenshots/task-4/15-ai-quota-mobile.png) |
+
+| Quota reached, desktop                                                                                    |
+| --------------------------------------------------------------------------------------------------------- |
+| ![AI request quota reached with retry guidance, desktop](docs/screenshots/task-4/15-ai-quota-desktop.png) |
+
+These are local deterministic fake-provider results against synthetic sample content, not a live-provider quality claim. The suggested tasks in the generation image remain unconfirmed and are not represented as persisted data. The quota capture uses an isolated local API configured to four calls per throwaway account; it shows the actual API quota response.
+
+![AI request quota reached with retry guidance](docs/screenshots/task-4/15-ai-quota-desktop.png)
+
+**Additional evidence required by the submission standard is manual or not yet captured:** two authenticated browser windows demonstrating data isolation; the browser address bar showing the actual live deployment; a rendered architecture-diagram screenshot; a deployed Lighthouse report; and gate output. Architecture is documented below and in the Mermaid diagram. No live AI evaluation is claimed by these local screenshots; see [`docs/ai-evaluation.md`](docs/ai-evaluation.md). Terminal, live-account and isolation evidence must be captured from the actual target environment with secrets and personal data hidden.
+
+## Workflows
+
+### Register and sign in
+
+1. Open `/register` and enter account details.
+2. Complete the professional profile and consent fields.
+3. Open `/login`, authenticate, then use protected app routes.
+4. Sign out from Settings; protected routes require a valid session again.
+
+The registration endpoint accepts a role choice in the current release; this affects dashboard/team behaviour. Email verification and password reset are not included. See ADR-605 and the policy change in ADR-618.
+
+### Plan and track work
+
+1. Create a project from Projects.
+2. Add tasks with due dates, priority and an optional assignee.
+3. Search and filter the task list; change task status as work progresses.
+4. Review dashboard metrics, activity and project progress.
+
+### Use AI suggestions
+
+1. Open a project and choose task generation, prioritisation or summary.
+2. Review the proposed output and make edits or selections.
+3. Explicitly confirm selected task suggestions before they are created.
+
+The local Compose stack uses a deterministic fake provider. Live provider behaviour has not been verified unless the AI evaluation record says otherwise. Do not use confidential project content with an external provider.
 
 ## Architecture
 
 ```mermaid
 flowchart LR
-  B["Browser"] --> V["Vercel<br/>Next.js pages +<br/>server layer /api/bff"]
-  V --> A["Render web service<br/>FastAPI"]
-  A --> D[("Render PostgreSQL 16")]
-  A --> L["AI provider (Gemini)<br/>external"]
-  M["Migration step<br/>ih_migrator, from your machine"] --> D
+  B[Browser] --> V[Next.js frontend and server layer /api/bff]
+  V --> A[FastAPI REST API]
+  A --> D[(PostgreSQL 16)]
+  A --> L[AI provider]
+  M[Explicit Alembic migration step] --> D
 ```
 
-- The browser talks **only** to the site. The server layer (`frontend/src/lib/session`, route `/api/bff`) keeps the session in `HttpOnly` cookies, forwards calls to the API with the Bearer token, checks the `Origin` of every write, allows JSON bodies only and a fixed list of API areas, applies a timeout and passes `X-Request-ID`. No token is ever readable by page scripts.
-- The API (`backend/`) is Bearer-only. It holds the business rules, authentication, visibility scoping and the AI pipeline; only it talks to the database and the AI provider.
-- Three database roles: `ih_migrator` (owns the schema, used only for migrations), `ih_app` (rows only, used by the API) and `ih_readonly` (no access to password hashes or tokens).
-- Decisions are in [`docs/adr/`](docs/adr/README.md); where the pack and the code disagreed, the readbacks are in [`docs/pack-readback-task4.md`](docs/pack-readback-task4.md) and [`docs/pack-readback-final.md`](docs/pack-readback-final.md) (minimal profile).
+The browser calls the Next.js site only. Its server layer validates and forwards API calls and stores session credentials in HttpOnly cookies. FastAPI owns authorization, business rules, visibility scoping, persistence and AI orchestration. PostgreSQL enforces relational constraints. The AI provider receives minimised inputs and can only return suggestions.
 
-```text
-frontend/   Next.js, TypeScript only: pages, HTTP adapter, AI screens, server layer
-backend/    FastAPI, SQLAlchemy 2 async, Alembic: API, migrations, AI pipeline (its own README)
-docs/       standards packs, ADRs, runbook, AI evaluation, supersession log, blockers
-scripts/    deploy check, smoke test, provisioning, migration, demo data, fault injection
-render.yaml docker-compose.yml Makefile
-```
+Important decisions are indexed in [`docs/adr/README.md`](docs/adr/README.md). Operational setup, migration, deploy, smoke and rollback steps are in [`docs/deploy-runbook.md`](docs/deploy-runbook.md).
 
-## Run it locally
+## Getting started
 
-Needs Docker, Node 22, Python 3.12 with `uv`, and `make`.
+Requirements: Docker Compose, Node 22, Python 3.12 with `uv`, and GNU Make.
 
 ```bash
-make env          # writes .env with random local secrets (git-ignored)
-make up           # database, migrations, API on :8000, site on :3000
-open http://localhost:3000/register
+make env
+make up
+# open http://localhost:3000/register
 ```
 
-Three commands install and start everything: `make env`, `make up`, then open the address. The local stack uses the **fake** AI provider, so it needs no key and costs nothing. To try failures, restart the API with `FAKE_LLM_SCENARIO=timeout`, `bad_json`, `too_long`, `injection_echo`, `rate_limited` or `invalid_then_ok`, with `AI_ENABLED=false`, or with `AI_DAILY_LIMIT_PER_USER=1`. Realistic sample data for an account: `SITE_URL=http://localhost:3000 DEMO_EMAIL=you@example.com DEMO_PASSWORD=... make demo-data`.
+`make env` creates ignored local credentials. The Compose stack starts PostgreSQL, applies migrations explicitly, then starts the API and frontend. The default local AI provider is fake and requires no provider key. Stop the stack with `make down`.
 
-## Screenshots
+To seed a synthetic demo account, set `SITE_URL`, `DEMO_EMAIL` and `DEMO_PASSWORD` in your shell and run `make demo-data`. Do not put real credentials in screenshots, source files or shell history.
 
-Task 1 screenshots are in [`frontend/docs/screenshots/`](frontend/docs/screenshots/) and Task 3 screenshots in [`backend/docs/screenshots/`](backend/docs/screenshots/). The Task 4 set is captured by `make screenshots` (script: [`scripts/screenshots.ts`](scripts/screenshots.ts)) into [`docs/screenshots/task-4/`](docs/screenshots/task-4/) at 1440x900 and 390x844, using synthetic data only. The current set contains 18 screens covering login, registration, dashboard, projects, tasks, profile, settings, member profile and task assignment.
+### Environment variables
 
-## Demo
+Local Compose values are documented in [`.env.example`](.env.example); copy them with `make env` and keep the generated `.env` private. Production configuration is set in the Vercel/Render dashboards and detailed in [`backend/README.md`](backend/README.md#configuration). Examples below are placeholders, never working credentials.
 
-| Item | Link |
-|---|---|
-| Demo video (2 to 5 minutes) | `<pending>` |
-| Live site (optional) | `<pending>` |
-| Demo script | [`docs/submission/demo-script.md`](docs/submission/demo-script.md) |
+| Variable                                                                               | Purpose                                                      | Example (placeholder only)                                 |
+| -------------------------------------------------------------------------------------- | ------------------------------------------------------------ | ---------------------------------------------------------- |
+| `POSTGRES_PASSWORD`, `APP_DB_PASSWORD`, `MIGRATOR_DB_PASSWORD`, `READONLY_DB_PASSWORD` | Separate database role credentials                           | `<set-me>`                                                 |
+| `JWT_SECRET`                                                                           | Sign session tokens                                          | `<set-me>`                                                 |
+| `DATABASE_URL`                                                                         | API's async application-role connection                      | `postgresql+asyncpg://<user>:<password>@<host>/<database>` |
+| `MIGRATION_DATABASE_URL`                                                               | One-time migration-role connection                           | `<set-me>`                                                 |
+| `API_BASE_URL`                                                                         | Frontend server-layer upstream API                           | `https://<api-host>`                                       |
+| `SITE_URL`, `CORS_ALLOWED_ORIGINS`                                                     | Canonical site and allowed origin                            | `https://<site-host>`                                      |
+| `LLM_API_KEY`                                                                          | Live AI provider credential, only when using a live provider | `<provider-key>`                                           |
+| `AI_ENABLED`, `LLM_PROVIDER`, `LLM_MODEL`                                              | AI feature switch/provider/model                             | `true`, `fake`, `<model-name>`                             |
+| `MIN_AGE`, `TERMS_VERSION`                                                             | Registration consent configuration                           | `16`, `2026-09`                                            |
+
+### Tests and quality gate
+
+`make gate` is the single local gate entry point. It runs frontend and backend checks, browser journeys, security and documentation checks. For deployed verification, configure the targets first and run `make smoke` and `make e2e-live`; live AI evaluation is a separate manual step using `make ai-eval` and an explicitly configured provider key. Evidence and unresolved items belong in [`docs/task-status-report.md`](docs/task-status-report.md).
+
+## API documentation
+
+The API contract is [`backend/docs/openapi.json`](backend/docs/openapi.json). Interactive Swagger UI and ReDoc are enabled in local development; production exposure is controlled by `DOCS_ENABLED`. API route and error-envelope details are in [`backend/README.md`](backend/README.md).
+
+## Database
+
+PostgreSQL stores users, profiles, projects, tasks, sessions, refresh-token families and AI usage metadata. Alembic migrations run as an explicit migration step, not when the API starts. Schema setup, database roles and local inspection instructions are in [`backend/README.md`](backend/README.md) and [`docs/deploy-runbook.md`](docs/deploy-runbook.md).
+
+## Deployment
+
+The deployment plan uses Vercel for the Next.js frontend and Render for FastAPI and PostgreSQL. Follow [`docs/deploy-runbook.md`](docs/deploy-runbook.md) for configuration, migrations, deployment order, smoke checks and rollback. **No live deployment is represented as verified by this README.**
+
+## Repository map
+
+- `frontend/` — Next.js App Router, typed services, server-side session/BFF, UI and browser/unit tests.
+- `backend/` — FastAPI API, SQLAlchemy async persistence, Alembic migrations, AI services and API tests.
+- `docs/` — architecture decisions, standards packs, traceability, runbook, evaluation and submission evidence.
+- `scripts/` — local release, screenshot, smoke, deployment and demo helpers.
+- `docker-compose.yml`, `Makefile` — local stack and repeatable quality/release commands.
+
+## Quality and verification
+
+Run `make gate` for the repository's combined automated checks. The command includes component and API checks, browser journeys, security scans, deployment configuration checks and documentation checks. A green local gate is not evidence of a deployed live run; publish actual command output and deployment evidence separately. Live checks are `make smoke` and `make e2e-live` after deployment. Run `make ai-eval` with an intentionally configured provider key to produce an AI evaluation record.
+
+Current blockers, deferred checks and any unverified release claims are maintained in [`docs/blockers.md`](docs/blockers.md) and [`docs/task-status-report.md`](docs/task-status-report.md). Do not infer success from this README in place of those records.
 
 ## Task submissions
 
-The four items the guide asks for on each task. Links are filled in by the author after publishing.
+This monorepo supports the four task submissions. Release tags, video URLs, LinkedIn URLs and optional live URLs should be filled only after publication and verification.
 
-| Task | GitHub repository | Demo video | Live deployment (optional) | LinkedIn post (Innovation Hacks tagged) |
-|---|---|---|---|---|
-| Task 1 | `<pending>` | `<pending>` | `<pending>` | `<pending>` |
-| Task 2 | `<pending>` | `<pending>` | `<pending>` | `<pending>` |
-| Task 3 | `<pending>` | `<pending>` | `<pending>` | `<pending>` |
-| Task 4 | `<pending>` | `<pending>` | `<pending>` | `<pending>` |
+| Task                            | Release | Demo video                                                                          | LinkedIn post                                                                          | Live demo            |
+| ------------------------------- | ------- | ----------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- | -------------------- |
+| Task 1 — frontend dashboard     | Pending | Pending                                                                             | Pending                                                                                | Pending              |
+| Task 2 — REST API               | Pending | Pending                                                                             | Pending                                                                                | Pending              |
+| Task 3 — PostgreSQL persistence | Pending | Pending                                                                             | Pending                                                                                | Pending              |
+| Task 4 — full platform          | Pending | Pending; script: [`docs/submission/demo-script.md`](docs/submission/demo-script.md) | Pending; draft: [`docs/submission/linkedin-post.md`](docs/submission/linkedin-post.md) | Pending verification |
 
-## Environment variables
+Release notes and self-review templates: [`docs/submission/release-notes.md`](docs/submission/release-notes.md), [`docs/submission/self-review.md`](docs/submission/self-review.md).
 
-**API on Render** (the full list with defaults is in [`backend/README.md`](backend/README.md#configuration)). Secrets are set only in the dashboard.
+## Author and acknowledgements
 
-| Variable | Purpose | Required | Notes |
-|---|---|---|---|
-| `APP_ENV` | Environment name | Yes | `production` |
-| `STORAGE_BACKEND` | Storage | Yes | `sql` |
-| `DATABASE_URL` | Application role connection | Yes | Secret; async driver scheme; TLS required |
-| `JWT_SECRET` | Token signing key | Yes | Secret; 32 bytes or more; different in every environment |
-| `ACCESS_TOKEN_TTL_S`, `REFRESH_TOKEN_TTL_S` | Session lifetimes | No | 900 and 604800 |
-| `CORS_ALLOWED_ORIGINS` | Allowed browser origins | Yes | The Vercel site; no wildcard |
-| `REGISTRATION_ENABLED` | Open registration | No | `true` |
-| `DOCS_ENABLED` | Swagger UI and ReDoc | No | `false` in production |
-| `AI_ENABLED` | AI kill switch | No | `true` |
-| `LLM_PROVIDER` | `gemini` or `fake` | Yes | `fake` is refused in production |
-| `LLM_API_KEY` | Provider key | With a live provider | Secret; a separate key per environment |
-| `LLM_MODEL` | Model name | With a live provider | Never hard-coded |
-| `LLM_TIMEOUT_S`, `LLM_MAX_OUTPUT_TOKENS` | Call limits | No | 20 and 1024 |
-| `AI_DAILY_LIMIT_PER_USER`, `AI_PER_MINUTE_LIMIT`, `AI_GLOBAL_DAILY_LIMIT` | Quotas | No | 20, 5, 500 |
-| `MIN_AGE` | Minimum age the registration checkbox confirms (added on feat/minimal-profile) | No | 16; no birth date is stored |
-| `TERMS_VERSION` | Terms version stored at registration (added on feat/minimal-profile) | No | `2026-09` in `.env.example`; existing users are `legacy` |
-| `MIGRATION_DATABASE_URL` | Migration role | **Never set on the service** | Only in your shell for `make db-migrate-prod` |
+Built for the Innovation Hacks Full Stack Development Internship. The author is identified in the repository contribution history; project documentation and design credit the internship task guides and engineering standards.
 
-**Frontend on Vercel** (server-only; none starts with `NEXT_PUBLIC_`).
+## Security and limitations
 
-| Variable | Purpose | Notes |
-|---|---|---|
-| `API_BASE_URL` | The Render API, used only by the server layer | https in production |
-| `SITE_URL` | The site's own origin, for the `Origin` check | https in production |
-| `BFF_TIMEOUT_MS` | Upstream timeout of the server layer | 28000 |
-| (none added) | The minimal profile adds no frontend variable, so `MIN_AGE` and `TERMS_VERSION` are API-only | |
-| `APP_ENV`, `ALLOW_INSECURE_COOKIES` | Local plain-HTTP development only | Production refuses `ALLOW_INSECURE_COOKIES`; leave both unset there |
-
-## Deploying
-
-The step-by-step is in [`docs/deploy-runbook.md`](docs/deploy-runbook.md): Render blueprint, `make db-provision`, `make db-migrate-prod`, `DATABASE_URL` composed by hand, Vercel with root `frontend/`, then `make smoke` and `make e2e-live`. The release order is: merge with the gate green, migrate, deploy the API, smoke, deploy the frontend, smoke again. Rollback is redeploying the previous deployment on each platform; migrations only add things, so it needs no database rollback. Statements about platform plans and limits are marked UNVERIFIED there.
-
-## API and AI design and limits
-
-Interactive documentation is on in development; in production it is off, and [`backend/docs/openapi.json`](backend/docs/openapi.json) is the contract. Six endpoints were added to the Task 3 API: `POST /auth/refresh`, `POST /auth/logout`, `GET /ai/status` and three `POST /ai/projects/{projectId}/…` calls (`task-suggestions`, `prioritization`, `summary`).
-
-- **Who can read what.** A person sees a project if they own it, hold a task in it, or are a lead; anything else is a 404. An email is shown only to its owner and to leads.
-- **Sessions.** Access tokens last 15 minutes; refresh tokens last 7 days, work once and rotate. Using a used one revokes the whole session. Logout revokes it and is safe to repeat.
-- **The AI pipeline** has ten steps: authorize, check the quota, commit a `pending` usage row, load the minimum data, build a versioned prompt, call the provider, validate (one repair attempt, only when time allows), post-process, record, respond. Prompts carry aliases (`T1`, `T2`), relative dates and no names, emails, tokens or identifiers; what people wrote is escaped and delimited as untrusted data. Output is requested against a schema and limited (at most 10 tasks, titles up to 120 characters, and so on); an identifier not in the input is dropped and a title the project already has is not suggested. The model gets no tools and the endpoints write nothing but a usage row.
-- **Limits.** 20 AI calls per person per UTC day, 5 per minute, 500 in total per day, kept in the database so they survive restarts; over a limit is a 429 with `Retry-After`. Usage rows hold metadata only, never prompt or answer text, and are deleted after 90 days.
-- **Live provider: Gemini** (ADR-424). The API talks to it behind an `LLMClient` interface with a deterministic fake for tests, the gate and demos.
-- **Privacy.** Project text is sent to an external AI provider. The screens say so before first use. Review the provider's data-retention and training terms, and do not use confidential data in the demo.
-
-## The gate
-
-`make gate` runs the Task 2 and Task 3 gates and the Task 1 frontend gate first (the supersessions are listed in [`docs/supersession-log.md`](docs/supersession-log.md)), then `make test-auth` (sessions and isolation), `make test-ai` (the AI suites and the 20 adversarial fixtures), `make test-web` (types, unit and component tests), `make test-profile` and `make db-check` (registration, profile and migration 0008 on PostgreSQL), `make e2e-local` (the browser journey, axe and fault injection on the compose stack), `make e2e-profile` (the profile browser specs), `make security-full` (gitleaks, the built bundle, both audits, headers and cookies), `make deploy-check`, `make docs-check` and `make guide-check` (the compliance matrix, README sections, `.env.example` against Settings, gitleaks). After a deploy: `make smoke` and `make e2e-live`. Before submission: `make ai-eval` with your provider key. Open items are in [`docs/blockers.md`](docs/blockers.md).
-
-## Demo script
-
-The timed script for the recording is [`docs/submission/demo-script.md`](docs/submission/demo-script.md). The earlier Task 4 script is [`DEMO_SCRIPT.md`](DEMO_SCRIPT.md): register, sign in, create a project, generate tasks with AI, edit and add them, change a status, show the dashboard, show one AI failure state, sign out. No secret is shown.
-
-## Known limitations
-
-- Email addresses are not verified and there is no password reset, because both need an email provider (ADR-605). Registration accepts an optional profile photo; changing an existing avatar and changing email remain unavailable in this version (ADR-426).
-- A duplicate email is reported at registration, so the existence of an account can be learned.
-- Companies are free text (ADR-602), and profiles are visible to signed-in members only (ADR-603).
-- The rate limiter is per process, so the API runs as **one instance**. Behind the site every visitor shares one client address, so registration is limited to a few per minute for everyone; login is limited per email.
-- Lists read up to 1000 rows and are filtered on the page; server-side paging in the screens is future work.
-- AI providers process the text they receive; that is why minimisation is a hard rule.
-- Refresh-token and usage tables rely on the periodic cleanup rule (30 and 90 days) to stay small; it is a method on the services, and scheduling it is an operator task.
-- Row-level security in the database is a roadmap item.
-- Open: the Task 1 first-load JavaScript budget (170 KB) is exceeded on every route (B-401 in [`docs/blockers.md`](docs/blockers.md)).
+Never commit `.env`, provider credentials, production tokens or real member records. Report vulnerabilities using [`SECURITY.md`](SECURITY.md). Current release limitations include no email verification or password reset, one-process rate limiting, deferred row-level database security and other items listed in [`docs/blockers.md`](docs/blockers.md). The demo should use throwaway synthetic accounts.
