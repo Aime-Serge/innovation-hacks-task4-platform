@@ -8,7 +8,8 @@ export type CookieSpec = {
   secure: boolean;
   sameSite: "Lax" | "Strict";
   path: string;
-  maxAge: number;
+  /** Absent means a browser-session cookie: it ends when the browser closes. */
+  maxAge?: number;
 };
 
 export type Tokens = {
@@ -34,6 +35,9 @@ export function cookieNames(insecure: boolean): {
 export function sessionCookies(tokens: Tokens, insecure: boolean): CookieSpec[] {
   const names = cookieNames(insecure);
   const base = { httpOnly: true, secure: !insecure } as const;
+  // No Max-Age on any of them: closing the browser signs the person out, so the next visit opens
+  // on the welcome page. The API still ends each token at its own expiry while the browser stays
+  // open, and the client refreshes after a 401 (FR-405).
   return [
     {
       ...base,
@@ -41,7 +45,6 @@ export function sessionCookies(tokens: Tokens, insecure: boolean): CookieSpec[] 
       value: tokens.accessToken,
       sameSite: "Lax",
       path: "/",
-      maxAge: tokens.expiresIn,
     },
     {
       ...base,
@@ -49,7 +52,6 @@ export function sessionCookies(tokens: Tokens, insecure: boolean): CookieSpec[] 
       value: tokens.refreshToken,
       sameSite: "Strict",
       path: REFRESH_PATH,
-      maxAge: tokens.refreshExpiresIn,
     },
     // Not a token: only says "a session exists", so the route guard can redirect before any script
     // runs. The refresh cookie is path-limited and never reaches page requests (FR-404, ADR-425).
@@ -59,7 +61,6 @@ export function sessionCookies(tokens: Tokens, insecure: boolean): CookieSpec[] 
       value: "1",
       sameSite: "Lax",
       path: "/",
-      maxAge: tokens.refreshExpiresIn,
     },
   ];
 }
@@ -78,7 +79,7 @@ export function serializeCookie(spec: CookieSpec): string {
   const parts = [
     `${spec.name}=${encodeURIComponent(spec.value)}`,
     `Path=${spec.path}`,
-    `Max-Age=${spec.maxAge}`,
+    ...(spec.maxAge === undefined ? [] : [`Max-Age=${spec.maxAge}`]),
     "HttpOnly",
     `SameSite=${spec.sameSite}`,
   ];

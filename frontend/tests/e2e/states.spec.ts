@@ -23,7 +23,7 @@ for (const viewport of VIEWPORTS) {
     });
 
     test("TC-071 empty: every list explains itself and offers a first action", async ({ page }) => {
-      await visit(page, "/", "empty");
+      await visit(page, "/dashboard", "empty");
       await expect(page.getByText("No deadlines this week")).toBeVisible();
       await expect(page.getByText("No activity yet")).toBeVisible();
       await visit(page, "/projects", "empty");
@@ -38,7 +38,7 @@ for (const viewport of VIEWPORTS) {
     test("TC-072 error: each region shows a plain message and Retry, and the page stays usable", async ({
       page,
     }) => {
-      await visit(page, "/", "error");
+      await visit(page, "/dashboard", "error");
       await expect(page.locator("main [role=alert]")).toHaveCount(3);
       await expect(page.getByRole("button", { name: "Retry" })).toHaveCount(3);
       await expect(page.locator("main [role=alert]").first()).not.toContainText(
@@ -57,7 +57,7 @@ for (const viewport of VIEWPORTS) {
     test("TC-073 partial error: only the tasks regions fail, activity still loads", async ({
       page,
     }) => {
-      await visit(page, "/", "partial-error");
+      await visit(page, "/dashboard", "partial-error");
       await expect(page.locator("main [role=alert]")).toHaveCount(2);
       await expect(page.getByText(/(completed|created|changed) a task in/).first()).toBeVisible();
       await expect(page.getByRole("heading", { level: 1, name: "Dashboard" })).toBeVisible();
@@ -101,7 +101,7 @@ for (const viewport of VIEWPORTS) {
     test("TC-030 edge-text: 80-character names, long words, emoji and RTL never break the layout", async ({
       page,
     }) => {
-      for (const path of ["/projects", "/tasks", "/"]) {
+      for (const path of ["/projects", "/tasks", "/dashboard"]) {
         await visit(page, path, "edge-text");
         await settled(page);
         expect(await hasHorizontalScroll(page), path).toBe(false);

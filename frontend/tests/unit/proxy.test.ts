@@ -17,16 +17,25 @@ describe("TC-004 route guard (proxy)", () => {
   });
 
   it("TC-004 lets signed-in users through and sets a fresh CSP nonce per request", () => {
-    const first = proxy(request("/", true));
-    const second = proxy(request("/", true));
+    const first = proxy(request("/tasks", true));
+    const second = proxy(request("/tasks", true));
     const csp = first.headers.get("content-security-policy") ?? "";
     expect(csp).toMatch(/script-src 'self' 'nonce-[A-Za-z0-9+/=]+'/);
     expect(csp).not.toBe(second.headers.get("content-security-policy"));
   });
 
   it("TC-004 keeps login and register away from signed-in users", () => {
-    expect(proxy(request("/login", true)).headers.get("location")).toBe("http://localhost:3000/");
+    const dashboard = "http://localhost:3000/dashboard";
+    expect(proxy(request("/login", true)).headers.get("location")).toBe(dashboard);
     expect(proxy(request("/register", true)).status).toBe(307);
+  });
+
+  it("TC-004 the welcome page at / is the front door for everyone, signed in or not", () => {
+    expect(proxy(request("/")).status).toBe(200);
+    expect(proxy(request("/", true)).status).toBe(200);
+    expect(proxy(request("/dashboard")).headers.get("location")).toBe(
+      "http://localhost:3000/login?next=%2Fdashboard",
+    );
   });
 
   it("TC-004 the public pages need no session, and reset works while signed in", () => {

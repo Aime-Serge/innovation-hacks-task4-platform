@@ -14,6 +14,7 @@ RUN useradd --system --uid 10001 --no-create-home web
 COPY --from=build --chown=web /web/package.json /web/package-lock.json ./
 COPY --from=build --chown=web /web/node_modules ./node_modules
 COPY --from=build --chown=web /web/.next ./.next
+COPY --from=build --chown=web /web/public ./public
 COPY --from=build --chown=web /web/next.config.ts ./next.config.ts
 USER 10001
 EXPOSE 3000

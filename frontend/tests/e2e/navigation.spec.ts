@@ -6,13 +6,13 @@ test.beforeEach(async ({ context }) => signIn(context));
 test.describe("TC-010 navigation", () => {
   test("TC-010 reaches all four routes by mouse and marks the current page", async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 800 });
-    await visit(page, "/");
+    await visit(page, "/dashboard");
     const nav = page.getByRole("navigation", { name: "Primary" });
     for (const [name, url, heading] of [
       ["Projects", /\/projects/, "Projects"],
       ["Tasks", /\/tasks/, "Tasks"],
       ["Profile", /\/profile/, "Profile"],
-      ["Dashboard", /localhost:3100\/(\?.*)?$/, "Dashboard"],
+      ["Dashboard", /localhost:3100\/dashboard(\?.*)?$/, "Dashboard"],
     ] as const) {
       await nav.getByRole("link", { name }).click();
       await expect(page).toHaveURL(url);
@@ -26,7 +26,7 @@ test.describe("TC-010 navigation", () => {
     page,
   }) => {
     await page.setViewportSize({ width: 1280, height: 800 });
-    await visit(page, "/");
+    await visit(page, "/dashboard");
     await page.keyboard.press("Tab"); // skip link comes first
     await expect(page.getByRole("link", { name: "Skip to main content" })).toBeFocused();
     const nav = page.getByRole("navigation", { name: "Primary" });
@@ -49,7 +49,7 @@ test.describe("TC-010 navigation", () => {
     page,
   }) => {
     await page.setViewportSize({ width: 768, height: 1024 });
-    await visit(page, "/");
+    await visit(page, "/dashboard");
     await expect(page.locator("aside")).toBeHidden();
     const open = page.getByRole("button", { name: "Open menu" });
     await open.click();
@@ -66,7 +66,7 @@ test.describe("TC-010 navigation", () => {
 
   test("TC-011 choosing a link in the drawer navigates and closes it", async ({ page }) => {
     await page.setViewportSize({ width: 360, height: 740 });
-    await visit(page, "/");
+    await visit(page, "/dashboard");
     await page.getByRole("button", { name: "Open menu" }).click();
     await page.getByRole("dialog").getByRole("link", { name: "Tasks" }).click();
     await expect(page).toHaveURL(/\/tasks/);
@@ -77,7 +77,7 @@ test.describe("TC-010 navigation", () => {
     page,
   }) => {
     await page.setViewportSize({ width: 1024, height: 800 });
-    await visit(page, "/");
+    await visit(page, "/dashboard");
     await expect(page.locator("aside")).toBeVisible();
     await expect(page.getByRole("button", { name: "Open menu" })).toBeHidden();
     const width = await page.locator("aside").evaluate((el) => el.getBoundingClientRect().width);
@@ -85,7 +85,7 @@ test.describe("TC-010 navigation", () => {
   });
 
   test("TC-012 the skip link is first in tab order and moves focus to main", async ({ page }) => {
-    await visit(page, "/");
+    await visit(page, "/dashboard");
     await page.keyboard.press("Tab");
     const skip = page.getByRole("link", { name: "Skip to main content" });
     await expect(skip).toBeFocused();
@@ -96,7 +96,7 @@ test.describe("TC-010 navigation", () => {
 
   test("TC-008 the profile menu opens by keyboard and closes on Escape", async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 800 });
-    await visit(page, "/");
+    await visit(page, "/dashboard");
     const trigger = page.getByRole("button", { name: /Account menu for/ });
     await trigger.focus();
     await page.keyboard.press("Enter");

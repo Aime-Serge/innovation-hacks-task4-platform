@@ -1,6 +1,8 @@
-// Single dictionary for every user-facing string (NFR-21). Split across two files to stay
-// under the house line-length rule; en-profile.ts holds the minimal-profile pack's strings.
+// Single dictionary for every user-facing string (NFR-21). Split across files to stay under the
+// house line-length rule; en-profile.ts holds the minimal-profile pack's strings and
+// en-welcome.ts the public welcome page's.
 import { enProfile } from "./en-profile";
+import { enWelcome } from "./en-welcome";
 
 const enCore = {
   "app.name": "DevDash",
@@ -300,4 +302,4 @@ const enCore = {
   "task.deleteFailed": "Could not delete the task. It was restored.",
 } as const;
 
-export const en = { ...enCore, ...enProfile } as const;
+export const en = { ...enCore, ...enProfile, ...enWelcome } as const;

@@ -42,7 +42,7 @@ async function registerViaWizard(
   await page.getByLabel(/accept the Terms/).check();
   await page.getByLabel(/meet the minimum age/).check();
   await page.getByRole("button", { name: "Create account" }).click();
-  await expect(page).toHaveURL(/\/$/);
+  await expect(page).toHaveURL(/\/dashboard$/);
 }
 
 test.describe("minimal profile journey", () => {
@@ -201,7 +201,7 @@ test.describe("minimal profile journey", () => {
     await page2.getByLabel("Email").fill(email);
     await page2.getByLabel("Password", { exact: true }).fill(password);
     await page2.getByRole("button", { name: "Log in" }).click();
-    await expect(page2).toHaveURL(/\/$/);
+    await expect(page2).toHaveURL(/\/dashboard$/);
     const sessionUser = await page2.evaluate(async () => {
       const response = await fetch("/api/bff/auth/me");
       return (await response.json()) as { preferences?: { theme?: string } };

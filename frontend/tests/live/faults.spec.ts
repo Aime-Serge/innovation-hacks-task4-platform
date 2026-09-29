@@ -14,7 +14,7 @@ async function setUp(page: Page): Promise<string> {
   await page.getByLabel("Password", { exact: true }).fill("fault-password-1");
   await page.getByLabel("Confirm password").fill("fault-password-1");
   await page.getByRole("button", { name: "Create account" }).click();
-  await expect(page).toHaveURL(/\/$/);
+  await expect(page).toHaveURL(/\/dashboard$/);
   await page.goto("/projects");
   await page.getByRole("button", { name: "New project" }).first().click();
   const name = `Fault ${stamp}`;
@@ -41,7 +41,7 @@ async function restStillWorks(page: Page): Promise<void> {
   for (const [path, heading] of [
     ["/projects", "Projects"],
     ["/tasks", "Tasks"],
-    ["/", "Dashboard"],
+    ["/dashboard", "Dashboard"],
   ] as const) {
     await page.goto(path);
     await expect(page.getByRole("heading", { name: heading, level: 1 })).toBeVisible();

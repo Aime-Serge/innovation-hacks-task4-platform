@@ -48,7 +48,7 @@ test.describe("TC-016 security headers (NFR-16, TH-06)", () => {
         problems.push(m.text());
     });
     page.on("pageerror", (e) => problems.push(e.message));
-    for (const route of ["/", "/projects", "/projects/project-1", "/tasks", "/profile"]) {
+    for (const route of ["/dashboard", "/projects", "/projects/project-1", "/tasks", "/profile"]) {
       await visit(page, route);
       await settled(page);
     }
@@ -95,7 +95,7 @@ test.describe("TC-009 theme (FR-24)", () => {
           document.documentElement.dataset["theme"];
       });
     });
-    await page.goto("/");
+    await page.goto("/dashboard");
     expect(
       await page.evaluate(() => (window as unknown as { __firstTheme?: string }).__firstTheme),
     ).toBe("dark");
@@ -106,7 +106,7 @@ test.describe("TC-009 theme (FR-24)", () => {
     const context = await browser.newContext({ colorScheme: "light" });
     await signIn(context);
     const page = await context.newPage();
-    await page.goto("/");
+    await page.goto("/dashboard");
     await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
     await context.close();
   });
@@ -117,7 +117,7 @@ test.describe("TC-009 theme (FR-24)", () => {
   }) => {
     await signIn(context);
     await page.setViewportSize({ width: 1280, height: 800 });
-    await visit(page, "/");
+    await visit(page, "/dashboard");
     const html = page.locator("html");
     await expect(html).toHaveAttribute("data-theme", "dark");
     await page.getByRole("button", { name: "Switch to light theme" }).click();
@@ -134,7 +134,7 @@ test.describe("TC-009 theme (FR-24)", () => {
   }) => {
     await signIn(context);
     await page.setViewportSize({ width: 1280, height: 800 });
-    await visit(page, "/");
+    await visit(page, "/dashboard");
     const header = await page.locator("header").first().boundingBox();
     const sidebar = await page.locator("aside").boundingBox();
     expect(header?.x).toBe(0);

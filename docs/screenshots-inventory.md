@@ -11,10 +11,9 @@ Any doc that embeds a screenshot must use one of the exact relative paths
 below — do not invent a path or assume a screenshot exists in a location
 other than the one listed here.
 
-## `docs/screenshots/task-4/` — Task 4 (18 files)
+## `docs/screenshots/task-4/` — Task 4 (30 files)
 
-Captured by `make screenshots` (`scripts/screenshots.ts`) at 1440x900
-(desktop) and 390x844 (mobile), synthetic data only.
+Regenerated with `make screenshots` (`scripts/screenshots.ts`) from the local Task 4 stack at 1440x900 (desktop) and 390x844 (mobile), using synthetic data. The AI dialog captures use the deterministic fake provider, not a live provider.
 
 | File | Screen |
 |---|---|
@@ -36,6 +35,18 @@ Captured by `make screenshots` (`scripts/screenshots.ts`) at 1440x900
 | `docs/screenshots/task-4/08-member-profile-mobile.png` | Member profile, mobile |
 | `docs/screenshots/task-4/09-task-assign-picker-desktop.png` | Task assign / people picker, desktop |
 | `docs/screenshots/task-4/09-task-assign-picker-mobile.png` | Task assign / people picker, mobile |
+| `docs/screenshots/task-4/10-project-detail-desktop.png` | Project detail, desktop |
+| `docs/screenshots/task-4/10-project-detail-mobile.png` | Project detail, mobile |
+| `docs/screenshots/task-4/11-ai-generation-before-desktop.png` | AI privacy notice before task generation, desktop |
+| `docs/screenshots/task-4/11-ai-generation-before-mobile.png` | AI privacy notice before task generation, mobile |
+| `docs/screenshots/task-4/12-ai-generation-after-desktop.png` | Generated task suggestions awaiting user review, desktop |
+| `docs/screenshots/task-4/12-ai-generation-after-mobile.png` | Generated task suggestions awaiting user review, mobile |
+| `docs/screenshots/task-4/13-ai-prioritisation-desktop.png` | Suggested task priorities, desktop |
+| `docs/screenshots/task-4/13-ai-prioritisation-mobile.png` | Suggested task priorities, mobile |
+| `docs/screenshots/task-4/14-ai-summary-desktop.png` | AI project summary, desktop |
+| `docs/screenshots/task-4/14-ai-summary-mobile.png` | AI project summary, mobile |
+| `docs/screenshots/task-4/15-ai-quota-desktop.png` | Real local per-account daily quota reached state, desktop |
+| `docs/screenshots/task-4/15-ai-quota-mobile.png` | Real local per-account daily quota reached state, mobile |
 
 ## `backend/docs/screenshots/` — Task 3 / API (3 files)
 
@@ -64,10 +75,9 @@ Captured by `make screenshots` (`scripts/screenshots.ts`) at 1440x900
 
 ## Totals
 
-- Task 4: 18
+- Task 4: 30
 - Backend (Task 3): 3
 - Frontend (Task 1): 12
-- **All locations: 33 files**
+- **All locations: 45 files**
 
-This matches what the root `README.md` already states for the Task 4 set
-("18 screens") and its pointers to the frontend and backend directories.
+Task 4 image assets are embedded in the root README by workflow. Submission-standard evidence that requires a deployed live address bar, two live accounts demonstrating isolation, a Lighthouse report, terminal gate output, or a separate architecture-diagram image must be captured from the release environment; the local UI images do not claim those results.

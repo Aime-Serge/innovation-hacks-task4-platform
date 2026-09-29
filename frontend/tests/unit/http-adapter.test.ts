@@ -361,7 +361,7 @@ describe("TC-453 services keep the Task 1 interfaces", () => {
     queue.push(json(200, { items: [event], page: 1, pageSize: 50, total: 1 }));
     const feed = await services.activity.list(500);
     expect(feed[0]?.taskId).toBeUndefined();
-    expect(seen.at(-1)?.url).toContain("/api/bff/activity?limit=50");
+    expect(seen.at(-1)?.url).toMatch(/\/api\/bff\/activity\?limit=50$/); // no page/pageSize: the API refuses them
   });
   it("reaches the AI endpoints", async () => {
     queue.push(

@@ -140,9 +140,11 @@ describe("TC-004 session handling", () => {
   it("TC-004 an anonymous visitor on a protected page is redirected to login with ?next=", async () => {
     nav.pathname = "/tasks";
     render(
-      <AuthProvider>
-        <Probe />
-      </AuthProvider>,
+      <ThemeProvider>
+        <AuthProvider>
+          <Probe />
+        </AuthProvider>
+      </ThemeProvider>,
     );
     expect(await screen.findByText("status:unauthenticated")).toBeInTheDocument();
     await waitFor(() => expect(nav.replace).toHaveBeenCalledWith("/login?next=%2Ftasks"));
@@ -151,20 +153,24 @@ describe("TC-004 session handling", () => {
   it("TC-004 public pages do not redirect an anonymous visitor", async () => {
     nav.pathname = "/register";
     render(
-      <AuthProvider>
-        <Probe />
-      </AuthProvider>,
+      <ThemeProvider>
+        <AuthProvider>
+          <Probe />
+        </AuthProvider>
+      </ThemeProvider>,
     );
     await screen.findByText("status:unauthenticated");
     expect(nav.replace).not.toHaveBeenCalled();
   });
 
   it("TC-004 logging in authenticates, and logging out clears the session with a full page load", async () => {
-    nav.pathname = "/";
+    nav.pathname = "/dashboard";
     render(
-      <AuthProvider>
-        <Probe />
-      </AuthProvider>,
+      <ThemeProvider>
+        <AuthProvider>
+          <Probe />
+        </AuthProvider>
+      </ThemeProvider>,
     );
     await screen.findByText("status:unauthenticated");
     await userEvent.click(screen.getByRole("button", { name: "in" }));
@@ -179,12 +185,14 @@ describe("TC-004 session handling", () => {
     window.localStorage.setItem("devdash_session_user_id", "user-1");
     nav.pathname = "/login";
     render(
-      <AuthProvider>
-        <Probe />
-      </AuthProvider>,
+      <ThemeProvider>
+        <AuthProvider>
+          <Probe />
+        </AuthProvider>
+      </ThemeProvider>,
     );
     await screen.findByText("status:authenticated");
-    await waitFor(() => expect(nav.replace).toHaveBeenCalledWith("/"));
+    await waitFor(() => expect(nav.replace).toHaveBeenCalledWith("/dashboard"));
   });
 
   it("TC-004 a signed-in visitor on /login with ?next= is sent there, not to the dashboard", async () => {
@@ -193,9 +201,11 @@ describe("TC-004 session handling", () => {
     nav.pathname = "/login";
     nav.search = new URLSearchParams("next=%2Ftasks");
     render(
-      <AuthProvider>
-        <Probe />
-      </AuthProvider>,
+      <ThemeProvider>
+        <AuthProvider>
+          <Probe />
+        </AuthProvider>
+      </ThemeProvider>,
     );
     await waitFor(() => expect(nav.replace).toHaveBeenCalledWith("/tasks"));
   });
@@ -209,9 +219,11 @@ describe("TC-100 services provider", () => {
   it("TC-100 hands features the service interfaces for the selected scenario", async () => {
     nav.search = new URLSearchParams("scenario=empty");
     const wrapper = ({ children }: { children: React.ReactNode }) => (
-      <AuthProvider>
-        <ServicesProvider>{children}</ServicesProvider>
-      </AuthProvider>
+      <ThemeProvider>
+        <AuthProvider>
+          <ServicesProvider>{children}</ServicesProvider>
+        </AuthProvider>
+      </ThemeProvider>
     );
     const { result } = renderHook(() => useServices(), { wrapper });
     const page = await result.current.projects.list(emptyProjectQuery());

@@ -7,7 +7,14 @@ import { SCENARIOS, settled, signIn, visit } from "../e2e/helpers";
 const TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"];
 const THEMES = ["light", "dark"] as const;
 // MF-06, MF-08, MF-12, MN-01: the new profile, editor and settings screens join the sweep.
-const APP_ROUTES = ["/", "/projects", "/tasks", "/profile", "/profile/edit", "/settings"] as const;
+const APP_ROUTES = [
+  "/dashboard",
+  "/projects",
+  "/tasks",
+  "/profile",
+  "/profile/edit",
+  "/settings",
+] as const;
 
 async function setTheme(page: Page, theme: (typeof THEMES)[number]): Promise<void> {
   await page.evaluate((value) => {
@@ -85,7 +92,7 @@ test.describe("TC-091 axe on the app routes", () => {
     });
 
     test(`TC-091 the account menu · ${theme}`, async ({ page }) => {
-      await visit(page, "/");
+      await visit(page, "/dashboard");
       await setTheme(page, theme);
       await page.getByRole("button", { name: /Account menu/ }).click();
       await expect(page.getByRole("menuitem", { name: "Log out" })).toBeVisible();
@@ -106,6 +113,7 @@ test.describe("TC-091 axe on the app routes", () => {
 
 test.describe("TC-091 axe on the public routes", () => {
   for (const route of [
+    "/",
     "/login",
     "/login?registered=1",
     "/register",

@@ -69,6 +69,17 @@ describe("MT-01 registration wizard", () => {
     expect(screen.getByLabelText("First name")).toHaveValue("Ada");
   });
 
+  it("the eye icon reveals and hides the password, with a spoken name for each state", async () => {
+    const user = userEvent.setup();
+    renderApp(<RegisterForm />);
+    const password = screen.getByLabelText("Password");
+    expect(password).toHaveAttribute("type", "password");
+    await user.click(screen.getByRole("button", { name: "Show password" }));
+    expect(password).toHaveAttribute("type", "text");
+    await user.click(screen.getByRole("button", { name: "Hide password" }));
+    expect(password).toHaveAttribute("type", "password");
+  });
+
   it("shows per-field messages from a 422 and does not advance", async () => {
     // A real per-field check, not a one-shot mock: the field also blurs (and re-validates) as
     // each earlier field is filled in, so the assertion has to hold for every call, not just one.
