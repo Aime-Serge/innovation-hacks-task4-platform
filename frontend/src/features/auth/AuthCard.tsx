@@ -16,18 +16,18 @@ export function AuthCard({
   return (
     <main
       id="main-content"
-      className="mx-auto flex min-h-dvh max-w-md flex-col justify-center gap-4 p-4"
+      className="mx-auto flex min-h-dvh max-w-md flex-col justify-center gap-5 p-4"
     >
       <div className="brand-bar" />
-      <p className="text-center text-lg font-semibold text-fg">{t("auth.welcomeGreeting")}</p>
-      <p className="text-center text-sm text-muted">{t("footer.tagline")}</p>
+      <div className="flex flex-col items-center gap-2 text-center">
+        <p className="text-lg font-semibold text-fg">{t("auth.welcomeGreeting")}</p>
+        <p className="text-sm text-muted">{t("footer.tagline")}</p>
+      </div>
       <Link
         href="/"
         aria-label={t("auth.home")}
-        className="touch-target mx-auto flex items-center gap-2 rounded-md px-2 text-sm font-semibold text-muted hover:text-fg"
+        className="touch-target mx-auto flex items-center rounded-md px-2 text-sm font-semibold text-muted hover:text-fg"
       >
-        {/* eslint-disable-next-line @next/next/no-img-element -- a small fixed logo mark, as in Header */}
-        <img src="/logo.png" alt="" aria-hidden="true" className="size-6 rounded-full bg-white" />
         {t("app.name")}
       </Link>
       <Card className="flex flex-col gap-4 p-6">
