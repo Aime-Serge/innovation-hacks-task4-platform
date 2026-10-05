@@ -10,9 +10,7 @@ export function Footer() {
   return (
     <footer className="border-t border-border-hairline">
       <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-6 text-xs text-text-secondary sm:flex-row sm:items-center sm:justify-between sm:px-6">
-        <p>
-          © {year} devdash. Built with Next.js, FastAPI, PostgreSQL, and the Gemini API.
-        </p>
+        <p>© {year} devdash. Built with Next.js, FastAPI, PostgreSQL, and the Gemini API.</p>
         <nav aria-label="Footer" className="flex flex-wrap gap-4">
           <a
             href="https://github.com/Aime-Serge/innovation-hacks-task4-platform"

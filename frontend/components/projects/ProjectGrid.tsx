@@ -34,7 +34,11 @@ export function ProjectGrid({
 }) {
   if (status === "loading") {
     return (
-      <ul aria-busy="true" aria-label="Loading projects" className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      <ul
+        aria-busy="true"
+        aria-label="Loading projects"
+        className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3"
+      >
         {Array.from({ length: 4 }).map((_, i) => (
           <ProjectCardSkeleton key={i} />
         ))}

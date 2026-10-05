@@ -41,11 +41,11 @@ export function TaskCard({
   onDelete,
 }: {
   task: Task;
-  projectName?: string;
-  assigneeName?: string;
-  onStatusChange?: (status: TaskStatus) => void;
-  onEdit?: () => void;
-  onDelete?: () => void;
+  projectName?: string | undefined;
+  assigneeName?: string | undefined;
+  onStatusChange?: ((status: TaskStatus) => void) | undefined;
+  onEdit?: (() => void) | undefined;
+  onDelete?: (() => void) | undefined;
 }) {
   const interactive = Boolean(onStatusChange || onEdit || onDelete);
 

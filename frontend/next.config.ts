@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 // NFR-16: the static half of the security headers. The Content-Security-Policy
-// is set per request in src/proxy.ts because it carries a nonce.
+// is set per request by the nonce-aware src/proxy.ts because it carries a nonce.
 const securityHeaders = [
   { key: "X-Content-Type-Options", value: "nosniff" },
   { key: "X-Frame-Options", value: "DENY" },

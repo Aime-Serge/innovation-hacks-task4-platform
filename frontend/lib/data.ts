@@ -32,7 +32,13 @@ interface ApiUser {
 }
 
 function toProject(p: ApiProject): Project {
-  return { id: p.id, name: p.name, description: p.description, ownerId: p.owner_id, createdAt: p.created_at };
+  return {
+    id: p.id,
+    name: p.name,
+    description: p.description,
+    ownerId: p.owner_id,
+    createdAt: p.created_at,
+  };
 }
 
 function toTask(t: ApiTask): Task {
@@ -94,7 +100,10 @@ export function getProjectProgress(projectId: string, allTasks: Task[]): Project
   return { total, done, percent };
 }
 
-export async function createProject(input: { name: string; description?: string | null }): Promise<Project> {
+export async function createProject(input: {
+  name: string;
+  description?: string | null;
+}): Promise<Project> {
   const data = await api.post<ApiProject>("/projects", input);
   return toProject(data);
 }

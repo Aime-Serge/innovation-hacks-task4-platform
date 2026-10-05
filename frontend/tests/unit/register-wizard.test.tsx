@@ -133,9 +133,7 @@ describe("MT-01 registration wizard", () => {
     await user.click(screen.getByLabelText(/confirm that I meet/));
     await chooseRoleAndCreate(user);
     await waitFor(() => expect(holder.register).toHaveBeenCalled());
-    expect(holder.register).toHaveBeenCalledWith(
-      expect.objectContaining({ role: "developer" }),
-    );
+    expect(holder.register).toHaveBeenCalledWith(expect.objectContaining({ role: "developer" }));
     // The account is created, but nothing signs the person in on their behalf (ADR-619):
     // they confirm the password they just set by logging in with it themselves.
     expect(holder.login).not.toHaveBeenCalled();
@@ -190,9 +188,7 @@ describe("MT-01 registration wizard", () => {
     await user.keyboard("{Escape}");
     await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
     expect(holder.register).not.toHaveBeenCalled();
-    expect(
-      screen.getByRole("heading", { name: "Tell us about your work" }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Tell us about your work" })).toBeInTheDocument();
   });
 
   it("ADR-426: registering with an image link sends it as avatarUrl", async () => {
@@ -206,10 +202,7 @@ describe("MT-01 registration wizard", () => {
     await user.click(screen.getByRole("button", { name: "Next" }));
     await screen.findByRole("heading", { name: "Tell us about your work" });
     await user.selectOptions(screen.getByLabelText("Country"), "RW");
-    await user.type(
-      screen.getByLabelText("Or paste an image link"),
-      "https://example.com/ada.png",
-    );
+    await user.type(screen.getByLabelText("Or paste an image link"), "https://example.com/ada.png");
     await user.click(screen.getByLabelText(/accept the Terms/));
     await user.click(screen.getByLabelText(/confirm that I meet/));
     await chooseRoleAndCreate(user);

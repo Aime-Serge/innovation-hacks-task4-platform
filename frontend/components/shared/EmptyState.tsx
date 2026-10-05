@@ -6,8 +6,8 @@ export function EmptyState({
 }: {
   title: string;
   message: string;
-  actionLabel?: string;
-  onAction?: () => void;
+  actionLabel?: string | undefined;
+  onAction?: (() => void) | undefined;
 }) {
   return (
     <div className="rounded border border-dashed border-border-hairline px-4 py-8 text-center">

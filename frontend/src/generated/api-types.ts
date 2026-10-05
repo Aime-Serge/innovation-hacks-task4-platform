@@ -543,7 +543,7 @@ export interface paths {
         put?: never;
         /**
          * Register a user
-         * @description Create an account and its professional profile in one request (S-A). No token is needed. The role is always `developer`; only a lead can change it later. The password must be 12 to 128 characters and not equal to the email or the name. `termsAccepted` and `ageConfirmed` must be true; the terms version and time are stored, and no birth date is collected. Company and job title are required when the status is `employed` or `freelance`. Returns `201` with a `Location` header. Limited to 5 attempts per minute per client.
+         * @description Create an account and its professional profile in one request (S-A). Role defaults to `developer` when omitted; the registrant may set it to `lead` directly. No token is needed. The password must be 12 to 128 characters and not equal to the email or the name. `termsAccepted` and `ageConfirmed` must be true; the terms version and time are stored, and no birth date is collected. Company and job title are required when the status is `employed` or `freelance`. Returns `201` with a `Location` header. Limited to 5 attempts per minute per client.
          */
         post: operations["register"];
         delete?: never;
@@ -1466,6 +1466,8 @@ export interface components {
             password: string;
             preferences?: components["schemas"]["Preferences"] | null;
             profile: components["schemas"]["ProfileBlock"];
+            /** @description developer or lead; defaults to developer when omitted. */
+            role?: components["schemas"]["Role"] | null;
             /**
              * Termsaccepted
              * @description Must be true; the terms version and time are stored.

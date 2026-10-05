@@ -101,9 +101,7 @@ export function ProfileMenu() {
         className="flex items-center gap-2 rounded px-1.5 py-1 hover:bg-surface"
       >
         <Avatar userId={user.id} hasAvatar={user.hasAvatar} initials={user.initials} />
-        <span className="hidden text-sm font-medium text-text-primary sm:block">
-          {user.name}
-        </span>
+        <span className="hidden text-sm font-medium text-text-primary sm:block">{user.name}</span>
       </button>
       {open && (
         <div

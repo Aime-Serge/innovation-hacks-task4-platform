@@ -200,9 +200,7 @@ function ChangePasswordSection() {
       setConfirmPassword("");
       setSaved(true);
     } catch (err) {
-      setError(
-        err instanceof ApiError ? err.message : "Something went wrong. Please try again.",
-      );
+      setError(err instanceof ApiError ? err.message : "Something went wrong. Please try again.");
     } finally {
       setSubmitting(false);
     }
@@ -311,11 +309,18 @@ export function SettingsView() {
 
   if (status !== "authenticated") {
     return (
-      <div className="mx-auto max-w-2xl px-4 py-8 sm:px-6" aria-busy="true" aria-label="Loading settings">
+      <div
+        className="mx-auto max-w-2xl px-4 py-8 sm:px-6"
+        aria-busy="true"
+        aria-label="Loading settings"
+      >
         <div className="h-8 w-32 animate-pulse rounded bg-surface" />
         <div className="mt-6 flex flex-col gap-5">
           {[0, 1, 2].map((i) => (
-            <div key={i} className="h-32 animate-pulse rounded border border-border-hairline bg-surface" />
+            <div
+              key={i}
+              className="h-32 animate-pulse rounded border border-border-hairline bg-surface"
+            />
           ))}
         </div>
       </div>

@@ -26,9 +26,7 @@ export function LoginForm() {
     } catch (err) {
       // Deliberately generic — matches the backend's constant-shape 401,
       // never says which of email/password was wrong.
-      setError(
-        err instanceof ApiError ? err.message : "Something went wrong. Please try again.",
-      );
+      setError(err instanceof ApiError ? err.message : "Something went wrong. Please try again.");
     } finally {
       setSubmitting(false);
     }

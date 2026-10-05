@@ -15,7 +15,11 @@ export function StatsStrip({
 }) {
   if (status === "loading") {
     return (
-      <div aria-busy="true" aria-label="Loading activity" className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+      <div
+        aria-busy="true"
+        aria-label="Loading activity"
+        className="grid grid-cols-2 gap-3 sm:grid-cols-4"
+      >
         {Array.from({ length: 4 }).map((_, i) => (
           <div key={i} className="rounded border border-border-hairline bg-surface px-4 py-3">
             <Skeleton className="h-3 w-20" />
@@ -49,9 +53,7 @@ export function StatsStrip({
           className="rounded border border-border-hairline bg-surface px-4 py-3"
         >
           <dt className="text-xs text-text-secondary">{stat.label}</dt>
-          <dd className="mt-1 font-mono text-xl font-semibold text-text-primary">
-            {stat.value}
-          </dd>
+          <dd className="mt-1 font-mono text-xl font-semibold text-text-primary">{stat.value}</dd>
         </div>
       ))}
     </dl>
