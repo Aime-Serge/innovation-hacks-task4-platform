@@ -17,7 +17,7 @@ export function FormField({
   type?: string;
   value: string;
   onChange: (value: string) => void;
-  error?: string;
+  error?: string | undefined;
   required?: boolean;
   autoComplete?: string;
   minLength?: number;

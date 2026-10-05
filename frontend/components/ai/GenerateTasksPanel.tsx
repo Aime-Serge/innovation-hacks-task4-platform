@@ -1,7 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { createTask, generateTasks, type GenerateTasksResult, type GeneratedTask } from "@/lib/data";
+import {
+  createTask,
+  generateTasks,
+  type GenerateTasksResult,
+  type GeneratedTask,
+} from "@/lib/data";
 import type { Priority } from "@/lib/types";
 import { Skeleton } from "@/components/shared/Skeleton";
 import { ErrorState } from "@/components/shared/ErrorState";
@@ -46,9 +51,10 @@ export function GenerateTasksPanel({
   }
 
   function cyclePriority(index: number) {
-    const current = drafts[index].priority;
+    const current = drafts[index]?.priority;
+    if (!current) return;
     const next = PRIORITY_CYCLE[(PRIORITY_CYCLE.indexOf(current) + 1) % PRIORITY_CYCLE.length];
-    updateDraft(index, { priority: next });
+    if (next) updateDraft(index, { priority: next });
   }
 
   function discard() {

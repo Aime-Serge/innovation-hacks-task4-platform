@@ -4,7 +4,12 @@ import { createContext, useCallback, useContext, useEffect, useState } from "rea
 import { usePathname, useRouter } from "next/navigation";
 import { hardNavigate } from "./navigation";
 import type { User } from "./types";
-import { fetchCurrentUser, login as apiLogin, logout as apiLogout, register as apiRegister } from "./auth";
+import {
+  fetchCurrentUser,
+  login as apiLogin,
+  logout as apiLogout,
+  register as apiRegister,
+} from "./auth";
 
 type SessionStatus = "loading" | "authenticated" | "unauthenticated";
 

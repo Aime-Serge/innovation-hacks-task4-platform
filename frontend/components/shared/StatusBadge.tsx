@@ -2,15 +2,29 @@ import type { TaskStatus } from "@/lib/types";
 
 const STATUS_META: Record<
   TaskStatus,
-  { label: string; colorVar: string; shape: "circle-filled" | "circle-half" | "circle-hollow" | "triangle" }
+  {
+    label: string;
+    colorVar: string;
+    shape: "circle-filled" | "circle-half" | "circle-hollow" | "triangle";
+  }
 > = {
   done: { label: "Done", colorVar: "var(--color-status-done)", shape: "circle-filled" },
-  "in-progress": { label: "In progress", colorVar: "var(--color-status-progress)", shape: "circle-half" },
+  "in-progress": {
+    label: "In progress",
+    colorVar: "var(--color-status-progress)",
+    shape: "circle-half",
+  },
   todo: { label: "Todo", colorVar: "var(--color-status-todo)", shape: "circle-hollow" },
   blocked: { label: "Blocked", colorVar: "var(--color-status-blocked)", shape: "triangle" },
 };
 
-function StatusIcon({ shape, color }: { shape: (typeof STATUS_META)[TaskStatus]["shape"]; color: string }) {
+function StatusIcon({
+  shape,
+  color,
+}: {
+  shape: (typeof STATUS_META)[TaskStatus]["shape"];
+  color: string;
+}) {
   if (shape === "triangle") {
     return (
       <svg viewBox="0 0 12 12" width="10" height="10" aria-hidden="true">

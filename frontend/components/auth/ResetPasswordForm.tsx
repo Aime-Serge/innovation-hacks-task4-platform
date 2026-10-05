@@ -89,7 +89,10 @@ export function ResetPasswordForm() {
           >
             {error}
           </div>
-          <Link href="/forgot-password" className="text-sm text-interactive underline hover:no-underline">
+          <Link
+            href="/forgot-password"
+            className="text-sm text-interactive underline hover:no-underline"
+          >
             Request a new reset link
           </Link>
         </div>

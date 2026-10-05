@@ -20,7 +20,7 @@ export function TaskFormModal({
   onSaved,
 }: {
   projectId: string;
-  task?: Task;
+  task?: Task | undefined;
   users: User[];
   onClose: () => void;
   onSaved: (task: Task) => void;

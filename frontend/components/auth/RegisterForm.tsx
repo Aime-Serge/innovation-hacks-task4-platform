@@ -67,7 +67,14 @@ export function RegisterForm() {
           {formError}
         </div>
       )}
-      <FormField id="name" label="Name" value={name} onChange={setName} required autoComplete="name" />
+      <FormField
+        id="name"
+        label="Name"
+        value={name}
+        onChange={setName}
+        required
+        autoComplete="name"
+      />
       <FormField
         id="email"
         label="Email"

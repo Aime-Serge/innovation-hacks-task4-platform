@@ -25,10 +25,7 @@ export function NavBar() {
             href="/"
             className="flex items-center gap-2 font-mono text-sm font-semibold tracking-tight text-text-primary"
           >
-            <span
-              aria-hidden="true"
-              className="inline-block h-2 w-2 rounded-full bg-status-done"
-            />
+            <span aria-hidden="true" className="inline-block h-2 w-2 rounded-full bg-status-done" />
             devdash
           </Link>
           <Link

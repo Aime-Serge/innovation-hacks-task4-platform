@@ -60,13 +60,19 @@ await page.fill("#confirm-password", password);
 await page.click('button[type="submit"]');
 // Registering must not sign you in: it sends you to the login page.
 await page.waitForURL(new RegExp(`^${BASE}/login`), { timeout: 30000 });
-check("register redirects to the login page, not the dashboard", page.url().includes("registered=1"));
+check(
+  "register redirects to the login page, not the dashboard",
+  page.url().includes("registered=1"),
+);
 check(
   "login page confirms the account was created",
   await page.isVisible("text=Account created. Log in to continue."),
 );
 await page.goto(`${BASE}/`, { waitUntil: "networkidle" });
-check("still signed out after registering (dashboard redirects to login)", page.url().includes("/login"));
+check(
+  "still signed out after registering (dashboard redirects to login)",
+  page.url().includes("/login"),
+);
 
 await page.fill("#email", email);
 await page.fill("#password", password);
@@ -167,7 +173,11 @@ await page.click('button:has-text("Change password")');
 await page.waitForSelector("text=Password changed.", { timeout: 30000 });
 check("change-password flow completes", true);
 
-check("no uncaught client-side exceptions during the run", uncaughtErrors.length === 0, uncaughtErrors.join(" | "));
+check(
+  "no uncaught client-side exceptions during the run",
+  uncaughtErrors.length === 0,
+  uncaughtErrors.join(" | "),
+);
 
 console.log(`\n${failures === 0 ? "ALL LIVE CHECKS PASSED" : failures + " CHECK(S) FAILED"}`);
 await browser.close();

@@ -8,7 +8,7 @@ export class ApiError extends Error {
     super(message);
     this.name = "ApiError";
     this.status = status;
-    this.code = code;
+    if (code !== undefined) this.code = code;
   }
 }
 
@@ -52,7 +52,7 @@ export const api = {
   post: <T>(path: string, data?: unknown) =>
     request<T>(path, {
       method: "POST",
-      body: data !== undefined ? JSON.stringify(data) : undefined,
+      ...(data !== undefined ? { body: JSON.stringify(data) } : {}),
     }),
   patch: <T>(path: string, data?: unknown) =>
     request<T>(path, { method: "PATCH", body: JSON.stringify(data) }),
